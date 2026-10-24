@@ -1,7 +1,7 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
-import { ChevronLeft, Walk } from '../components/Icons';
+import { Camera, ChevronLeft, Walk } from '../components/Icons';
 import { Button, FitNote, Photo, RouteBadges, WarnNote } from '../components/ui';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
@@ -15,7 +15,7 @@ import { useApp } from '../state/AppState';
 import type { Booking } from '../types/booking';
 import type { Car } from '../types/listing';
 
-const GALLERY_LABELS = ['Driveway from the street', 'Charger', 'Adapter', 'Your spot', 'Walk to the T'];
+const GALLERY_LABELS = ['Driveway from the street', 'Charger', 'Adapter', 'Your spot'];
 const MAX_KW_SCALE = 12;
 const HOURS_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
 
@@ -101,16 +101,24 @@ export default function ListingPage() {
           Back to search
         </Link>
 
-        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-[18px] sm:grid-cols-2 md:grid-cols-4 md:grid-rows-2">
+        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-[18px] sm:grid-cols-2 md:h-[320px] md:grid-cols-4 md:grid-rows-[1fr_1fr]">
           {gallery.map((g, i) => (
             <Photo
               key={g.label}
               src={g.src}
               index={i}
               label={g.label}
-              className={i === 0 ? 'min-h-[196px] md:col-span-2 md:row-span-2 md:min-h-[400px]' : 'min-h-[196px]'}
+              className={i === 0 ? 'min-h-[180px] md:col-span-2 md:row-span-2 md:min-h-0' : 'min-h-[140px] md:min-h-0'}
             />
           ))}
+          <div
+            className="flex min-h-[140px] flex-col items-center justify-center gap-1 bg-chip text-body md:min-h-0"
+            role="img"
+            aria-label="View more photos"
+          >
+            <Camera size={30} />
+            <span className="px-2 text-center text-[13px] font-bold">View more photos</span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-start gap-10">

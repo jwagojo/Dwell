@@ -242,12 +242,14 @@ export function Photo({
   index = 0,
   label,
   className = '',
+  fit = 'cover',
   children,
 }: {
   src?: string;
   index?: number;
   label?: string;
   className?: string;
+  fit?: 'cover' | 'contain';
   children?: ReactNode;
 }) {
   // A hotlinked photo can disappear. Fall back to the labeled placeholder instead of a broken image.
@@ -267,7 +269,7 @@ export function Photo({
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setFailedSrc(src!)}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
         />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-black/30">
