@@ -18,7 +18,8 @@ export interface Persisted {
   version: number;
   user: User | null;
   car: Car | null;
-  destination: Destination;
+  /** Where the driver is headed. null means "browse the map": search shows chargers in the visible map area. */
+  destination: Destination | null;
   startHour: number;
   hours: number;
   level: LevelFilter;
@@ -57,7 +58,16 @@ export function migrateState(raw: unknown): Persisted {
   if (isObj(saved.booking)) {
     const b = saved.booking as Obj;
     const { destinationId: _legacy, ...rest } = b;
-    booking = { ...(rest as unknown as Booking), destination: isDestination(b.destination) ? b.destination : migrateDestination({ destinationId: b.destinationId }) };
+    booking = {
+      ...(rest as unknown as Booking),
+      // An explicit null is a booking made without a destination; only missing or invalid values are migrated.
+      destination:
+        b.destination === null
+          ? null
+          : isDestination(b.destination)
+            ? b.destination
+            : migrateDestination({ destinationId: b.destinationId }),
+    };
   }
 
   const { destinationId: _drop, ...rest } = saved;
@@ -65,7 +75,8 @@ export function migrateState(raw: unknown): Persisted {
     ...DEFAULTS,
     ...rest,
     version: STATE_VERSION,
-    destination: migrateDestination(saved),
+    // An explicit null means the driver cleared the search box; keep it. Missing or invalid values fall back.
+    destination: saved.destination === null ? null : migrateDestination(saved),
     booking,
   };
 }

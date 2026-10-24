@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LINE_STYLES } from '../../data/transit';
+import type { LatLng } from '../../lib/geo';
 import type { Destination } from '../../types/destination';
 import DestinationPin from './DestinationPin';
 import PricePin from './PricePin';
@@ -28,13 +29,16 @@ function FallbackBanner({ reason }: { reason: string }) {
 }
 
 export function SchematicSearchMap({
+  center,
   destination,
   pins,
   selectedId,
   onSelect,
   reason,
 }: {
-  destination: Destination;
+  /** What the map is centered on: the destination, or a default area when there is none */
+  center: LatLng;
+  destination: Destination | null;
   pins: MapPin[];
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -45,17 +49,18 @@ export function SchematicSearchMap({
     'flex h-11 w-11 items-center justify-center rounded-full border border-pill bg-white text-[20px] font-bold text-ink shadow-pin hover:border-brand';
   return (
     <div className="relative h-full w-full" data-testid="map-fallback">
-      <SchematicMap center={destination} zoom={zoom}>
+      <SchematicMap center={center} zoom={zoom}>
         {({ project }) => (
           <>
-            {(() => {
-              const { x, y } = project(destination);
-              return (
-                <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: x, top: y }}>
-                  <DestinationPin destination={destination} />
-                </div>
-              );
-            })()}
+            {destination &&
+              (() => {
+                const { x, y } = project(destination);
+                return (
+                  <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: x, top: y }}>
+                    <DestinationPin destination={destination} />
+                  </div>
+                );
+              })()}
             {pins.map((p) => {
               const { x, y } = project(p);
               return (

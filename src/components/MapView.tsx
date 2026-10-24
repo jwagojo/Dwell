@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Map as MapboxMap } from 'mapbox-gl';
+import { DEFAULT_DESTINATION } from '../data/destinations';
+import type { GeoBounds } from '../lib/geo';
 import type { Destination } from '../types/destination';
 import DestinationPin from './map/DestinationPin';
 import LiveMap from './map/LiveMap';
@@ -28,39 +30,75 @@ function FitCamera({ map, api, destination, pins }: { map: MapboxMap; api: Mapbo
   return null;
 }
 
+/** Reports the visible area once on mount and again every time the map stops moving (drag, zoom, resize, fit). */
+function BoundsReporter({ map, onChange }: { map: MapboxMap; onChange: (bounds: GeoBounds) => void }) {
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  useEffect(() => {
+    const report = () => {
+      const b = map.getBounds();
+      if (!b) return;
+      onChangeRef.current({ south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() });
+    };
+    report();
+    map.on('moveend', report);
+    return () => {
+      map.off('moveend', report);
+    };
+  }, [map]);
+  return null;
+}
+
 const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches;
 
 /**
- * Search map. Live Mapbox map with price markers and a destination marker; falls back to a clearly labeled
- * schematic when Mapbox is unavailable. Props are the same as the old schematic map.
+ * Search map. Live Mapbox map with price markers and, when a destination is set, a destination marker; falls back
+ * to a clearly labeled schematic when Mapbox is unavailable.
+ *
+ * With a destination the camera fits it and the listings around it. With none (`destination` is null) the camera is
+ * left to the user, and `onBoundsChange` reports the visible area so the page can load chargers for wherever the map is.
  */
 export default function MapView({
   destination,
   pins,
   selectedId,
   onSelect,
+  onBoundsChange,
 }: {
-  destination: Destination;
+  destination: Destination | null;
   pins: MapPin[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onBoundsChange?: (bounds: GeoBounds) => void;
 }) {
+  // Only read when the map is created (or for the schematic fallback). Later moves go through the map itself.
+  const start = destination ?? DEFAULT_DESTINATION;
   return (
     <LiveMap
-      center={destination}
+      center={start}
       zoom={13}
       cooperativeGestures={STACKED_LAYOUT}
-      ariaLabel={`Map of chargers near ${destination.label}`}
+      ariaLabel={destination ? `Map of chargers near ${destination.label}` : 'Map of chargers'}
       fallback={(reason) => (
-        <SchematicSearchMap destination={destination} pins={pins} selectedId={selectedId} onSelect={onSelect} reason={reason} />
+        <SchematicSearchMap
+          center={start}
+          destination={destination}
+          pins={pins}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          reason={reason}
+        />
       )}
     >
       {({ map, api }) => (
         <>
-          <FitCamera map={map} api={api} destination={destination} pins={pins} />
-          <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
-            <DestinationPin destination={destination} />
-          </MapMarker>
+          {onBoundsChange && <BoundsReporter map={map} onChange={onBoundsChange} />}
+          {destination && <FitCamera map={map} api={api} destination={destination} pins={pins} />}
+          {destination && (
+            <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
+              <DestinationPin destination={destination} />
+            </MapMarker>
+          )}
           {pins.map((p) => (
             <MapMarker key={p.id} map={map} api={api} lat={p.lat} lng={p.lng} zIndex={p.id === selectedId ? 20 : 10}>
               <PricePin

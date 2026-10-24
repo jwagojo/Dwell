@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import MapView from '../components/MapView';
 import { InfoNote, Segmented } from '../components/ui';
+import { DEFAULT_DESTINATION } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import {
   SEARCH_RADIUS_M,
@@ -16,9 +17,9 @@ import {
 } from '../features/search/evaluateListing';
 import { todayIndex } from '../lib/availability';
 import { fmtHour, fmtRange } from '../lib/format';
-import { haversineDistanceMeters } from '../lib/geo';
+import { haversineDistanceMeters, isWithinBounds, type GeoBounds } from '../lib/geo';
 import { useApp, type LevelFilter } from '../state/AppState';
-import type { Car } from '../types/listing';
+import type { Car, Listing } from '../types/listing';
 
 const START_HOURS = Array.from({ length: 24 }, (_, h) => h);
 const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -26,16 +27,27 @@ const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 export default function Search() {
   const { user, car: ownCar, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The map area currently on screen. It is only used for listings while there is no destination.
+  const [mapBounds, setMapBounds] = useState<GeoBounds | null>(null);
+  const browseBounds = destination ? null : mapBounds;
 
-  const [toText, setToText] = useState(destination.label);
+  const [toText, setToText] = useState(destination?.label ?? '');
   // Keep the box in sync when the destination changes elsewhere (landing, host home).
-  useEffect(() => setToText(destination.label), [destination.id, destination.label]);
+  useEffect(() => setToText(destination?.label ?? ''), [destination?.id, destination?.label]);
   const dayIndex = todayIndex();
 
   const { shown, hiddenByPlug, notOpen } = useMemo(() => {
     const win = { startHour, hours, dayIndex };
+    // Destination: chargers within walking range of it. No destination: chargers inside the visible map area
+    // (before the map has reported its bounds, or if it never loads, the area around the default station).
+    const inArea = (l: Listing) =>
+      destination
+        ? haversineDistanceMeters(l, destination) <= SEARCH_RADIUS_M
+        : browseBounds
+          ? isWithinBounds(l, browseBounds)
+          : haversineDistanceMeters(l, DEFAULT_DESTINATION) <= SEARCH_RADIUS_M;
     const evaluated = listings
-      .filter((l) => haversineDistanceMeters(l, destination) <= SEARCH_RADIUS_M)
+      .filter(inArea)
       .filter((l) => level === 'any' || l.level === level)
       .map((l) => evaluateListing(l, activeCar, destination, win))
       .filter((e): e is Evaluation => e !== null);
@@ -47,7 +59,7 @@ export default function Search() {
         sort,
       ),
     };
-  }, [listings, destination, level, activeCar, startHour, hours, dayIndex, sort]);
+  }, [listings, destination, browseBounds, level, activeCar, startHour, hours, dayIndex, sort]);
 
   if (!user) return <Navigate to="/signup/driver" replace />;
 
@@ -64,14 +76,18 @@ export default function Search() {
           <DestinationSearch
             label="To"
             value={toText}
-            placeholder="T station or address"
-            onInputChange={setToText}
+            placeholder="Optional: T station or address"
+            onInputChange={(text) => {
+              setToText(text);
+              // An empty box means "no destination": drag the map to find chargers anywhere.
+              if (text.trim() === '' && destination) update({ destination: null });
+            }}
             onSelect={(d) => {
               setToText(d.label);
               update({ destination: d });
             }}
-            // Leaving the box without choosing a suggestion puts the current destination back.
-            onBlur={() => setToText(destination.label)}
+            // Leaving the box without choosing a suggestion puts the current destination back (or leaves it empty).
+            onBlur={() => setToText(destination?.label ?? '')}
           />
         </div>
 
@@ -150,13 +166,16 @@ export default function Search() {
             }))}
             selectedId={effectiveSelected}
             onSelect={setSelectedId}
+            onBoundsChange={setMapBounds}
           />
         </div>
 
         <section aria-label="Chargers" className="flex flex-col gap-4 px-6 py-5 lg:w-[min(720px,55%)] lg:shrink-0 lg:overflow-y-auto">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">Chargers near {destination.label}</h1>
+              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">
+                {destination ? `Chargers near ${destination.label}` : 'Chargers in this map area'}
+              </h1>
               <p className="text-[14px] font-semibold text-muted">
                 {shown.length} charger{shown.length === 1 ? '' : 's'} · {fmtRange(startHour, hours)} · prices for your {activeCar.name}
               </p>
@@ -173,6 +192,9 @@ export default function Search() {
             />
           </div>
 
+          {!destination && (
+            <InfoNote>Showing chargers in the area of the map. Drag or zoom the map to look somewhere else. Add a destination to see walk times and Green Scores.</InfoNote>
+          )}
           {hiddenByPlug > 0 && (
             <InfoNote>
               {hiddenByPlug === 1
@@ -188,7 +210,9 @@ export default function Search() {
 
           {shown.length === 0 ? (
             <div className="rounded-2xl border border-line p-6 text-[16px] text-body">
-              No chargers near {destination.label} for this filter yet.
+              {destination
+                ? `No chargers near ${destination.label} for this filter yet.`
+                : 'No chargers in this part of the map for this filter yet. Drag or zoom the map to look somewhere else.'}
             </div>
           ) : (
             <div className="flex flex-col gap-3.5">

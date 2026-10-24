@@ -14,13 +14,13 @@ export default function ListingCard({
 }: {
   ev: Evaluation;
   car: Car;
-  destination: Destination;
+  destination: Destination | null;
   selected: boolean;
   onSelect: () => void;
 }) {
   const l = ev.listing;
   // Routes exist only for T stations. Addresses get none: we do not invent transit service.
-  const routes = destination.routes ?? [];
+  const routes = destination?.routes ?? [];
   const usesAdapter = l.plug !== car.plug && ev.plugOk;
 
   return (
@@ -64,7 +64,7 @@ export default function ListingCard({
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <WalkChip minutes={ev.walkMinutes} />
+          {ev.walkMinutes !== null && <WalkChip minutes={ev.walkMinutes} />}
           {routes.length > 0 && <RouteBadges routes={routes} max={5} />}
         </div>
 

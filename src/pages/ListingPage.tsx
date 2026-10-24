@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import DestinationSearch from '../components/DestinationSearch';
 import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
 import { ChevronLeft, Walk } from '../components/Icons';
-import { Button, FitNote, Photo, RouteBadges, WarnNote } from '../components/ui';
+import { Button, FitNote, InfoNote, Photo, RouteBadges, WarnNote } from '../components/ui';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
 import { GREEN_REF_CO2_KG, GREEN_REF_TRANSIT_MILES, GREEN_WEIGHTS, LATE_MULTIPLIER, SERVICE_FEE } from '../engines/constants';
@@ -40,6 +42,7 @@ export default function ListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, car: ownCar, activeCar, destination, startHour, hours, listings, update } = useApp();
+  const [tripText, setTripText] = useState('');
 
   const listing = listings.find((l) => l.id === id);
   if (!user) return <Navigate to="/signup/driver" replace />;
@@ -59,6 +62,9 @@ export default function ListingPage() {
 
   const ev = evaluateListing(listing, activeCar, destination, { startHour, hours, dayIndex: todayIndex() });
   if (!ev) return <Navigate to="/search" replace />;
+
+  // The walk exists only when the driver has a destination.
+  const walk = destination && ev.walkMinutes !== null && ev.walkMeters !== null ? { minutes: ev.walkMinutes, meters: ev.walkMeters } : null;
 
   const bill = settle({ price_per_hr: ev.pricePerHr, booked_hours: hours, booked_end_timestamp: 0, pickup_timestamp: 0 });
   const subtotal = bill.ok ? bill.value.subtotal : 0;
@@ -138,6 +144,26 @@ export default function ListingPage() {
               </dl>
             </section>
 
+            {!destination || !walk ? (
+              <section className="flex flex-col gap-4" aria-labelledby="trip">
+                <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Where are you headed?</h2>
+                <div className="flex flex-col gap-3 rounded-2xl border border-line p-4">
+                  <p className="text-[14px] text-muted">
+                    Add a destination to see the walk, the routes you can ride and the Green Score for this charger.
+                  </p>
+                  <DestinationSearch
+                    label="Destination"
+                    value={tripText}
+                    placeholder="T station or address"
+                    onInputChange={setTripText}
+                    onSelect={(d) => {
+                      setTripText('');
+                      update({ destination: d });
+                    }}
+                  />
+                </div>
+              </section>
+            ) : (
             <section className="flex flex-col gap-4" aria-labelledby="trip">
               <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Your trip to {destination.label}</h2>
               <div className="divide-y divide-line rounded-2xl border border-line">
@@ -147,7 +173,7 @@ export default function ListingPage() {
                   </span>
                   <div>
                     <p className="text-[16px] font-extrabold text-ink">
-                      {ev.walkMinutes} min walk · {metersToMiles(ev.walkMeters).toFixed(1)} mi
+                      {walk.minutes} min walk · {metersToMiles(walk.meters).toFixed(1)} mi
                     </p>
                     <p className="text-[14px] text-muted">
                       Estimated from straight-line distance, from {listing.street} to {destination.label}
@@ -177,6 +203,7 @@ export default function ListingPage() {
                 )}
               </div>
             </section>
+            )}
 
             <section className="flex flex-col gap-4" aria-labelledby="fit">
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -240,7 +267,11 @@ export default function ListingPage() {
                   </p>
                 )}
               </div>
-              {t && ev.solarShare !== null ? (
+              {!destination ? (
+                <InfoNote>
+                  The Green Score includes the transit miles to where you’re headed. Add a destination above to see it.
+                </InfoNote>
+              ) : t && ev.solarShare !== null ? (
                 <div className="overflow-x-auto rounded-2xl border border-line">
                   <table className="w-full min-w-[520px] border-collapse text-left text-[14px]">
                     <thead className="bg-surface text-muted">
@@ -281,7 +312,7 @@ export default function ListingPage() {
                 <WarnNote>Solar data unavailable, so we can’t show a Green Score right now.</WarnNote>
               )}
               <p className="text-[13px] leading-[1.55] text-muted">
-                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. Transit miles are the straight-line distance to {destination.label}. Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
+                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. Transit miles are the straight-line distance to {destination ? destination.label : 'your destination'}. Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
               </p>
             </section>
 

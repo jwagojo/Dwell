@@ -62,7 +62,7 @@ function HeroArt() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            <WalkChip minutes={featured.walkMinutes} />
+            {featured.walkMinutes !== null && <WalkChip minutes={featured.walkMinutes} />}
             <RouteBadge route="Red Line" />
           </div>
           <div className="flex flex-wrap items-center gap-3 text-[14px] font-semibold text-body">

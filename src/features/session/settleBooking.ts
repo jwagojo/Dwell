@@ -38,12 +38,14 @@ export function settleBooking(b: Booking, listing: Listing, pickupAt: number, fl
       booked_hours: b.hours,
       solar_share: share.value,
       estimated_miles_added: milesAdded,
-      transit_miles: metersToMiles(haversineDistanceMeters(listing, b.destination)),
     };
     const emissions = computeEmissions(input);
     if (emissions.ok) co2Kg = Math.max(emissions.value.gas_co2_saved_kg, 0);
-    const g = computeGreenScore(input);
-    if (g.ok) greenScore = g.value;
+    // The Green Score has a transit-miles term, so it needs a destination.
+    if (b.destination) {
+      const g = computeGreenScore({ ...input, transit_miles: metersToMiles(haversineDistanceMeters(listing, b.destination)) });
+      if (g.ok) greenScore = g.value;
+    }
   }
 
   return {

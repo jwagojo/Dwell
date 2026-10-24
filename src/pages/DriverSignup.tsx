@@ -5,7 +5,7 @@ import { CheckboxCard, ChoiceGroup, SelectField, TextField } from '../components
 import Header from '../components/Header';
 import { AutoGrid, Button, StatTile } from '../components/ui';
 import { EV_MODELS, OTHER_CAR_ID, carById } from '../data/evFallbackSeed';
-import { stationIdToDestination } from '../data/destinations';
+import { DEFAULT_DESTINATION, stationIdToDestination } from '../data/destinations';
 import { STATIONS } from '../data/stations';
 import type { Plug } from '../engines/plug';
 import { useApp } from '../state/AppState';
@@ -33,7 +33,7 @@ export default function DriverSignup() {
     customKw: '',
     customPlug: null as Plug | null,
     plate: '',
-    destination: (initialTo && STATIONS.some((s) => s.id === initialTo) ? stationIdToDestination(initialTo) : savedDestination) as Destination,
+    destination: (initialTo && STATIONS.some((s) => s.id === initialTo) ? stationIdToDestination(initialTo) : (savedDestination ?? DEFAULT_DESTINATION)) as Destination,
     destinationText: '',
     terms: false,
   });

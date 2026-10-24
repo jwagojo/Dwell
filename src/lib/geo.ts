@@ -17,6 +17,20 @@ export function haversineDistanceMeters(a: LatLng, b: LatLng): number {
 
 export const metersToMiles = (m: number) => m / 1609.344;
 
+/** A visible map rectangle. `west > east` means it crosses the antimeridian. */
+export interface GeoBounds {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+}
+
+/** True when the point is inside the rectangle (edges included). Used to load listings for the visible map area. */
+export function isWithinBounds(p: LatLng, b: GeoBounds): boolean {
+  if (p.lat < b.south || p.lat > b.north) return false;
+  return b.west <= b.east ? p.lng >= b.west && p.lng <= b.east : p.lng >= b.west || p.lng <= b.east;
+}
+
 /** Move a point by metres north and east. Used by the pin nudge buttons. */
 export const offsetMeters = (p: LatLng, northMeters: number, eastMeters: number): LatLng => ({
   lat: p.lat + northMeters / 111_195,
