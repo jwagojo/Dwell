@@ -8,7 +8,8 @@ coverage/
 # Local environment (only .env.example is tracked)
 .env
 .env.*
-!.env.example
+.env.local
+.env.example
 *.local
 
 # OS and editor noise
