@@ -25,57 +25,59 @@ To maximize network density, Dwell eliminates technical onboarding barriers for 
 - **Simulated Checkout:** Built-in prototype payment flow to demonstrate end-to-end reservation, billing, and host payouts.
 
 ---
+## How We Used Kiro
 
-## Spec-Driven Development & Planning
+### Spec-Driven Development & Planning
 
 We started with a master Markdown file created using spec-driven development, which outlined:
-* Product concept and intended features
-* User flows
-* Technical choices
-* Pricing rules
+- Product concept and intended features
+- User flows
+- Technical choices
+- Pricing rules
 
 As the specification expanded, we needed individual development tasks to receive relevant context without repeatedly passing the entire master document. Kiro’s spec planning and subagents divided the master file into:
-* **Requirements:** Defining what the product needed to do
-* **Design:** Specifying how the system would work
-* **Tasks:** Outlining the concrete implementation steps
+- **Requirements:** Defining what the product needed to do
+- **Design:** Specifying how the system would work
+- **Tasks:** Outlining the concrete implementation steps
 
----
-
-## Agentic Development & Steering Documents
+### Agentic Development & Steering Documents
 
 We utilized Kiro's built-in code assist for agentic development alongside its structured spec workflow to build features incrementally while referencing shared requirements and design.
 
 Kiro generated a dedicated steering folder derived from the master specification containing:
-* **Technology documents**
-* **Structure documents**
-* **Product documents**
-* **Project rules**
+- **Technology documents**
+- **Structure documents**
+- **Product documents**
+- **Project rules**
 
 These steering documents provided agent prompts with a persistent reference point for Dwell’s purpose, technical approach, and architecture. Every agent prompt validated against these steering documents to ensure feature development remained aligned with original application rules.
 
----
-
-## Implementation & Map Integration
+### Implementation & Map Integration
 
 During the implementation phase, Kiro assisted with:
-* **Frontend Coordination:** Bringing together steering files, project modules, and design configuration.
-* **Mapbox GL JS Integration:** Powering Dwell's core journey of discovering parking and charging near a destination.
-* **Address Indexing:** Supporting address search and location entry for both hosts listing chargers and customers seeking destinations.
-* **Dynamic Map Exploration:** Implementing a scrolling map feature that delivers non-bounded scrolling results across explored cities.
+- **Frontend Coordination:** Bringing together steering files, project modules, and design configuration.
+- **Mapbox GL JS Integration:** Powering Dwell's core journey of discovering parking and charging near a destination.
+- **Address Indexing:** Supporting address search and location entry for both hosts listing chargers and customers seeking destinations.
+- **Dynamic Map Exploration:** Implementing a scrolling map feature that delivers non-bounded scrolling results across explored cities.
 
----
-
-## Mock Data & Testing
+### Mock Data & Testing
 
 Kiro's planning workflow guided our mock data strategy for charger listings across Boston and Cambridge:
-* Structured data schema handling IDs, latitude and longitude coordinates, addresses, and related metadata.
-* Planned edge-case test suites to ensure generated mock data rendered reliably across the application interface.
+- Structured data schema handling IDs, latitude and longitude coordinates, addresses, and related metadata.
+- Planned edge-case test suites to ensure generated mock data rendered reliably across the application interface.
+
+### Key Takeaway
+
+Kiro's primary benefit was translating a large product specification into modular, focused documents and an actionable sequence of tasks. Our team developed individual components of Dwell efficiently while maintaining consistency through our requirements, design, tasks, and steering documentation.
 
 ---
 
-## Key Takeaway
+## Tech Stack & Architecture
 
-Kiro's primary benefit was translating a large product specification into modular, focused documents and an actionable sequence of tasks. Our team developed individual components of Dwell efficiently while maintaining consistency through our requirements, design, tasks, and steering documentation.
+- **Development Environment:** Kiro IDE
+- **Mapping & Geolocation:** Mapbox GL JS
+- **Rate Intelligence:** U.S. Energy Information Administration (EIA) residential electricity datasets
+- **Application Architecture:** Modern full-stack prototype handling search, listings, booking state management, location verification, and simulated transactions.
 
 - **Development Environment:** Kiro IDE
 - **Rate Intelligence:** U.S. Energy Information Administration (EIA) residential electricity datasets
