@@ -46,8 +46,8 @@ describe('mockListings.json', () => {
     // money
     expect(l.rate).toBeGreaterThanOrEqual(0.05);
     expect(l.rate).toBeLessThanOrEqual(1);
-    expect(l.earningsHr).toBeGreaterThan(0);
-    expect(l.earningsHr).toBeLessThanOrEqual(5.5); // 2x the suggested $2.75
+    expect(l.earningsHr).toBeGreaterThanOrEqual(1.5); // mock hosts earn $1.50 to $2.00 per hour
+    expect(l.earningsHr).toBeLessThanOrEqual(2);
 
     // availability
     expect(l.windows.length).toBeGreaterThan(0);

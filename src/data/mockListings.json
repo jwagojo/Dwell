@@ -31,7 +31,7 @@
       "spots": 1,
       "hostName": "Priya",
       "rate": 0.3,
-      "earningsHr": 2.75,
+      "earningsHr": 1.5,
       "windows": [
         {
           "id": "w1",
@@ -76,7 +76,7 @@
       "spots": 1,
       "hostName": "Tom",
       "rate": 0.3,
-      "earningsHr": 3.5,
+      "earningsHr": 1.95,
       "windows": [
         {
           "id": "w1",
@@ -120,7 +120,7 @@
       "spots": 2,
       "hostName": "Eleanor",
       "rate": 0.3,
-      "earningsHr": 2.25,
+      "earningsHr": 1.7,
       "windows": [
         {
           "id": "w1",
@@ -162,7 +162,7 @@
       "spots": 1,
       "hostName": "Marcus",
       "rate": 0.31,
-      "earningsHr": 2.0,
+      "earningsHr": 1.65,
       "windows": [
         {
           "id": "w1",
@@ -206,7 +206,7 @@
       "spots": 1,
       "hostName": "Hana",
       "rate": 0.3,
-      "earningsHr": 1.25,
+      "earningsHr": 1.5,
       "windows": [
         {
           "id": "w1",
@@ -248,7 +248,7 @@
       "spots": 1,
       "hostName": "Jon",
       "rate": 0.3,
-      "earningsHr": 2.75,
+      "earningsHr": 1.8,
       "windows": [
         {
           "id": "w1",
@@ -292,7 +292,7 @@
       "spots": 1,
       "hostName": "Aisha",
       "rate": 0.3,
-      "earningsHr": 3.25,
+      "earningsHr": 1.9,
       "windows": [
         {
           "id": "w1",
@@ -336,7 +336,7 @@
       "spots": 1,
       "hostName": "Carl",
       "rate": 0.3,
-      "earningsHr": 1.75,
+      "earningsHr": 1.6,
       "windows": [
         {
           "id": "w1",
@@ -380,7 +380,7 @@
       "spots": 1,
       "hostName": "Noor",
       "rate": 0.31,
-      "earningsHr": 2.5,
+      "earningsHr": 1.75,
       "windows": [
         {
           "id": "w1",
@@ -424,7 +424,7 @@
       "spots": 1,
       "hostName": "Elena",
       "rate": 0.31,
-      "earningsHr": 2.25,
+      "earningsHr": 1.7,
       "windows": [
         {
           "id": "w1",
@@ -468,7 +468,7 @@
       "spots": 1,
       "hostName": "Ben",
       "rate": 0.3,
-      "earningsHr": 3.0,
+      "earningsHr": 1.85,
       "windows": [
         {
           "id": "w1",
@@ -512,7 +512,7 @@
       "spots": 1,
       "hostName": "Maya",
       "rate": 0.3,
-      "earningsHr": 2.75,
+      "earningsHr": 1.8,
       "windows": [
         {
           "id": "w1",
@@ -557,7 +557,7 @@
       "spots": 1,
       "hostName": "Sam",
       "rate": 0.3,
-      "earningsHr": 3.5,
+      "earningsHr": 1.95,
       "windows": [
         {
           "id": "w1",
@@ -603,7 +603,7 @@
       "spots": 1,
       "hostName": "Grace",
       "rate": 0.3,
-      "earningsHr": 2.25,
+      "earningsHr": 1.7,
       "windows": [
         {
           "id": "w1",
@@ -648,7 +648,7 @@
       "spots": 1,
       "hostName": "David",
       "rate": 0.3,
-      "earningsHr": 2.0,
+      "earningsHr": 1.65,
       "windows": [
         {
           "id": "w1",
@@ -691,7 +691,7 @@
       "spots": 1,
       "hostName": "Luis",
       "rate": 0.3,
-      "earningsHr": 2.5,
+      "earningsHr": 1.75,
       "windows": [
         {
           "id": "w1",
@@ -736,7 +736,7 @@
       "spots": 1,
       "hostName": "Rosa",
       "rate": 0.3,
-      "earningsHr": 2.75,
+      "earningsHr": 1.8,
       "windows": [
         {
           "id": "w1",
@@ -781,7 +781,7 @@
       "spots": 1,
       "hostName": "Naomi",
       "rate": 0.3,
-      "earningsHr": 1.75,
+      "earningsHr": 1.6,
       "windows": [
         {
           "id": "w1",
@@ -838,7 +838,7 @@
       "spots": 1,
       "hostName": "Victor",
       "rate": 0.3,
-      "earningsHr": 3.75,
+      "earningsHr": 2.0,
       "windows": [
         {
           "id": "w1",
