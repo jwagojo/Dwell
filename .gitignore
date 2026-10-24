@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+coverage/
+
+# Local environment (only .env.example is tracked)
+.env
+.env.*
+!.env.example
+*.local
+
+# OS and editor noise
+.DS_Store
+
+# Amplify Gen 2 local sandbox state
+.amplify/
+
+# NOTE: amplify_outputs.json is intentionally not listed yet.
+# Whether it is committed or generated per developer is a team decision
+# for the Amplify backend tasks (tasks.md 1.2 / 11.4).

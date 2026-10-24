@@ -74,7 +74,7 @@ Because the price covers the car's maximum possible draw, it is an upper bound o
 | Prius-class (3 kW max) | 3 kW | $0.90 | $2.40 | $10.56 | about 42 mi |
 | Tesla-class (11 kW max) | 9.6 kW | $2.88 | $4.38 | $19.27 | about 134 mi |
 
-- **Electricity rate (MVP):** one average residential $/kWh per zip from the NREL Utility Rates API (free key); the host can override it. MA residential is about $0.30/kWh, so verify the lookup against that.
+- **Electricity rate (MVP):** the Massachusetts statewide average residential price from the EIA Open Data API (free key), published monthly in cents/kWh and converted to $/kWh. It is a statewide estimate, not ZIP-specific or utility-specific, and EIA reports it a couple of months late; the app shows the data month. The host can override it with the rate on their bill. If the lookup fails, use $0.30/kWh, labeled as a fallback estimate.
 - **Electricity rate (flex):** full rate structures from the OpenEI Utility Rate Database, including time-of-use rates. If used, price against the highest rate in the booking window so the price stays an upper bound.
 - **Unknown car:** assume it can draw the charger's full power. This keeps the host safe.
 - **Host earnings ceiling:** 2x the app's suggested earnings, based on local parking rates [PLACEHOLDER]
@@ -139,7 +139,7 @@ G = w1 x solar share + w2 x min(transit miles / r2, 1) + w3 x min(gas CO2 saved 
 | Map and walking time | Mapbox GL JS | Needs a free public access token; restrict it by URL |
 | Location check | Browser Geolocation API | Checks the phone is near the listing at Pickup; EXIF location is unreliable |
 | Car charging speed | Open EV Data (JSON, free) loaded into DynamoDB, plus a seeded fallback table | Has each car's max AC kW; verify US models first |
-| Electricity rates | MVP: NREL Utility Rates API (free key). Flex: OpenEI URDB | One average $/kWh per location now; detailed rate structures later |
+| Electricity rates | MVP: EIA Open Data API (free key), Massachusetts residential average. Flex: OpenEI URDB (separate integration) | One statewide estimate in $/kWh now; utility tariffs and time-of-use later |
 | AI (flex) | Amazon Bedrock via an Amplify function | In-app model call; price stays a formula |
 | Coding | Kiro | Development tool only; the deployed app does not call it |
 | Transit | MBTA V3 API | Real stations, stops, routes, and schedules (no trip planner) |
@@ -149,7 +149,7 @@ DynamoDB can't do "within X miles" queries, so we filter by distance in the fron
 
 **Build order:** (1) frontend shell and map with seeded listings, (2) data: DynamoDB schema, seed hosts, car table, (3) booking flow, (4) host listing with S3 photos, (5) estimates, (6) car-based pricing, (7) Pickup check.
 
-**Before the event:** one person completes the Amplify Gen 2 quickstart, someone creates the Mapbox token and the NREL/OpenEI API key, and we check the rules on allowed pre-event setup.
+**Before the event:** one person completes the Amplify Gen 2 quickstart, someone creates the Mapbox token and the EIA API key, and we check the rules on allowed pre-event setup.
 
 ## 9. Demo video (3 minutes, recorded)
 
@@ -205,7 +205,7 @@ Story: **book, park, charge, go.**
 - Added Pickup (browser location check plus photo) as the session end.
 - Late fee set to 1.5x the hourly price, prorated per minute, with no grace period.
 - No refund for unused hours on early pickup.
-- Electricity rates from NREL (MVP) and OpenEI (flex); car kW from Open EV Data.
+- Electricity rates from the EIA Open Data API (MVP, statewide average) and OpenEI (flex, separate); car kW from Open EV Data.
 - Moved the cheapest/fastest trip sort to flex.
 - Removed the hero-scenario line.
 

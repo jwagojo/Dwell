@@ -4,7 +4,7 @@
 
 VoltLot is a peer-to-peer "charge-and-ride" marketplace for Massachusetts EV drivers. Hosts list idle residential L1/L2 chargers and driveways; Customers book a time window, park, plug in without a key handoff, charge, and continue by MBTA transit or on foot. Because Hosts have no smart meters, the economic safety of the platform rests on a single guarantee: the hourly price is **deterministic and formula-driven**, mathematically bounded to always cover the maximum possible electricity draw of the specific car booked — both during the reservation and during any overstay.
 
-This design realizes the five requirements through a thin, reactive React frontend over an AWS Amplify Gen 2 backend, with all money- and climate-affecting logic factored into **pure, deterministic TypeScript engines** (`Pricing_Engine`, `Billing_Engine`, `Climate_Engine`, `Rate_Service`). Keeping these engines free of I/O and framework state is a deliberate design decision: it makes the two PBT invariants in the requirements (Host Cost Upper-Bound, Green Score Bounds) directly unit- and property-testable, and it isolates external-API variability (NREL, Mapbox, MBTA, Open-Meteo, Bedrock) behind adapter boundaries.
+This design realizes the five requirements through a thin, reactive React frontend over an AWS Amplify Gen 2 backend, with all money- and climate-affecting logic factored into **pure, deterministic TypeScript engines** (`Pricing_Engine`, `Billing_Engine`, `Climate_Engine`, `Rate_Service`). Keeping these engines free of I/O and framework state is a deliberate design decision: it makes the two PBT invariants in the requirements (Host Cost Upper-Bound, Green Score Bounds) directly unit- and property-testable, and it isolates external-API variability (EIA, Mapbox, MBTA, Open-Meteo, Bedrock) behind adapter boundaries.
 
 Key design decisions and rationale:
 
@@ -15,7 +15,7 @@ Key design decisions and rationale:
 
 ## Architecture
 
-The system is a single-page React 18 app served from Amplify Hosting, talking to an Amplify Gen 2 backend (Cognito auth, DynamoDB data, S3 storage, one Lambda function). External APIs are reached from the client where they are public/token-restricted (Mapbox, MBTA, Open-Meteo, NREL) and from a Lambda only where a secret or model access is required (Bedrock).
+The system is a single-page React 18 app served from Amplify Hosting, talking to an Amplify Gen 2 backend (Cognito auth, DynamoDB data, S3 storage, one Lambda function). External APIs are reached from the client where they are public/token-restricted (Mapbox, MBTA, Open-Meteo, EIA) and from a Lambda only where a secret or model access is required (Bedrock).
 
 ```mermaid
 graph TB
@@ -47,7 +47,7 @@ graph TB
     subgraph External["External APIs"]
         MAPBOX[Mapbox GL JS<br/>restricted public token]
         MBTA[MBTA V3 API]
-        NREL[NREL Utility Rates +<br/>OpenEI URDB]
+        EIA[EIA Open Data API<br/>MA residential average]
         METEO[Open-Meteo irradiance]
         BEDROCK[Amazon Bedrock]
     end
@@ -69,7 +69,7 @@ graph TB
     PS --> UP
     PS --> BE
 
-    RS --> NREL
+    RS --> EIA
     CE --> METEO
     UP --> STOR
     COF --> FN
@@ -80,7 +80,7 @@ graph TB
 
 Request-flow notes:
 
-- **Onboarding (Req 1):** Cognito Hosted/managed auth gates both role flows. On ZIP entry the `Rate_Service` calls NREL (5s budget) and falls back to $0.30/kWh. Driveway photo goes through the unified S3 upload (30s budget, retry on failure).
+- **Onboarding (Req 1):** Cognito Hosted/managed auth gates both role flows. Once the address has a supported Massachusetts ZIP, the `Rate_Service` gets the statewide EIA residential average (one cached fetch, 5s budget) and falls back to a labeled $0.30/kWh estimate. Driveway photo goes through the unified S3 upload (30s budget, retry on failure).
 - **Search (Req 2):** The client reads active listings from DynamoDB, filters by client-side Haversine against the search radius, then enriches with Mapbox walk times and MBTA transit (each 10s budget, partial-render on failure). `Listing_Card` renders per-car price (`Pricing_Engine`) and Green Score (`Climate_Engine`).
 - **Pricing/Billing (Req 3):** Pure engines compute price at listing render and final settlement at Pickup tap.
 - **Climate (Req 4):** `Climate_Engine` consumes Open-Meteo hourly irradiance (10s budget) and computes solar share and Green Score.
@@ -199,15 +199,20 @@ The overnight case (every `usable_solar_kW(h) = 0`) yields `solar_share` with ab
 The deterministic selection logic (which rate to use, how to apply TOU) is a pure function; the network call and timeout are in an adapter.
 
 ```typescript
+// The adapter returns EIA's value as published: cents per kWh, plus the month it describes.
+interface EiaRate { centsPerKwh: number; period: string /* "YYYY-MM" */ }
+
 interface RateResolution {
-  local_rate: number;        // $/kWh
-  source: "NREL" | "OpenEI_TOU" | "DEFAULT_0_30";
+  local_rate: number;        // $/kWh = centsPerKwh / 100
+  source: "EIA" | "OpenEI_TOU" | "DEFAULT_0_30";
+  dataMonth: string | null;  // EIA data month, null for the fallback
   overridable: true;
 }
 
-// Pure: decide the effective rate given whatever the adapter returned (or null on timeout).
-function resolveRate(nrelRate: number | null, touRate: number | null): RateResolution;
-// Default path returns { local_rate: 0.30, source: "DEFAULT_0_30" } (Req 1.7).
+// Pure: decide the effective rate given whatever the adapter returned (or null on timeout/invalid data).
+// The MVP takes only the EIA value. OpenEI_TOU is reserved for the separate flex integration.
+function resolveRate(eia: EiaRate | null): RateResolution;
+// Default path returns { local_rate: 0.30, source: "DEFAULT_0_30", dataMonth: null } (Req 1.7).
 ```
 
 ## Data Models
@@ -244,7 +249,9 @@ const schema = a.schema({
       solar_kW: a.float().required(),
       num_spots: a.integer().required(),
       host_earnings_hr: a.float().required(), // capped at 2x suggested parking rate (Req 1.5)
-      local_rate: a.float().required(),        // NREL or $0.30 default (Req 1.6/1.7)
+      local_rate: a.float().required(),        // EIA statewide estimate, $0.30 fallback estimate, or the host's own rate (Req 1.6/1.7)
+      rate_source: a.enum(["EIA", "FALLBACK", "HOST"]),
+      rate_data_month: a.string(),             // "YYYY-MM" when rate_source is EIA
       availability_daytime: a.string(),        // serialized window(s)
       availability_overnight: a.string(),
       listing_photo_key: a.string(),           // S3 key, unified upload (Req 1.4)
@@ -301,12 +308,12 @@ Each integration is wrapped in an adapter that owns its timeout and fallback, ke
 
 - **Mapbox GL JS (restricted public token)** — *Requirement 2.1, 2.4.* Client-side walking time and distance to the destination; token is domain-restricted. Also renders the map. **10s** budget; on failure/timeout the Search_Service shows an error for the walk-time field but still renders the remaining listings. Client-side **Haversine** distance filtering over DynamoDB listings runs locally first so results exist even if Mapbox is degraded.
 - **MBTA V3 API** — *Requirement 2.1, 2.4.* Nearby T stations, commuter rail, bus stops, routes, and schedules within the search radius. **10s** budget; partial-render on failure (transit section shows an error, listings still render).
-- **NREL Utility Rates API + $0.30 fallback + OpenEI URDB** — *Requirement 1.6, 1.7.* On 5-digit MA ZIP entry, the `Rate_Service` adapter queries NREL residential average $/kWh with a **5s** budget and auto-populates `local_rate` (Host may override). On unavailability/timeout it defaults to **$0.30/kWh**. OpenEI URDB provides Time-of-Use rate schedules for the flex path; `resolveRate` chooses the effective value deterministically.
+- **EIA Open Data API v2 + $0.30 fallback** — *Requirement 1.6, 1.7.* Once the Host's address has a supported Massachusetts ZIP, the `Rate_Service` adapter requests `https://api.eia.gov/v2/electricity/retail-sales/data/` with `frequency=monthly`, `data[0]=price`, `facets[stateid][]=MA`, `facets[sectorid][]=RES`, sorted by `period` descending, within a **5s** budget. It validates the response (Massachusetts residential row, `YYYY-MM` period, numeric price, units "cents per kilowatt-hour", plausible range) and keeps the latest valid record and its data month. EIA returns **cents/kWh**, so `resolveRate` divides by 100 to get dollars/kWh and auto-populates `local_rate`. **Granularity and lag:** the value is one Massachusetts statewide residential average; it is not ZIP-specific or utility-specific (the ZIP only identifies the supported location), and EIA publishes it a couple of months behind, so the UI shows "Massachusetts residential average · EIA · [data month]" and the Host may override it with their bill. A manually edited rate is never overwritten. The statewide result is cached centrally (in memory and local storage, 24 hours; failures for 60 seconds), so changing ZIPs does not refetch. On unavailability, timeout, an error, or invalid data it defaults to a labeled **$0.30/kWh** fallback estimate. The rate is an estimate and does not guarantee coverage of a Host's actual electricity costs. With no backend yet the key is a browser-visible `VITE_EIA_API_KEY`; production should call EIA from a server. OpenEI URDB (utility tariffs and Time-of-Use) is a **separate future integration** for the flex path, not part of this lookup.
 - **Open-Meteo hourly irradiance** — *Requirement 4.1, 4.2.* Free, no API key; returns hourly irradiance `I_h` (W/m^2) across the booking window. **10s** budget. If the fetch fails, times out, or returns fewer hourly values than `booked_hours`, the `Climate_Engine` aborts, leaves any stored score unchanged, and returns a "solar data unavailable" error.
 - **Amazon Bedrock via `defineFunction`** — *Requirement 1.9.* A single Lambda (`bedrockKwLookup`) invoked only when an EVSpec Make/Model/Year lookup misses. It returns a candidate `car_max_AC_kW`; if it too fails, the flow falls back to manual entry, then to the worst-case `charger_kW` default (Req 1.10). Bedrock output never enters any pricing formula.
 - **Browser Geolocation API** — *Requirement 5.3, 5.4, 5.6, 5.7.* `navigator.geolocation.getCurrentPosition` with a **30s** acquisition timeout; distance computed via Haversine against listing coordinates. The **S3** uploads (listing/arrival/pickup) also use a **30s** completion budget (Req 1.4, 5.2).
 
-Timeout budget summary: NREL **5s**; Mapbox / MBTA / Open-Meteo **10s**; S3 uploads and geolocation acquisition **30s**.
+Timeout budget summary: EIA **5s**; Mapbox / MBTA / Open-Meteo **10s**; S3 uploads and geolocation acquisition **30s**.
 
 ## Correctness Properties
 
@@ -342,7 +349,7 @@ Error handling maps the IF/THEN acceptance criteria to concrete strategies. The 
 
 ### API Timeout Fallbacks
 
-- **NREL rate (Req 1.6, 1.7).** 5s budget. On success, auto-populate `local_rate` (overridable). On unavailability/timeout, `resolveRate(null, …)` defaults to **$0.30/kWh** (`source: DEFAULT_0_30`), still overridable.
+- **EIA rate (Req 1.6, 1.7).** 5s budget. On success, auto-populate `local_rate` (overridable, never overwriting a Host edit) and show the data month. On unavailability, timeout, an HTTP error, or invalid data, `resolveRate(null)` defaults to a labeled **$0.30/kWh** fallback estimate (`source: DEFAULT_0_30`), still overridable.
 - **Mapbox / MBTA (Req 2.4).** 10s budget each. On failure/timeout, show an error indication for the affected data (walk time or transit routes) and still render the remaining listing results from the local Haversine filter.
 - **Open-Meteo (Req 4.2).** 10s budget. On failure, timeout, or fewer hourly values than `booked_hours`, `Climate_Engine` aborts, leaves any previously stored score unchanged, and returns a "solar data unavailable" error.
 - **Bedrock fallback (Req 1.9, 1.10).** On EVSpec miss, invoke `bedrockKwLookup`; on its failure, accept manual kW entry; if still unresolved, default `car_max_AC_kW` to the Host `charger_kW` worst case. Bedrock output never enters a pricing formula.
@@ -360,14 +367,14 @@ Error handling maps the IF/THEN acceptance criteria to concrete strategies. The 
 
 ## Testing Strategy
 
-The strategy is dual: **unit/example tests** pin down exact formula values, rounding boundaries, error-path behavior, and UI/integration wiring; **property-based tests** verify the two mandated universal invariants across their full input domains. Adapters (NREL, Mapbox, MBTA, Open-Meteo, Bedrock, S3, geolocation) are mocked so engine logic is tested in isolation from I/O.
+The strategy is dual: **unit/example tests** pin down exact formula values, rounding boundaries, error-path behavior, and UI/integration wiring; **property-based tests** verify the two mandated universal invariants across their full input domains. Adapters (EIA, Mapbox, MBTA, Open-Meteo, Bedrock, S3, geolocation) are mocked so engine logic is tested in isolation from I/O.
 
 ### Unit and Example Tests
 
 - **Pricing_Engine:** exact `P_eff`, `electricity_cost_per_hr`, `price_per_hr`, `estimated_miles_added`; round-half-up at the `.005` boundary (Req 3.1, 3.3); invalid-input rejection naming the field (Req 3.2); `car_max_AC_kW = null` → `P_eff = charger_kW` (Req 1.10).
 - **Billing_Engine:** `late_minutes = max(0, …)`, prorated `late_fee` with zero grace, `customer_total` with the 1.10 fee; early pickup → `late_minutes = 0`, no refund (Req 3.4, 3.5).
 - **Climate_Engine:** `solar_kW(h)`, `usable_solar_kW(h)` clamp at the 1 kW baseline and at `P_eff`, `grid_kWh`, `gas_co2_saved_kg`, `G` at 3dp; overnight all-zero series → `|solar_share| < 0.001` (Req 4.1, 4.4, 4.5); invalid-input rejection (Req 4.3); Open-Meteo abort/keep-stored-score on short/failed series (Req 4.2, mocked).
-- **Rate_Service:** `resolveRate(null, null)` → $0.30 `DEFAULT_0_30`; NREL success path populates and stays overridable (Req 1.6, 1.7).
+- **Rate_Service:** `resolveRate(null)` → $0.30 `DEFAULT_0_30`; an EIA record (cents/kWh) → dollars/kWh with its data month; response parsing, cents-to-dollars conversion, the 5s timeout, caching, and "a manual rate is never overwritten" (Req 1.6, 1.7).
 - **Haversine / geofence:** symmetry, non-negativity, zero-at-equal, and known reference distances; 50m decision and whole-meter display (Req 5.3, 5.5, 5.6).
 - **Compatibility / sort:** plug+adapter bookable predicate (Req 2.6); "Best Charger Fit" ordering places `charger_kW >= car_max_AC_kW` before slower listings and shows the slow badge (Req 2.7).
 - **UI / integration (mocked adapters):** Landing_Page CTAs + live pricing preview (Req 1.1); Listing_Card fields and "estimated miles added" framing (Req 2.2, 2.3); partial render on Mapbox/MBTA failure (Req 2.4); empty results (Req 2.5); Arrival-photo gate to ACTIVE and upload retry (Req 5.1, 5.2); geolocation timeout/denied fallback with flagged status (Req 5.4, 5.7).

@@ -1,0 +1,864 @@
+{
+  "_meta": {
+    "purpose": "Mock EV charger listings for the VoltLot prototype. Everything about the chargers (host names, kW, plugs, adapters, solar, rates, earnings, availability, instructions) is invented.",
+    "addresses": "Street addresses and photo links were supplied by the project owner (they come from Zillow home listings). The homes are real; the chargers and hosts are not.",
+    "coordinates": "Looked up on 2026-10-24 with the US Census Geocoder (benchmark Public_AR_Current). All 19 matched 'Exact'. Porter St has no house number in the source, so its pin is the geocoder's point for 1 Porter St: street level only.",
+    "photos": "Hotlinked from photos.zillowstatic.com. They are third-party images that can change or disappear, and may not be reusable outside a private demo. 21 Cottage Park Ave was supplied as a Zillow page link, not an image, so it has no photo. Replace with owned photos before any public use.",
+    "privacy": "street is the street name only (public). privateAddress holds the exact address and is shown only to the host and to a driver with a booking. ids are opaque on purpose.",
+    "neighborhoods": "Display labels chosen by hand and approximate.",
+    "mockCoverage": "Mix of L1 and L2, J1772 and NACS, adapters none/one-way/both, solar 0 to 8.4 kW, and availability that is all-day, weekday-only, evening-only (Tufts St, Montgomery St) or overnight (Brattle St lot), so search filters and states can be demoed."
+  },
+  "listings": [
+    {
+      "id": "vl-01",
+      "title": "Driveway on Newell St",
+      "street": "Newell St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.38619,
+      "lng": -71.12921,
+      "privateAddress": {
+        "line": "24 Newell St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02140"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 6.2,
+      "spots": 1,
+      "hostName": "Priya",
+      "rate": 0.3,
+      "earningsHr": 2.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/1026ec832c5ad2ae392b0fcdac80b383-cc_ft_1536.webp"
+      ],
+      "isNew": true
+    },
+    {
+      "id": "vl-02",
+      "title": "Garage on Willard St",
+      "street": "Willard St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.37494,
+      "lng": -71.12847,
+      "privateAddress": {
+        "line": "35 Willard St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138"
+      },
+      "spotType": "Garage",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NACS_TO_J1772",
+      "solarKw": 8.4,
+      "spots": 1,
+      "hostName": "Tom",
+      "rate": 0.3,
+      "earningsHr": 3.5,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 7,
+          "end": 21
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/055c85323723143b0ccac4444e48ad00-p_e.webp"
+      ]
+    },
+    {
+      "id": "vl-03",
+      "title": "Driveway on Brattle St",
+      "street": "Brattle St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.37666,
+      "lng": -71.13843,
+      "privateAddress": {
+        "line": "195 Brattle St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 2,
+      "hostName": "Eleanor",
+      "rate": 0.3,
+      "earningsHr": 2.25,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "start": 7,
+          "end": 19
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/4449e354d3a7f52771da6f8a1a212d66-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-04",
+      "title": "Carport on Newell St",
+      "street": "Newell St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.38589,
+      "lng": -71.12885,
+      "privateAddress": {
+        "line": "10 Newell St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02140"
+      },
+      "spotType": "Carport",
+      "chargerKw": 7.2,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 4.8,
+      "spots": 1,
+      "hostName": "Marcus",
+      "rate": 0.31,
+      "earningsHr": 2.0,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Park under the carport. The charger is on the left post. Watch for the low beam on the passenger side.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/208a968009097ece96adfaa5a6a2f4b4-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-05",
+      "title": "Outdoor outlet on Cottage Park Ave",
+      "street": "Cottage Park Ave",
+      "neighborhood": "North Cambridge",
+      "lat": 42.39929,
+      "lng": -71.13324,
+      "privateAddress": {
+        "line": "21 Cottage Park Ave",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02140"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 1.44,
+      "level": "L1",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 3.0,
+      "spots": 1,
+      "hostName": "Hana",
+      "rate": 0.3,
+      "earningsHr": 1.25,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Park beside the side door. Use the outdoor-rated outlet with the cord provided. Never use an extension cord.",
+      "photos": []
+    },
+    {
+      "id": "vl-06",
+      "title": "Garage on Hammond St",
+      "street": "Hammond St",
+      "neighborhood": "Agassiz",
+      "lat": 42.38115,
+      "lng": -71.1139,
+      "privateAddress": {
+        "line": "65 Hammond St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138"
+      },
+      "spotType": "Garage",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NONE",
+      "solarKw": 5.5,
+      "spots": 1,
+      "hostName": "Jon",
+      "rate": 0.3,
+      "earningsHr": 2.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/bcbcb7ee696adb3ffa201a061647d91c-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-07",
+      "title": "Driveway on Sparks St",
+      "street": "Sparks St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.375,
+      "lng": -71.13063,
+      "privateAddress": {
+        "line": "5 Sparks St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "J1772_TO_NACS",
+      "solarKw": 7.1,
+      "spots": 1,
+      "hostName": "Aisha",
+      "rate": 0.3,
+      "earningsHr": 3.25,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 8,
+          "end": 20
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/0c365e8d507f16f864677a089ee8a757-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-08",
+      "title": "Evening driveway on Montgomery St",
+      "street": "Montgomery St",
+      "neighborhood": "North Cambridge",
+      "lat": 42.39555,
+      "lng": -71.13311,
+      "privateAddress": {
+        "line": "77 Montgomery St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02140"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 6.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Carl",
+      "rate": 0.3,
+      "earningsHr": 1.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 16,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/22713c1da9b3a6579ab0ec2849500da0-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-09",
+      "title": "Driveway on Rogers Ave",
+      "street": "Rogers Ave",
+      "neighborhood": "Somerville",
+      "lat": 42.39677,
+      "lng": -71.11317,
+      "privateAddress": {
+        "line": "41 Rogers Ave",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02144"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "BOTH",
+      "solarKw": 3.9,
+      "spots": 1,
+      "hostName": "Noor",
+      "rate": 0.31,
+      "earningsHr": 2.5,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/3eef1ea90dfedb7d86ecd0514c0ebdb0-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-10",
+      "title": "Lot space on Porter St",
+      "street": "Porter St",
+      "neighborhood": "Somerville",
+      "lat": 42.38615,
+      "lng": -71.11373,
+      "privateAddress": {
+        "line": "Porter St",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02143"
+      },
+      "spotType": "Private lot",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Elena",
+      "rate": 0.31,
+      "earningsHr": 2.25,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Park in the marked space. The charger is on the post beside it. Please do not block the shared walkway.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/d2d42b8d506ab0d211e09d3ba66a3f43-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-11",
+      "title": "Driveway on Garden St",
+      "street": "Garden St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.38644,
+      "lng": -71.13474,
+      "privateAddress": {
+        "line": "254 Garden St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 6.8,
+      "spots": 1,
+      "hostName": "Ben",
+      "rate": 0.3,
+      "earningsHr": 3.0,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/d0eee73ce23512a3cc799ca7dd11fb7a-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-12",
+      "title": "Driveway on Andrew St",
+      "street": "Andrew St",
+      "neighborhood": "Cambridgeport",
+      "lat": 42.36195,
+      "lng": -71.11159,
+      "privateAddress": {
+        "line": "9 Andrew St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02139"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 5.9,
+      "spots": 1,
+      "hostName": "Maya",
+      "rate": 0.3,
+      "earningsHr": 2.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/e37bf49df08c6c14a10cc67d2fe9bfc9-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-13",
+      "title": "Garage on Windsor St",
+      "street": "Windsor St",
+      "neighborhood": "Cambridge",
+      "lat": 42.36798,
+      "lng": -71.095,
+      "privateAddress": {
+        "line": "266-270 Windsor St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02139",
+        "unit": "270-2"
+      },
+      "spotType": "Garage",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "J1772_TO_NACS",
+      "solarKw": 6.4,
+      "spots": 1,
+      "hostName": "Sam",
+      "rate": 0.3,
+      "earningsHr": 3.5,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/5d5d59eeb1a4ddec1629112f1aa8be94-cc_ft_768.webp"
+      ],
+      "isNew": true
+    },
+    {
+      "id": "vl-14",
+      "title": "Carport on Concord Ave",
+      "street": "Concord Ave",
+      "neighborhood": "West Cambridge",
+      "lat": 42.38648,
+      "lng": -71.13989,
+      "privateAddress": {
+        "line": "459 Concord Ave",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138",
+        "unit": "1"
+      },
+      "spotType": "Carport",
+      "chargerKw": 7.2,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NACS_TO_J1772",
+      "solarKw": 4.2,
+      "spots": 1,
+      "hostName": "Grace",
+      "rate": 0.3,
+      "earningsHr": 2.25,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 7,
+          "end": 21
+        }
+      ],
+      "instructions": "Park under the carport. The charger is on the left post. Watch for the low beam on the passenger side.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/11f95d5153099aa0ba949c8ec2109eef-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-15",
+      "title": "Weekday driveway on Homer Ave",
+      "street": "Homer Ave",
+      "neighborhood": "West Cambridge",
+      "lat": 42.37569,
+      "lng": -71.14803,
+      "privateAddress": {
+        "line": "37-39 Homer Ave",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138",
+        "unit": "39-2"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "David",
+      "rate": 0.3,
+      "earningsHr": 2.0,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "start": 7,
+          "end": 19
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/51c8ee42b81312be04e9009ebd8fd352-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-16",
+      "title": "Evening garage on Tufts St",
+      "street": "Tufts St",
+      "neighborhood": "Cambridgeport",
+      "lat": 42.35717,
+      "lng": -71.11127,
+      "privateAddress": {
+        "line": "20 Tufts St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02139",
+        "unit": "20"
+      },
+      "spotType": "Garage",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 3.3,
+      "spots": 1,
+      "hostName": "Luis",
+      "rate": 0.3,
+      "earningsHr": 2.5,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 16,
+          "end": 22
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/04d706b189912f44d780e788cea6ac5f-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-17",
+      "title": "Driveway on Fallon Pl",
+      "street": "Fallon Pl",
+      "neighborhood": "Mid-Cambridge",
+      "lat": 42.36832,
+      "lng": -71.1146,
+      "privateAddress": {
+        "line": "15 Fallon Pl",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138",
+        "unit": "15A"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 5.0,
+      "spots": 1,
+      "hostName": "Rosa",
+      "rate": 0.3,
+      "earningsHr": 2.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 8,
+          "end": 20
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/e6a4a22a8de13539ffec32702f9a8580-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-18",
+      "title": "Lot space on Brattle St",
+      "street": "Brattle St",
+      "neighborhood": "West Cambridge",
+      "lat": 42.37566,
+      "lng": -71.14297,
+      "privateAddress": {
+        "line": "250 Brattle St",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138",
+        "unit": "22"
+      },
+      "spotType": "Private lot",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Naomi",
+      "rate": 0.3,
+      "earningsHr": 1.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 20,
+          "end": 8
+        },
+        {
+          "id": "w2",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "start": 9,
+          "end": 17
+        }
+      ],
+      "instructions": "Park in the marked space. The charger is on the post beside it. Please do not block the shared walkway.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/76741017ceab894940d69d996944d547-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-19",
+      "title": "Building garage on Memorial Dr",
+      "street": "Memorial Dr",
+      "neighborhood": "Riverside",
+      "lat": 42.37221,
+      "lng": -71.12508,
+      "privateAddress": {
+        "line": "985 Memorial Dr",
+        "city": "Cambridge",
+        "state": "MA",
+        "zip": "02138",
+        "unit": "401"
+      },
+      "spotType": "Private lot",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Victor",
+      "rate": 0.3,
+      "earningsHr": 3.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 23
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/96c091e179b8da07be7c4f60ab57fc55-cc_ft_768.webp"
+      ]
+    }
+  ]
+}

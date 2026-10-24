@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+/* Design tokens: docs from the VoltLot UI design spec §2. Use the Tailwind names (bg-brand, text-muted, border-line). */
+@theme {
+  --font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Color */
+  --color-brand: #2b3fe0;
+  --color-brand-dark: #1e2db0;
+  --color-brand-tint: #eef0fd;
+  --color-brand-wash: #f3f5ff;
+  --color-avatar: #e4e7fb;
+  --color-ink: #12151c;
+  --color-body: #3a404c;
+  --color-muted: #586070;
+  --color-hero-sub: #4a5160;
+  --color-line: #e2e5ea;
+  --color-line-strong: #c9ced6;
+  --color-pill: #d5d9e0;
+  --color-surface: #f5f6f8;
+  --color-chip: #f0f1f4;
+  --color-disabled: #9aa3b2;
+  --color-green: #177a3a;
+  --color-green-ink: #146c33;
+  --color-green-deep: #0f5a2a;
+  --color-green-bg: #e8f5ec;
+  --color-amber-ink: #8a3d05;
+  --color-amber-deep: #6e3004;
+  --color-amber-bg: #fdf1e3;
+
+  /* Elevation */
+  --shadow-panel: 0 12px 32px rgba(18, 21, 28, 0.07);
+  --shadow-hero: 0 10px 30px rgba(18, 21, 28, 0.08);
+  --shadow-role: 0 16px 40px rgba(43, 63, 224, 0.14);
+  --shadow-pin: 0 3px 10px rgba(18, 21, 28, 0.28);
+  --shadow-selected: 0 0 0 4px rgba(43, 63, 224, 0.12);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    margin: 0;
+  }
+  p {
+    margin: 0;
+  }
+  button,
+  select,
+  input,
+  textarea {
+    font: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+/* Auto-fit grid that collapses to one column on phones without media queries (spec §3.1). */
+.auto-grid {
+  display: grid;
+  gap: var(--gap, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 260px), 100%), 1fr));
+}

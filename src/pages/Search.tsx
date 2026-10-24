@@ -1,0 +1,211 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import DestinationSearch from '../components/DestinationSearch';
+import { SelectField } from '../components/form';
+import Header from '../components/Header';
+import ListingCard from '../components/ListingCard';
+import MapView from '../components/MapView';
+import { InfoNote, Segmented } from '../components/ui';
+import { EV_MODELS, carById } from '../data/evFallbackSeed';
+import {
+  SEARCH_RADIUS_M,
+  evaluateListing,
+  sortEvaluations,
+  type Evaluation,
+  type SortMode,
+} from '../features/search/evaluateListing';
+import { todayIndex } from '../lib/availability';
+import { fmtHour, fmtRange } from '../lib/format';
+import { haversineDistanceMeters } from '../lib/geo';
+import { useApp, type LevelFilter } from '../state/AppState';
+import type { Car } from '../types/listing';
+
+const START_HOURS = Array.from({ length: 24 }, (_, h) => h);
+const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+export default function Search() {
+  const { user, car: ownCar, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const [toText, setToText] = useState(destination.label);
+  // Keep the box in sync when the destination changes elsewhere (landing, host home).
+  useEffect(() => setToText(destination.label), [destination.id, destination.label]);
+  const dayIndex = todayIndex();
+
+  const { shown, hiddenByPlug, notOpen } = useMemo(() => {
+    const win = { startHour, hours, dayIndex };
+    const evaluated = listings
+      .filter((l) => haversineDistanceMeters(l, destination) <= SEARCH_RADIUS_M)
+      .filter((l) => level === 'any' || l.level === level)
+      .map((l) => evaluateListing(l, activeCar, destination, win))
+      .filter((e): e is Evaluation => e !== null);
+    return {
+      hiddenByPlug: evaluated.filter((e) => !e.plugOk).length,
+      notOpen: evaluated.filter((e) => e.plugOk && !e.open).length,
+      shown: sortEvaluations(
+        evaluated.filter((e) => e.plugOk && e.open),
+        sort,
+      ),
+    };
+  }, [listings, destination, level, activeCar, startHour, hours, dayIndex, sort]);
+
+  if (!user) return <Navigate to="/signup/driver" replace />;
+
+  const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
+  const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
+  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? ` · ${c.maxAcKw} kW` : ''}`;
+
+  return (
+    <div className="flex min-h-screen flex-col lg:h-screen lg:min-h-[640px]">
+      <Header wide />
+
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-white px-6 py-3">
+        <div className="min-w-[260px] flex-1 sm:max-w-[420px]">
+          <DestinationSearch
+            label="To"
+            value={toText}
+            placeholder="T station or address"
+            onInputChange={setToText}
+            onSelect={(d) => {
+              setToText(d.label);
+              update({ destination: d });
+            }}
+            // Leaving the box without choosing a suggestion puts the current destination back.
+            onBlur={() => setToText(destination.label)}
+          />
+        </div>
+
+        <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
+          <legend className="mb-1.5 p-0 text-[14px] font-bold text-ink">When</legend>
+          <div className="flex h-12 items-center gap-2 rounded-[10px] border border-line-strong bg-white px-3.5 text-[16px] font-medium text-ink">
+            Today from
+            <select
+              aria-label="Start time"
+              value={startHour}
+              onChange={(e) => update({ startHour: Number(e.target.value) })}
+              className="rounded-md bg-transparent py-1 font-bold text-ink"
+            >
+              {START_HOURS.map((h) => (
+                <option key={h} value={h}>
+                  {fmtHour(h)}
+                </option>
+              ))}
+            </select>
+            for
+            <select
+              aria-label="Duration in hours"
+              value={hours}
+              onChange={(e) => update({ hours: Number(e.target.value) })}
+              className="rounded-md bg-transparent py-1 font-bold text-ink"
+            >
+              {DURATIONS.map((h) => (
+                <option key={h} value={h}>
+                  {h} h
+                </option>
+              ))}
+            </select>
+          </div>
+        </fieldset>
+
+        <div className="min-w-[220px]">
+          <SelectField
+            label="Your car"
+            value={activeCar.id}
+            onChange={(e) => {
+              const next = carOptions.find((c) => c.id === e.target.value);
+              if (next) update({ car: next });
+            }}
+          >
+            {carOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {carLabel(c)}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+
+        <Segmented<LevelFilter>
+          label="Level"
+          value={level}
+          onChange={(v) => update({ level: v })}
+          options={[
+            { value: 'any', label: 'Any' },
+            { value: 'L2', label: 'L2' },
+            { value: 'L1', label: 'L1' },
+          ]}
+          className="pb-0.5"
+        />
+      </div>
+
+      <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row">
+        <div className="h-[380px] shrink-0 lg:h-auto lg:flex-1" aria-label="Map of chargers">
+          <MapView
+            destination={destination}
+            pins={shown.map((e) => ({
+              id: e.listing.id,
+              lat: e.listing.lat,
+              lng: e.listing.lng,
+              price: e.pricePerHr,
+              title: e.listing.title,
+            }))}
+            selectedId={effectiveSelected}
+            onSelect={setSelectedId}
+          />
+        </div>
+
+        <section aria-label="Chargers" className="flex flex-col gap-4 px-6 py-5 lg:w-[min(720px,55%)] lg:shrink-0 lg:overflow-y-auto">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">Chargers near {destination.label}</h1>
+              <p className="text-[14px] font-semibold text-muted">
+                {shown.length} charger{shown.length === 1 ? '' : 's'} · {fmtRange(startHour, hours)} · prices for your {activeCar.name}
+              </p>
+              <p className="text-[13px] text-muted">Miles shown are estimated miles added. Walk times are estimates.</p>
+            </div>
+            <Segmented<SortMode>
+              label="Sort"
+              value={sort}
+              onChange={(v) => update({ sort: v })}
+              options={[
+                { value: 'fit', label: 'Best fit' },
+                { value: 'price', label: 'Lowest price' },
+              ]}
+            />
+          </div>
+
+          {hiddenByPlug > 0 && (
+            <InfoNote>
+              {hiddenByPlug === 1
+                ? `1 listing is hidden: the plug doesn’t fit your ${activeCar.name} and the host has no adapter.`
+                : `${hiddenByPlug} listings are hidden: the plug doesn’t fit your ${activeCar.name} and those hosts have no adapter.`}
+            </InfoNote>
+          )}
+          {notOpen > 0 && (
+            <InfoNote>
+              {notOpen === 1 ? '1 more isn’t open for this whole time window.' : `${notOpen} more aren’t open for this whole time window.`}
+            </InfoNote>
+          )}
+
+          {shown.length === 0 ? (
+            <div className="rounded-2xl border border-line p-6 text-[16px] text-body">
+              No chargers near {destination.label} for this filter yet.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3.5">
+              {shown.map((ev) => (
+                <ListingCard
+                  key={ev.listing.id}
+                  ev={ev}
+                  car={activeCar}
+                  destination={destination}
+                  selected={ev.listing.id === effectiveSelected}
+                  onSelect={() => setSelectedId(ev.listing.id)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
