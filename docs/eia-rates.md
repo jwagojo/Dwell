@@ -1,6 +1,6 @@
 # Electricity rate estimate (EIA)
 
-VoltLot pre-fills the host's electricity rate from the U.S. Energy Information Administration (EIA) Open Data API.
+Dwell pre-fills the host's electricity rate from the U.S. Energy Information Administration (EIA) Open Data API.
 This replaces the earlier NREL plan. The result is an **estimate**: it does not guarantee that the rate covers a
 host's actual electricity costs, and the host can replace it with the rate on their electricity bill.
 

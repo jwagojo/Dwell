@@ -180,7 +180,7 @@ export default function DriverSignup() {
             />
           </section>
 
-          <CheckboxCard checked={form.terms} onChange={(v) => set('terms', v)} lead="I agree to the VoltLot terms." error={errors.terms}>
+          <CheckboxCard checked={form.terms} onChange={(v) => set('terms', v)} lead="I agree to the Dwell terms." error={errors.terms}>
             Pickup ends my session, late minutes are billed, and there is no refund for unused hours.
           </CheckboxCard>
 

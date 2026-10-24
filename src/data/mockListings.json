@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "purpose": "Mock EV charger listings for the VoltLot prototype. Everything about the chargers (host names, kW, plugs, adapters, solar, rates, earnings, availability, instructions) is invented.",
+    "purpose": "Mock EV charger listings for the Dwell prototype. Everything about the chargers (host names, kW, plugs, adapters, solar, rates, earnings, availability, instructions) is invented.",
     "addresses": "Street addresses and photo links were supplied by the project owner (they come from Zillow home listings). The homes are real; the chargers and hosts are not.",
     "coordinates": "Looked up on 2026-10-24 with the US Census Geocoder (benchmark Public_AR_Current). All 19 matched 'Exact'. Porter St has no house number in the source, so its pin is the geocoder's point for 1 Porter St: street level only.",
     "photos": "Hotlinked from photos.zillowstatic.com. They are third-party images that can change or disappear, and may not be reusable outside a private demo. 21 Cottage Park Ave was supplied as a Zillow page link, not an image, so it has no photo. Replace with owned photos before any public use.",

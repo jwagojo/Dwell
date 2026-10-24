@@ -1,6 +1,6 @@
 # Mapbox setup
 
-VoltLot uses Mapbox for the live map (Mapbox GL JS) and for address search (Geocoding API v6). Both use one
+Dwell uses Mapbox for the live map (Mapbox GL JS) and for address search (Geocoding API v6). Both use one
 **public** access token that ends up in the browser bundle, so the token must be URL-restricted.
 
 Without a token the app still works: maps show a labeled schematic fallback, destination search offers T stations
@@ -9,9 +9,9 @@ only, and hosts enter their address by hand.
 ## 1. Create a public, URL-restricted token
 
 1. Sign in to <https://account.mapbox.com/access-tokens/> and choose **Create a token**.
-2. Name it for one environment, for example `voltlot-dev`. Use a separate token for production.
+2. Name it for one environment, for example `dwell-dev`. Use a separate token for production.
 3. Keep only the **default public scopes** (for example `styles:read`, `fonts:read`). Do not add any secret scope.
-   Never create or paste an `sk.` token for this app; VoltLot refuses to use one.
+   Never create or paste an `sk.` token for this app; Dwell refuses to use one.
 4. Under **URL restrictions**, add the sites that may use the token:
 
    | Token | Allowed URLs |
@@ -42,7 +42,7 @@ production token.
 
 ## 3. Permanent geocoding (billing)
 
-VoltLot saves geocoded addresses (listing pins, chosen destinations) in browser storage. Mapbox only allows storing
+Dwell saves geocoded addresses (listing pins, chosen destinations) in browser storage. Mapbox only allows storing
 results from its **Permanent** geocoding mode, so address search sends `permanent=true`
 (`USE_PERMANENT_GEOCODING` in `src/adapters/mapboxGeocoding.ts`).
 

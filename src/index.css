@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/plus-jakarta-sans';
 
-/* Design tokens: docs from the VoltLot UI design spec §2. Use the Tailwind names (bg-brand, text-muted, border-line). */
+/* Design tokens: docs from the Dwell UI design spec §2. Use the Tailwind names (bg-brand, text-muted, border-line). */
 @theme {
   --font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
 

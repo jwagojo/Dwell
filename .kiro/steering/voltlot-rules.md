@@ -1,4 +1,4 @@
-# VoltLot Steering Rules (.kiro/steering/voltlot-rules.md)
+# Dwell Steering Rules (.kiro/steering/voltlot-rules.md)
 
 ## 1. Pitch & UI Copy Guardrails (Mandatory)
 - **Never promise a "Full Charge":** Always label energy delivery as **"Estimated Miles Added"** using `P_eff * hours * 3.5`[cite: 1].

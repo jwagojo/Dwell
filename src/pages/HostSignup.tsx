@@ -358,7 +358,7 @@ export default function HostSignup() {
 
   function onSelectAddress(a: GeocodedAddress) {
     if (!isMassachusetts(a)) {
-      setAddrNotice(`That address is in ${a.state || 'another state'}. VoltLot is only available in Massachusetts right now.`);
+      setAddrNotice(`That address is in ${a.state || 'another state'}. Dwell is only available in Massachusetts right now.`);
       setForm((f) => ({ ...f, addr: NO_ADDR, pin: null }));
       return;
     }
@@ -838,7 +838,7 @@ export default function HostSignup() {
           <li>Each session ends when the driver taps Pick up near your driveway.</li>
         </ul>
       </div>
-      <CheckboxCard checked={form.terms} onChange={(v) => set('terms', v)} lead="I agree to the VoltLot host terms." error={errors.terms}>
+      <CheckboxCard checked={form.terms} onChange={(v) => set('terms', v)} lead="I agree to the Dwell host terms." error={errors.terms}>
         Payments and notifications are simulated in this demo.
       </CheckboxCard>
     </>,

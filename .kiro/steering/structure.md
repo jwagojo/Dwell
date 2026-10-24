@@ -2,9 +2,9 @@
 inclusion: always
 ---
 
-# VoltLot Repository Structure
+# Dwell Repository Structure
 
-Companion to `tech.md`. The build order is in `.kiro/specs/voltlot-mvp/tasks.md`. Screen layout and tokens follow the VoltLot UI design spec v1 (provided as a text file; not stored in this repo yet).
+Companion to `tech.md`. The build order is in `.kiro/specs/voltlot-mvp/tasks.md`. Screen layout and tokens follow the Dwell UI design spec v1 (provided as a text file; not stored in this repo yet).
 
 ## Current structure (verified)
 

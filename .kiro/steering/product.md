@@ -2,13 +2,13 @@
 inclusion: always
 ---
 
-# VoltLot Product Context
+# Dwell Product Context
 
 Full detail lives in `README.md` (v0.5), `.kiro/specs/voltlot-mvp/requirements.md`, and `design.md`. This file is a short orientation. Copy and Amplify guardrails are in `voltlot-rules.md` and are not repeated here.
 
 ## Purpose
 
-VoltLot is peer-to-peer charge-and-ride for Massachusetts EV drivers. Hosts list an idle home charger and driveway. Drivers park near a destination (a T stop or a venue), plug in, and walk or ride transit the rest of the way. There is no key handoff, the car never moves, and the host never touches the car.
+Dwell is peer-to-peer charge-and-ride for Massachusetts EV drivers. Hosts list an idle home charger and driveway. Drivers park near a destination (a T stop or a venue), plug in, and walk or ride transit the rest of the way. There is no key handoff, the car never moves, and the host never touches the car.
 
 Many Boston-area drivers cannot charge at home, and public charging is scarce. Idle home chargers in outer neighborhoods fill that gap. Each listing shows the walk and transit options so the whole trip is visible before booking.
 

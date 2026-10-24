@@ -2,11 +2,11 @@
 
 ## Introduction
 
-VoltLot is a peer-to-peer charge-and-ride marketplace for Massachusetts electric vehicle (EV) drivers. Hosts list idle residential Level 1 (120V) and Level 2 (240V) EV chargers and driveways; Customers book a time window, park, plug in without key handoff, and walk or ride transit the rest of the way. The two primary Customer segments are commuters parking near MBTA T stations and visitors parking near event venues.
+Dwell is a peer-to-peer charge-and-ride marketplace for Massachusetts electric vehicle (EV) drivers. Hosts list idle residential Level 1 (120V) and Level 2 (240V) EV chargers and driveways; Customers book a time window, park, plug in without key handoff, and walk or ride transit the rest of the way. The two primary Customer segments are commuters parking near MBTA T stations and visitors parking near event venues.
 
 The core design constraint is that Hosts do not have smart meters, so pricing must be deterministic and formula-driven: the hourly price is mathematically guaranteed to cover the maximum possible electricity draw of the specific car booked, both during the reservation and if the Customer overstays. A transparent, formula-backed Green Score communicates the climate benefit of combining residential solar charging with transit miles replaced.
 
-This document specifies the requirements for the VoltLot MVP. It is organized into five requirements covering onboarding, search and transit integration, deterministic pricing, the solar/green-score engine, and the geofenced check-in/pickup flow. A dedicated Correctness Properties section captures the two property-based-testing (PBT) invariants that must hold across the stated input domains.
+This document specifies the requirements for the Dwell MVP. It is organized into five requirements covering onboarding, search and transit integration, deterministic pricing, the solar/green-score engine, and the geofenced check-in/pickup flow. A dedicated Correctness Properties section captures the two property-based-testing (PBT) invariants that must hold across the stated input domains.
 
 ### Technology Constraints
 
@@ -25,7 +25,7 @@ The following stack constraints are strict and inform the acceptance criteria bu
 
 ## Glossary
 
-- **Host**: A property owner who lists an idle residential Level 1 or Level 2 EV charger and driveway on VoltLot and receives earnings when a Customer books it.
+- **Host**: A property owner who lists an idle residential Level 1 or Level 2 EV charger and driveway on Dwell and receives earnings when a Customer books it.
 - **Customer (Driver)**: An EV driver who books a Host listing for a time window, parks, charges, and uses transit or walking to reach a destination.
 - **car_max_AC_kW**: The maximum alternating-current charge acceptance rate of the Customer's specific EV, in kilowatts, sourced from the EVSpec table or a fallback lookup.
 - **charger_kW**: The rated power output of the Host's charger, in kilowatts.
@@ -45,11 +45,11 @@ The following stack constraints are strict and inform the acceptance criteria bu
 
 ### Requirement 1: Dual-Role Landing Page and Cognito Onboarding
 
-**User Story:** As a visitor arriving on VoltLot, I want a landing page that clearly explains the charge-and-ride value proposition and lets me sign up or onboard distinctly as either a Host or a Customer (Driver), so that I can start using the platform in the role that matches my needs.
+**User Story:** As a visitor arriving on Dwell, I want a landing page that clearly explains the charge-and-ride value proposition and lets me sign up or onboard distinctly as either a Host or a Customer (Driver), so that I can start using the platform in the role that matches my needs.
 
 #### Acceptance Criteria
 
-1. WHEN an unauthenticated user visits the root URL (/), THE Landing_Page SHALL display the VoltLot value proposition, an interactive car-based pricing preview that recalculates and displays an estimated price per hour when the selected car changes, and two primary role selection calls to action labeled "Become a Host" and "Find a Charger (Customer)".
+1. WHEN an unauthenticated user visits the root URL (/), THE Landing_Page SHALL display the Dwell value proposition, an interactive car-based pricing preview that recalculates and displays an estimated price per hour when the selected car changes, and two primary role selection calls to action labeled "Become a Host" and "Find a Charger (Customer)".
 2. WHEN a user selects "Become a Host" and authenticates via Amazon Cognito, THE Host_Onboarding_Flow SHALL require the following inputs: street address and MA ZIP; Charger Level (L1 or L2); Charger Output (charger_kW); Plug Type (J1772 or NACS); Solar System Size (solar_kW); Number of Spots; Available Host Adapters (J1772_TO_NACS, NACS_TO_J1772, BOTH, or NONE); a "Right to List" confirmation checkbox; Desired Host Earnings per Hour (host_earnings_hr); a driveway photo uploaded to Amazon S3 with parking instructions; and availability time windows for daytime and overnight slots.
 3. IF any required Host onboarding input is missing or fails its format validation, THEN THE Host_Onboarding_Flow SHALL reject submission, retain the already-entered values, and display an error indication for each invalid field.
 4. IF the driveway photo upload to Amazon S3 fails or does not complete within 30 seconds, THEN THE Host_Onboarding_Flow SHALL reject the upload, retain the already-entered onboarding values, and display an error indication offering a retry.

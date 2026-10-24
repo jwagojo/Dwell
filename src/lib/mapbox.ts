@@ -40,5 +40,5 @@ export const MAP_STYLE = 'mapbox://styles/mapbox/light-v11';
 export const MASSACHUSETTS_CENTER = { lat: 42.3601, lng: -71.0589 };
 
 if (import.meta.env.DEV && !hasMapboxToken) {
-  console.warn(`[VoltLot] ${describeTokenProblem(mapboxTokenStatus)} Maps and address search use labeled fallbacks. See docs/mapbox-setup.md.`);
+  console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Maps and address search use labeled fallbacks. See docs/mapbox-setup.md.`);
 }

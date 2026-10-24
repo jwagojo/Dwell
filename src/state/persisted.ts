@@ -69,3 +69,26 @@ export function migrateState(raw: unknown): Persisted {
     booking,
   };
 }
+
+/** Current storage key. */
+export const STORAGE_KEY = 'dwell.prototype.v1';
+/** The prototype saved under this key before it was renamed to Dwell. It is read once, then replaced. */
+export const LEGACY_STORAGE_KEY = 'voltlot.prototype.v1';
+
+type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+/** Load saved state: the current key first, then the legacy one. Anything unreadable gives the defaults. */
+export function loadSavedState(storage: KeyValueStore): Persisted {
+  try {
+    const raw = storage.getItem(STORAGE_KEY) ?? storage.getItem(LEGACY_STORAGE_KEY);
+    return raw ? migrateState(JSON.parse(raw)) : DEFAULTS;
+  } catch {
+    return DEFAULTS;
+  }
+}
+
+/** Save under the current key and drop the legacy copy so the two never disagree. */
+export function saveState(storage: KeyValueStore, state: Persisted): void {
+  storage.setItem(STORAGE_KEY, JSON.stringify(state));
+  storage.removeItem(LEGACY_STORAGE_KEY);
+}
