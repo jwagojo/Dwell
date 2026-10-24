@@ -25,40 +25,6 @@ To maximize network density, Dwell eliminates technical onboarding barriers for 
 - **Simulated Checkout:** Built-in prototype payment flow to demonstrate end-to-end reservation, billing, and host payouts.
 
 ---
-## How We Used Kiro
-
-### Spec-Driven Development & Planning
-
-We started with a master Markdown file created using spec-driven development, which outlined:
-- Product concept and intended features
-- User flows
-- Technical choices
-- Pricing rules
-
-As the specification expanded, we needed individual development tasks to receive relevant context without repeatedly passing the entire master document. Kiro’s spec planning and subagents divided the master file into:
-- **Requirements:** Defining what the product needed to do
-- **Design:** Specifying how the system would work
-- **Tasks:** Outlining the concrete implementation steps
-
-### Agentic Development & Steering Documents
-
-We utilized Kiro's built-in code assist for agentic development alongside its structured spec workflow to build features incrementally while referencing shared requirements and design.
-
-Kiro generated a dedicated steering folder derived from the master specification containing:
-- **Technology documents**
-- **Structure documents**
-- **Product documents**
-- **Project rules**
-
-These steering documents provided agent prompts with a persistent reference point for Dwell’s purpose, technical approach, and architecture. Every agent prompt validated against these steering documents to ensure feature development remained aligned with original application rules.
-
-### Implementation & Map Integration
-
-During the implementation phase, Kiro assisted with:
-- **Frontend Coordination:** Bringing together steering files, project modules, and design configuration.
-- **Mapbox GL JS Integration:** Powering Dwell's core journey of discovering parking and charging near a destination.
-- **Address Indexing:** Supporting address search and location entry for both hosts listing chargers and customers seeking destinations.
-- **Dynamic Map Exploration:** Implementing a scrolling map feature that delivers non-bounded scrolling results across explored cities.
 
 ## How We Used Kiro
 
