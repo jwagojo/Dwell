@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import MapView from '../components/MapView';
 import { InfoNote, Segmented } from '../components/ui';
+import { DEFAULT_DESTINATION } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import {
   SEARCH_RADIUS_M,
@@ -16,26 +17,33 @@ import {
 } from '../features/search/evaluateListing';
 import { todayIndex } from '../lib/availability';
 import { fmtHour, fmtRange } from '../lib/format';
-import { haversineDistanceMeters } from '../lib/geo';
+import { boundsAround, boundsContain, type GeoBounds } from '../lib/geo';
 import { useApp, type LevelFilter } from '../state/AppState';
 import type { Car } from '../types/listing';
 
 const START_HOURS = Array.from({ length: 24 }, (_, h) => h);
 const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 
+/** Where an empty search box starts the map. Moving the map overrides it. */
+const BROWSE_CENTER = { lat: DEFAULT_DESTINATION.lat, lng: DEFAULT_DESTINATION.lng };
+
 export default function Search() {
   const { user, car: ownCar, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const [toText, setToText] = useState(destination.label);
+  // What the map shows right now. Chargers inside it are the results, whether or not there is a destination.
+  const [area, setArea] = useState<GeoBounds>(() => boundsAround(destination ?? BROWSE_CENTER, SEARCH_RADIUS_M));
+
+  // The box may be empty: then the driver is browsing the map and no destination is set.
+  const [toText, setToText] = useState(destination?.label ?? '');
   // Keep the box in sync when the destination changes elsewhere (landing, host home).
-  useEffect(() => setToText(destination.label), [destination.id, destination.label]);
+  useEffect(() => setToText(destination?.label ?? ''), [destination?.id, destination?.label]);
   const dayIndex = todayIndex();
 
   const { shown, hiddenByPlug, notOpen } = useMemo(() => {
     const win = { startHour, hours, dayIndex };
     const evaluated = listings
-      .filter((l) => haversineDistanceMeters(l, destination) <= SEARCH_RADIUS_M)
+      .filter((l) => boundsContain(area, l))
       .filter((l) => level === 'any' || l.level === level)
       .map((l) => evaluateListing(l, activeCar, destination, win))
       .filter((e): e is Evaluation => e !== null);
@@ -47,7 +55,7 @@ export default function Search() {
         sort,
       ),
     };
-  }, [listings, destination, level, activeCar, startHour, hours, dayIndex, sort]);
+  }, [listings, area, destination, level, activeCar, startHour, hours, dayIndex, sort]);
 
   if (!user) return <Navigate to="/signup/driver" replace />;
 
@@ -65,13 +73,17 @@ export default function Search() {
             label="To"
             value={toText}
             placeholder="T station or address"
-            onInputChange={setToText}
+            onInputChange={(t) => {
+              setToText(t);
+              // Emptying the box clears the destination. The map stays where it is and keeps listing what it shows.
+              if (!t.trim() && destination) update({ destination: null });
+            }}
             onSelect={(d) => {
               setToText(d.label);
               update({ destination: d });
             }}
-            // Leaving the box without choosing a suggestion puts the current destination back.
-            onBlur={() => setToText(destination.label)}
+            // Leaving the box without choosing a suggestion puts the current destination back (or leaves it empty).
+            onBlur={() => setToText(destination?.label ?? '')}
           />
         </div>
 
@@ -141,6 +153,8 @@ export default function Search() {
         <div className="h-[380px] shrink-0 lg:h-auto lg:flex-1" aria-label="Map of chargers">
           <MapView
             destination={destination}
+            browseCenter={BROWSE_CENTER}
+            onAreaChange={setArea}
             pins={shown.map((e) => ({
               id: e.listing.id,
               lat: e.listing.lat,
@@ -156,11 +170,17 @@ export default function Search() {
         <section aria-label="Chargers" className="flex flex-col gap-4 px-6 py-5 lg:w-[min(720px,55%)] lg:shrink-0 lg:overflow-y-auto">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">Chargers near {destination.label}</h1>
+              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">
+                {destination ? `Chargers near ${destination.label}` : 'Chargers on the map'}
+              </h1>
               <p className="text-[14px] font-semibold text-muted">
                 {shown.length} charger{shown.length === 1 ? '' : 's'} · {fmtRange(startHour, hours)} · prices for your {activeCar.name}
               </p>
-              <p className="text-[13px] text-muted">Miles shown are estimated miles added. Walk times are estimates.</p>
+              <p className="text-[13px] text-muted">
+                {destination
+                  ? 'Miles shown are estimated miles added. Walk times are estimates.'
+                  : 'Miles shown are estimated miles added. Drag the map to search another area, or add a destination to see walks, routes and Green Scores.'}
+              </p>
             </div>
             <Segmented<SortMode>
               label="Sort"
@@ -188,7 +208,9 @@ export default function Search() {
 
           {shown.length === 0 ? (
             <div className="rounded-2xl border border-line p-6 text-[16px] text-body">
-              No chargers near {destination.label} for this filter yet.
+              {destination
+                ? `No chargers near ${destination.label} for this filter yet.`
+                : 'No chargers in this part of the map for this filter. Drag the map or zoom out to look elsewhere.'}
             </div>
           ) : (
             <div className="flex flex-col gap-3.5">

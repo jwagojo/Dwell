@@ -24,8 +24,8 @@ export interface Booking {
   dayStart: number;
   startHour: number;
   hours: number;
-  /** Where the driver was heading, frozen at booking time; used for the transit-miles term of the Green Score */
-  destination: Destination;
+  /** Where the driver was heading, frozen at booking time; used for the transit-miles term of the Green Score. null if they booked without one. */
+  destination: Destination | null;
   carName: string;
   carKw: number | null;
   /** Frozen at booking time so settlement cannot drift */

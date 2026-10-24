@@ -10,7 +10,7 @@ const GARAGE_NOTE =
   'The garage door is open during your booking. Park in the left bay. The charger is on the back wall; wind the cable back up when you leave.';
 
 /**
- * Cambridge and Somerville mock listings, loaded from `mockListings.json` (see its `_meta` block).
+ * Cambridge, Somerville, Allston, Brookline and Dorchester mock listings, loaded from `mockListings.json` (see its `_meta` block).
  * Addresses and photos are real; every charger detail is invented. The JSON shape is checked by mockListings.test.ts.
  */
 export const MOCK_LISTINGS = mockListings.listings as unknown as Listing[];

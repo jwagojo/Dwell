@@ -8,19 +8,19 @@ import { haversineDistanceMeters } from '../lib/geo';
 import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
 
 describe('mockListings.json', () => {
-  it('has the 19 supplied addresses with unique opaque ids', () => {
-    expect(MOCK_LISTINGS).toHaveLength(19);
-    expect(new Set(MOCK_LISTINGS.map((l) => l.id)).size).toBe(19);
+  it('has the 30 supplied addresses with unique opaque ids', () => {
+    expect(MOCK_LISTINGS).toHaveLength(30);
+    expect(new Set(MOCK_LISTINGS.map((l) => l.id)).size).toBe(30);
     expect(MOCK_LISTINGS.every((l) => /^vl-\d{2}$/.test(l.id))).toBe(true);
     expect(new Set(SEEDED_LISTINGS.map((l) => l.id)).size).toBe(SEEDED_LISTINGS.length);
   });
 
   it.each(MOCK_LISTINGS.map((l) => [l.id, l] as const))('%s is well formed', (_id, l) => {
-    // location: Cambridge and Somerville, never swapped lat/lng
-    expect(l.lat).toBeGreaterThan(42.35);
+    // location: inner Boston area (Cambridge, Somerville, Allston, Brookline, Dorchester), never swapped lat/lng
+    expect(l.lat).toBeGreaterThan(42.28);
     expect(l.lat).toBeLessThan(42.41);
     expect(l.lng).toBeGreaterThan(-71.16);
-    expect(l.lng).toBeLessThan(-71.08);
+    expect(l.lng).toBeLessThan(-71.06);
 
     // privacy: public street is a name only, exact address is kept private
     expect(l.street).toBe(stripHouseNumber(l.privateAddress!.line));
@@ -64,10 +64,10 @@ describe('mockListings.json', () => {
     expect(l.instructions.length).toBeGreaterThanOrEqual(20);
 
     // photos: direct image links only (a Zillow page link is not an image).
-    // Either a hotlinked Zillow image, or a local image served from public/.
+    // Either a hotlinked Zillow or Redfin image, or a local image served from public/.
     for (const url of l.photos)
       expect(url).toMatch(
-        /^(https:\/\/photos\.zillowstatic\.com\/fp\/[0-9a-f]{32}-[\w]+\.webp|\/listings\/[\w-]+\/[\w-]+\.(png|jpe?g|webp))$/,
+        /^(https:\/\/photos\.zillowstatic\.com\/fp\/[0-9a-f]{32}-[\w]+\.webp|https:\/\/ssl\.cdn-redfin\.com\/system_files\/media\/\d+_JPG\/item_\d+\.jpg|\/listings\/[\w-]+\/[\w-]+\.(png|jpe?g|webp))$/,
       );
 
     // every listing can be priced for every seeded car

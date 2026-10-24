@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { SEARCH_RADIUS_M } from '../../features/search/evaluateListing';
+import { boundsAround, type GeoBounds, type LatLng } from '../../lib/geo';
 import { LINE_STYLES } from '../../data/transit';
 import type { Destination } from '../../types/destination';
 import DestinationPin from './DestinationPin';
@@ -29,33 +31,45 @@ function FallbackBanner({ reason }: { reason: string }) {
 
 export function SchematicSearchMap({
   destination,
+  center,
   pins,
   selectedId,
   onSelect,
+  onAreaChange,
   reason,
 }: {
-  destination: Destination;
+  /** null while the search box is empty */
+  destination: Destination | null;
+  center: LatLng;
   pins: MapPin[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** The schematic cannot be dragged, so it reports a fixed area around its center */
+  onAreaChange: (area: GeoBounds) => void;
   reason: string;
 }) {
   const [zoom, setZoom] = useState(1);
+  const latest = useRef(onAreaChange);
+  latest.current = onAreaChange;
+  useEffect(() => {
+    latest.current(boundsAround(center, SEARCH_RADIUS_M));
+  }, [center.lat, center.lng]);
   const zoomBtn =
     'flex h-11 w-11 items-center justify-center rounded-full border border-pill bg-white text-[20px] font-bold text-ink shadow-pin hover:border-brand';
   return (
     <div className="relative h-full w-full" data-testid="map-fallback">
-      <SchematicMap center={destination} zoom={zoom}>
+      <SchematicMap center={center} zoom={zoom}>
         {({ project }) => (
           <>
-            {(() => {
-              const { x, y } = project(destination);
-              return (
-                <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: x, top: y }}>
-                  <DestinationPin destination={destination} />
-                </div>
-              );
-            })()}
+            {destination &&
+              (() => {
+                const { x, y } = project(destination);
+                return (
+                  <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2" style={{ left: x, top: y }}>
+                    <DestinationPin destination={destination} />
+                  </div>
+                );
+              })()}
             {pins.map((p) => {
               const { x, y } = project(p);
               return (

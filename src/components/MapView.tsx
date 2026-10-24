@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Map as MapboxMap } from 'mapbox-gl';
+import type { GeoBounds, LatLng } from '../lib/geo';
 import type { Destination } from '../types/destination';
 import DestinationPin from './map/DestinationPin';
 import LiveMap from './map/LiveMap';
@@ -11,56 +12,101 @@ import type { MapboxModule } from './map/useMapboxMap';
 
 export type { MapPin } from './map/MapFallbacks';
 
-/** Fit the camera to the destination and every visible listing when the destination or the set of listings changes. */
-function FitCamera({ map, api, destination, pins }: { map: MapboxMap; api: MapboxModule; destination: Destination; pins: MapPin[] }) {
-  const first = useRef(true);
-  const idKey = pins
-    .map((p) => p.id)
-    .sort()
-    .join('|');
+/** Zoom used when the camera goes to a destination: about 2.5 km across on a laptop screen. */
+const DESTINATION_ZOOM = 14;
+const BROWSING_ZOOM = 13;
+
+/** Where the camera was last left. Survives leaving the page (a listing, then back) but not a reload. */
+let lastView: { center: LatLng; zoom: number } | null = null;
+
+/** Tell the page which part of the world the map shows, once on start and after every pan, zoom or fly. */
+function AreaReporter({ map, onAreaChange }: { map: MapboxMap; onAreaChange: (area: GeoBounds) => void }) {
+  const latest = useRef(onAreaChange);
+  latest.current = onAreaChange;
   useEffect(() => {
-    const bounds = new api.LngLatBounds([destination.lng, destination.lat], [destination.lng, destination.lat]);
-    pins.forEach((p) => bounds.extend([p.lng, p.lat]));
-    map.fitBounds(bounds, { padding: 64, maxZoom: 15, duration: first.current ? 0 : 500 });
-    first.current = false;
-    // Prices and selection change often; they must not move the camera.
-  }, [map, api, destination.lat, destination.lng, idKey]);
+    const report = () => {
+      const b = map.getBounds();
+      if (!b) return;
+      const c = map.getCenter();
+      lastView = { center: { lat: c.lat, lng: c.lng }, zoom: map.getZoom() };
+      latest.current({ south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() });
+    };
+    report();
+    map.on('moveend', report);
+    return () => {
+      map.off('moveend', report);
+    };
+  }, [map]);
+  return null;
+}
+
+/**
+ * Move the camera when the driver picks a different destination. Panning and zooming by hand never come through here,
+ * and neither do changes to the set of listings, so the map stays where the driver put it.
+ */
+function GoToDestination({ map, destination }: { map: MapboxMap; destination: Destination | null }) {
+  const previousId = useRef(destination?.id ?? null);
+  useEffect(() => {
+    const id = destination?.id ?? null;
+    if (id === previousId.current) return;
+    previousId.current = id;
+    if (destination) map.flyTo({ center: [destination.lng, destination.lat], zoom: DESTINATION_ZOOM, duration: 700 });
+  }, [map, destination]);
   return null;
 }
 
 const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches;
 
 /**
- * Search map. Live Mapbox map with price markers and a destination marker; falls back to a clearly labeled
- * schematic when Mapbox is unavailable. Props are the same as the old schematic map.
+ * Search map. Live Mapbox map with price markers and, when there is one, a destination marker. The driver can pan and
+ * zoom freely, and `onAreaChange` reports what the map shows so the page can list the chargers in view. Falls back to a
+ * clearly labeled schematic when Mapbox is unavailable.
  */
 export default function MapView({
   destination,
+  browseCenter,
   pins,
   selectedId,
   onSelect,
+  onAreaChange,
 }: {
-  destination: Destination;
+  /** null while the search box is empty */
+  destination: Destination | null;
+  /** Where to start when there is no destination and the map has not been moved yet */
+  browseCenter: LatLng;
   pins: MapPin[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onAreaChange: (area: GeoBounds) => void;
 }) {
+  const start = destination ? { center: destination, zoom: DESTINATION_ZOOM } : (lastView ?? { center: browseCenter, zoom: BROWSING_ZOOM });
   return (
     <LiveMap
-      center={destination}
-      zoom={13}
+      center={start.center}
+      zoom={start.zoom}
       cooperativeGestures={STACKED_LAYOUT}
-      ariaLabel={`Map of chargers near ${destination.label}`}
+      ariaLabel={destination ? `Map of chargers near ${destination.label}` : 'Map of chargers. Drag the map to search another area.'}
       fallback={(reason) => (
-        <SchematicSearchMap destination={destination} pins={pins} selectedId={selectedId} onSelect={onSelect} reason={reason} />
+        <SchematicSearchMap
+          destination={destination}
+          center={start.center}
+          pins={pins}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onAreaChange={onAreaChange}
+          reason={reason}
+        />
       )}
     >
-      {({ map, api }) => (
+      {({ map, api }: { map: MapboxMap; api: MapboxModule }) => (
         <>
-          <FitCamera map={map} api={api} destination={destination} pins={pins} />
-          <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
-            <DestinationPin destination={destination} />
-          </MapMarker>
+          <AreaReporter map={map} onAreaChange={onAreaChange} />
+          <GoToDestination map={map} destination={destination} />
+          {destination && (
+            <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
+              <DestinationPin destination={destination} />
+            </MapMarker>
+          )}
           {pins.map((p) => (
             <MapMarker key={p.id} map={map} api={api} lat={p.lat} lng={p.lng} zIndex={p.id === selectedId ? 20 : 10}>
               <PricePin

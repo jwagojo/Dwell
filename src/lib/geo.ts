@@ -37,3 +37,20 @@ export function estimateWalk(straightLineMeters: number): { meters: number; minu
   const meters = straightLineMeters * WALK_DETOUR_FACTOR;
   return { meters, minutes: Math.max(1, Math.round(meters / WALK_METERS_PER_MIN)) };
 }
+
+/** A lat/lng rectangle: what the map shows, or a square around a point. Does not handle the antimeridian (Massachusetts only). */
+export interface GeoBounds {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+}
+
+export const boundsContain = (b: GeoBounds, p: LatLng) => p.lat >= b.south && p.lat <= b.north && p.lng >= b.west && p.lng <= b.east;
+
+/** The square that reaches `radiusMeters` from `center` in each direction. Used until a live map reports what it shows. */
+export function boundsAround(center: LatLng, radiusMeters: number): GeoBounds {
+  const sw = offsetMeters(center, -radiusMeters, -radiusMeters);
+  const ne = offsetMeters(center, radiusMeters, radiusMeters);
+  return { south: sw.lat, west: sw.lng, north: ne.lat, east: ne.lng };
+}

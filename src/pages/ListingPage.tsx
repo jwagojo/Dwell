@@ -147,7 +147,18 @@ export default function ListingPage() {
             </section>
 
             <section className="flex flex-col gap-4" aria-labelledby="trip">
-              <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Your trip to {destination.label}</h2>
+              <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">
+                {destination ? `Your trip to ${destination.label}` : 'Your trip'}
+              </h2>
+              {!destination || ev.walkMinutes === null || ev.walkMeters === null ? (
+                <div className="rounded-2xl border border-line p-4 text-[14px] text-muted">
+                  You haven’t chosen a destination, so there is no walk or route to show.{' '}
+                  <Link to="/search" className="font-bold text-brand hover:underline">
+                    Choose one in search
+                  </Link>
+                  .
+                </div>
+              ) : (
               <div className="divide-y divide-line rounded-2xl border border-line">
                 <div className="flex items-center gap-4 p-4">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-chip text-ink">
@@ -184,6 +195,7 @@ export default function ListingPage() {
                   </div>
                 )}
               </div>
+              )}
             </section>
 
             <section className="flex flex-col gap-4" aria-labelledby="fit">
@@ -286,10 +298,14 @@ export default function ListingPage() {
                   </table>
                 </div>
               ) : (
-                <WarnNote>Solar data unavailable, so we can’t show a Green Score right now.</WarnNote>
+                <WarnNote>
+                  {destination
+                    ? 'Solar data unavailable, so we can’t show a Green Score right now.'
+                    : 'Choose a destination in search to see a Green Score. It needs the miles of transit you would ride instead of drive.'}
+                </WarnNote>
               )}
               <p className="text-[13px] leading-[1.55] text-muted">
-                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. Transit miles are the straight-line distance to {destination.label}. Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
+                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. {destination ? `Transit miles are the straight-line distance to ${destination.label}. ` : ''}Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
               </p>
             </section>
 

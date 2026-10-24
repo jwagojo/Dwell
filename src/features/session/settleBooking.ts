@@ -33,17 +33,20 @@ export function settleBooking(b: Booking, listing: Listing, pickupAt: number, fl
   });
   if (share.ok) {
     solarShare = share.value;
-    const input = {
-      P_eff: b.pEff,
-      booked_hours: b.hours,
-      solar_share: share.value,
-      estimated_miles_added: milesAdded,
-      transit_miles: metersToMiles(haversineDistanceMeters(listing, b.destination)),
-    };
-    const emissions = computeEmissions(input);
-    if (emissions.ok) co2Kg = Math.max(emissions.value.gas_co2_saved_kg, 0);
-    const g = computeGreenScore(input);
-    if (g.ok) greenScore = g.value;
+    // Booked without a destination: the transit term has nothing to measure, so there is no Green Score or CO2 figure.
+    if (b.destination) {
+      const input = {
+        P_eff: b.pEff,
+        booked_hours: b.hours,
+        solar_share: share.value,
+        estimated_miles_added: milesAdded,
+        transit_miles: metersToMiles(haversineDistanceMeters(listing, b.destination)),
+      };
+      const emissions = computeEmissions(input);
+      if (emissions.ok) co2Kg = Math.max(emissions.value.gas_co2_saved_kg, 0);
+      const g = computeGreenScore(input);
+      if (g.ok) greenScore = g.value;
+    }
   }
 
   return {

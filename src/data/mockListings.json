@@ -1,12 +1,12 @@
 {
   "_meta": {
     "purpose": "Mock EV charger listings for the Dwell prototype. Everything about the chargers (host names, kW, plugs, adapters, solar, rates, earnings, availability, instructions) is invented.",
-    "addresses": "Street addresses and photo links were supplied by the project owner (they come from Zillow home listings). The homes are real; the chargers and hosts are not.",
-    "coordinates": "Looked up on 2026-10-24 with the US Census Geocoder (benchmark Public_AR_Current). All 19 matched 'Exact'. Porter St has no house number in the source, so its pin is the geocoder's point for 1 Porter St: street level only.",
-    "photos": "Hotlinked from photos.zillowstatic.com. They are third-party images that can change or disappear, and may not be reusable outside a private demo. 21 Cottage Park Ave was supplied as a Zillow page link, not an image, so it has no photo. Replace with owned photos before any public use.",
+    "addresses": "Street addresses and photo links were supplied by the project owner (Zillow home listings, plus one Redfin photo). The homes are real; the chargers and hosts are not. The first 19 are Cambridge and Somerville; vl-20 to vl-30 were added later in Brookline, Allston, Dorchester and Somerville.",
+    "coordinates": "Looked up on 2026-10-24 with the US Census Geocoder (benchmark Public_AR_Current). All 19 matched 'Exact'. Porter St has no house number in the source, so its pin is the geocoder's point for 1 Porter St: street level only. vl-20 to vl-30 were looked up the same way on 2026-10-24 and all 11 returned a matched address.",
+    "photos": "Hotlinked from photos.zillowstatic.com. They are third-party images that can change or disappear, and may not be reusable outside a private demo. 21 Cottage Park Ave was supplied as a Zillow page link, not an image, so it has no photo. Replace with owned photos before any public use. vl-20 to vl-30 each have one photo: ten from photos.zillowstatic.com and one (156 Ashmont St, vl-23) from ssl.cdn-redfin.com. Same warning applies.",
     "privacy": "street is the street name only (public). privateAddress holds the exact address and is shown only to the host and to a driver with a booking. ids are opaque on purpose.",
     "neighborhoods": "Display labels chosen by hand and approximate.",
-    "mockCoverage": "Mix of L1 and L2, J1772 and NACS, adapters none/one-way/both, solar 0 to 8.4 kW, and availability that is all-day, weekday-only, evening-only (Tufts St, Montgomery St) or overnight (Brattle St lot), so search filters and states can be demoed."
+    "mockCoverage": "Mix of L1 and L2, J1772 and NACS, adapters none/one-way/both, solar 0 to 8.4 kW, and availability that is all-day, weekday-only, evening-only (Tufts St, Montgomery St) or overnight (Brattle St lot), so search filters and states can be demoed. vl-20 to vl-30 add Brookline, Allston and Dorchester (outside the Cambridge station radius, so they show up when the map is moved), an L1 outlet (vl-27), a weekday-only window (vl-21), an overnight window (vl-29) and a weekend-only window (vl-30)."
   },
   "listings": [
     {
@@ -861,6 +861,485 @@
       "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
       "photos": [
         "https://photos.zillowstatic.com/fp/96c091e179b8da07be7c4f60ab57fc55-cc_ft_768.webp"
+      ]
+    },
+    {
+      "id": "vl-20",
+      "title": "Garage on Buckminster Rd",
+      "street": "Buckminster Rd",
+      "neighborhood": "Brookline",
+      "lat": 42.33341,
+      "lng": -71.14373,
+      "privateAddress": {
+        "line": "309 Buckminster Rd",
+        "city": "Brookline",
+        "state": "MA",
+        "zip": "02445"
+      },
+      "spotType": "Garage",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NACS_TO_J1772",
+      "solarKw": 5.4,
+      "spots": 1,
+      "hostName": "Chloe",
+      "rate": 0.31,
+      "earningsHr": 1.9,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 7,
+          "end": 21
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/4d55816f178035c518492b65474ba80a-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-21",
+      "title": "Weekday driveway on Barstow St",
+      "street": "Barstow St",
+      "neighborhood": "Allston",
+      "lat": 42.35316,
+      "lng": -71.14211,
+      "privateAddress": {
+        "line": "4 Barstow St",
+        "city": "Allston",
+        "state": "MA",
+        "zip": "02134"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Mateo",
+      "rate": 0.31,
+      "earningsHr": 1.6,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "start": 7,
+          "end": 19
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/bad8738a38db9a3e9a01abec7860b6fb-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-22",
+      "title": "Driveway on Athol St",
+      "street": "Athol St",
+      "neighborhood": "Allston",
+      "lat": 42.35964,
+      "lng": -71.13494,
+      "privateAddress": {
+        "line": "61 Athol St",
+        "city": "Allston",
+        "state": "MA",
+        "zip": "02134"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "BOTH",
+      "solarKw": 4.1,
+      "spots": 1,
+      "hostName": "Kenji",
+      "rate": 0.31,
+      "earningsHr": 1.75,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/13a68ac1c7adc14a8dca18e5f85fd124-cc_ft_1536.webp"
+      ],
+      "isNew": true
+    },
+    {
+      "id": "vl-23",
+      "title": "Carport on Ashmont St",
+      "street": "Ashmont St",
+      "neighborhood": "Ashmont",
+      "lat": 42.28544,
+      "lng": -71.06545,
+      "privateAddress": {
+        "line": "156 Ashmont St",
+        "city": "Dorchester",
+        "state": "MA",
+        "zip": "02124"
+      },
+      "spotType": "Carport",
+      "chargerKw": 7.2,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "J1772_TO_NACS",
+      "solarKw": 3.6,
+      "spots": 1,
+      "hostName": "Devon",
+      "rate": 0.31,
+      "earningsHr": 1.8,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Park under the carport. The charger is on the left post. Watch for the low beam on the passenger side.",
+      "photos": [
+        "https://ssl.cdn-redfin.com/system_files/media/1236597_JPG/item_4.jpg"
+      ]
+    },
+    {
+      "id": "vl-24",
+      "title": "Driveway on Jaques St",
+      "street": "Jaques St",
+      "neighborhood": "Winter Hill",
+      "lat": 42.39522,
+      "lng": -71.09363,
+      "privateAddress": {
+        "line": "93 Jaques St",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02145"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NONE",
+      "solarKw": 6.0,
+      "spots": 1,
+      "hostName": "Lena",
+      "rate": 0.3,
+      "earningsHr": 1.95,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/4cc9a815b32a8753607668ab6172793d-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-25",
+      "title": "Evening driveway on Bonair St",
+      "street": "Bonair St",
+      "neighborhood": "Winter Hill",
+      "lat": 42.38879,
+      "lng": -71.09009,
+      "privateAddress": {
+        "line": "59 Bonair St",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02145"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 6.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 0,
+      "spots": 1,
+      "hostName": "Omar",
+      "rate": 0.3,
+      "earningsHr": 1.55,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 16,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/e68d03bd3f0261b349bf57c7a5b35315-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-26",
+      "title": "Garage on Albion St",
+      "street": "Albion St",
+      "neighborhood": "Somerville",
+      "lat": 42.39287,
+      "lng": -71.11045,
+      "privateAddress": {
+        "line": "167 Albion St",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02144"
+      },
+      "spotType": "Garage",
+      "chargerKw": 11.5,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 7.2,
+      "spots": 1,
+      "hostName": "Ines",
+      "rate": 0.3,
+      "earningsHr": 2.0,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 7,
+          "end": 21
+        }
+      ],
+      "instructions": "The garage door is open during your booking. Park in the bay with the charger on the back wall, and coil the cable when you leave.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/d20f47ca72da3399db65193e608b1ad6-cc_ft_1536.webp"
+      ],
+      "isNew": true
+    },
+    {
+      "id": "vl-27",
+      "title": "Outdoor outlet on Boston Ave",
+      "street": "Boston Ave",
+      "neighborhood": "Somerville",
+      "lat": 42.3951,
+      "lng": -71.11114,
+      "privateAddress": {
+        "line": "16 Boston Ave",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02144"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 1.44,
+      "level": "L1",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 2.8,
+      "spots": 1,
+      "hostName": "Paul",
+      "rate": 0.3,
+      "earningsHr": 1.5,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Park beside the side door. Use the outdoor-rated outlet with the cord provided. Never use an extension cord.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/a9a912d99949ee2fda109ee826532046-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-28",
+      "title": "Driveway on Jackson Rd",
+      "street": "Jackson Rd",
+      "neighborhood": "Winter Hill",
+      "lat": 42.38939,
+      "lng": -71.09269,
+      "privateAddress": {
+        "line": "15 Jackson Rd",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02145"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "NACS",
+      "adapters": "NACS_TO_J1772",
+      "solarKw": 4.8,
+      "spots": 1,
+      "hostName": "Tessa",
+      "rate": 0.3,
+      "earningsHr": 1.7,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 6,
+          "end": 22
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/37266dd295cfd4a0ce7b196c3b9dee15-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-29",
+      "title": "Overnight carport on Conwell Ave",
+      "street": "Conwell Ave",
+      "neighborhood": "Somerville",
+      "lat": 42.40738,
+      "lng": -71.12625,
+      "privateAddress": {
+        "line": "31 Conwell Ave",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02144"
+      },
+      "spotType": "Carport",
+      "chargerKw": 7.7,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "BOTH",
+      "solarKw": 3.2,
+      "spots": 1,
+      "hostName": "Rafael",
+      "rate": 0.3,
+      "earningsHr": 1.65,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "start": 20,
+          "end": 8
+        }
+      ],
+      "instructions": "Park under the carport. The charger is on the left post. Watch for the low beam on the passenger side.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/4eaf9e9bdc55a7871818cbdadfcfe30e-cc_ft_1536.webp"
+      ]
+    },
+    {
+      "id": "vl-30",
+      "title": "Weekend driveway on Mead St",
+      "street": "Mead St",
+      "neighborhood": "Somerville",
+      "lat": 42.40052,
+      "lng": -71.12814,
+      "privateAddress": {
+        "line": "32 Mead St",
+        "city": "Somerville",
+        "state": "MA",
+        "zip": "02144"
+      },
+      "spotType": "Driveway",
+      "chargerKw": 9.6,
+      "level": "L2",
+      "plug": "J1772",
+      "adapters": "NONE",
+      "solarKw": 5.5,
+      "spots": 1,
+      "hostName": "Hui",
+      "rate": 0.31,
+      "earningsHr": 1.85,
+      "windows": [
+        {
+          "id": "w1",
+          "days": [
+            5,
+            6
+          ],
+          "start": 8,
+          "end": 20
+        }
+      ],
+      "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
+      "photos": [
+        "https://photos.zillowstatic.com/fp/7624ebb5b3a3a01d0ff0bb6d37bcd387-cc_ft_1536.webp"
       ]
     }
   ]
