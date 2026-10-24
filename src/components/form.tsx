@@ -3,8 +3,8 @@ import { useId, type CSSProperties, type InputHTMLAttributes, type ReactNode, ty
 /* Form primitives (spec §4.4, §4.5). Errors replace hints, use role="alert" and link via aria-describedby. */
 
 export const CONTROL =
-  'w-full rounded-[10px] border bg-white px-3.5 text-[16px] font-medium text-ink outline-none transition-shadow focus:border-brand focus:ring-4 focus:ring-brand/10';
-export const controlBorder = (error?: string) => (error ? 'border-amber-ink' : 'border-line-strong');
+  'w-full rounded-card border bg-paper px-3.5 text-[16px] font-normal text-ink placeholder:text-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand read-only:bg-surface disabled:cursor-not-allowed disabled:opacity-55';
+export const controlBorder = (error?: string) => (error ? 'border-amber-ink' : 'border-muted');
 
 export function FieldShell({
   id,
@@ -25,18 +25,18 @@ export function FieldShell({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-[14px] font-bold text-ink">
+      <label htmlFor={id} className="text-[14px] font-medium text-ink">
         {label}
-        {optional && <span className="font-semibold text-muted"> (optional)</span>}
+        {optional && <span className="font-medium text-muted"> (optional)</span>}
       </label>
       {children}
       {error ? (
-        <p id={`${id}-msg`} role="alert" className="text-[13px] font-semibold text-amber-ink">
+        <p id={`${id}-msg`} role="alert" className="text-[13px] font-medium text-amber-ink">
           {error}
         </p>
       ) : (
         hint && (
-          <p id={`${id}-msg`} className={`text-[13px] ${hintTone === 'green' ? 'font-semibold text-green-ink' : 'text-muted'}`}>
+          <p id={`${id}-msg`} className={`text-[13px] ${hintTone === 'green' ? 'font-medium text-green-ink' : 'text-muted'}`}>
             {hint}
           </p>
         )
@@ -142,7 +142,7 @@ export function ChoiceGroup<T extends string>({
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <span id={id} className="text-[14px] font-bold text-ink">
+      <span id={id} className="text-[14px] font-medium text-ink">
         {legend}
       </span>
       <div
@@ -160,18 +160,18 @@ export function ChoiceGroup<T extends string>({
               role="radio"
               aria-checked={selected}
               onClick={() => onChange(o.value)}
-              className={`min-h-12 rounded-xl px-3.5 py-2.5 text-left transition-colors ${
-                selected ? 'border-2 border-brand bg-brand-wash' : 'border border-line-strong bg-white hover:border-brand'
+              className={`min-h-12 rounded-card px-3.5 py-2.5 text-left transition-colors ${
+                selected ? 'border-2 border-brand bg-brand-wash' : 'border border-line-strong bg-paper hover:border-brand hover:bg-brand-wash active:bg-brand-tint'
               }`}
             >
-              <span className="block text-[15px] font-bold text-ink">{o.label}</span>
+              <span className="block text-[15px] font-medium text-ink">{o.label}</span>
               {o.sub && <span className="block text-[13px] text-muted">{o.sub}</span>}
             </button>
           );
         })}
       </div>
       {error && (
-        <p role="alert" className="text-[13px] font-semibold text-amber-ink">
+        <p role="alert" className="text-[13px] font-medium text-amber-ink">
           {error}
         </p>
       )}
@@ -198,8 +198,8 @@ export function CheckboxCard({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={id}
-        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 ${
-          checked ? 'border-brand bg-brand-wash' : error ? 'border-amber-ink bg-white' : 'border-line-strong bg-white'
+        className={`flex cursor-pointer items-start gap-3 rounded-card border p-3.5 ${
+          checked ? 'border-brand bg-brand-wash' : error ? 'border-amber-ink bg-paper' : 'border-line-strong bg-paper'
         }`}
       >
         <input
@@ -212,11 +212,11 @@ export function CheckboxCard({
           className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
         />
         <span className="text-[15px] text-body">
-          <strong className="font-bold text-ink">{lead}</strong> {children}
+          <strong className="font-medium text-ink">{lead}</strong> {children}
         </span>
       </label>
       {error && (
-        <p id={`${id}-msg`} role="alert" className="text-[13px] font-semibold text-amber-ink">
+        <p id={`${id}-msg`} role="alert" className="text-[13px] font-medium text-amber-ink">
           {error}
         </p>
       )}
@@ -241,13 +241,13 @@ export function Stepper({
   format?: (n: number) => string;
 }) {
   const circle =
-    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-white text-[20px] font-bold text-ink hover:border-brand disabled:text-disabled disabled:hover:border-line-strong';
+    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-paper text-[20px] font-medium text-ink transition-colors hover:border-brand hover:bg-brand-wash active:bg-brand-tint disabled:opacity-55 disabled:text-disabled disabled:hover:border-line-strong';
   return (
     <div role="group" aria-label={label} className="flex items-center gap-4">
       <button type="button" aria-label={`Decrease ${label.toLowerCase()}`} className={circle} disabled={value <= min} onClick={() => onChange(value - 1)}>
         −
       </button>
-      <span className="min-w-14 text-center text-[18px] font-extrabold text-ink" aria-live="polite">
+      <span className="min-w-14 text-center text-[18px] font-semibold text-ink" aria-live="polite">
         {format(value)}
       </span>
       <button type="button" aria-label={`Increase ${label.toLowerCase()}`} className={circle} disabled={value >= max} onClick={() => onChange(value + 1)}>

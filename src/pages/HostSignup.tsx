@@ -49,9 +49,9 @@ const PRICE_TABLE_CARS = ['toyota-prius-prime', 'nissan-leaf', 'tesla-my'].map((
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const PRESETS: { label: string; w: Omit<AvailabilityWindow, 'id'> }[] = [
-  { label: '+ Weekdays 7 AM – 7 PM', w: { days: [0, 1, 2, 3, 4], start: 7, end: 19 } },
-  { label: '+ Every day 8 AM – 8 PM', w: { days: [0, 1, 2, 3, 4, 5, 6], start: 8, end: 20 } },
-  { label: '+ Overnight 8 PM – 8 AM', w: { days: [0, 1, 2, 3, 4, 5, 6], start: 20, end: 8 } },
+  { label: '+ Weekdays 7 AM to 7 PM', w: { days: [0, 1, 2, 3, 4], start: 7, end: 19 } },
+  { label: '+ Every day 8 AM to 8 PM', w: { days: [0, 1, 2, 3, 4, 5, 6], start: 8, end: 20 } },
+  { label: '+ Overnight 8 PM to 8 AM', w: { days: [0, 1, 2, 3, 4, 5, 6], start: 20, end: 8 } },
 ];
 
 type KwMode = number | 'other';
@@ -120,7 +120,7 @@ type RateInfo =
 const BILL_TIP = 'Replace it with the rate on your electricity bill.';
 
 const windowSummary = (w: AvailabilityWindow) =>
-  `${summarizeDays(w.days)} · ${fmtHour(w.start)} – ${fmtHour(w.end)}${w.end <= w.start ? ' (overnight)' : ''}`;
+  `${summarizeDays(w.days)}, ${fmtHour(w.start)} to ${fmtHour(w.end)}${w.end <= w.start ? ' (overnight)' : ''}`;
 
 const INITIAL: HostForm = {
   name: '',
@@ -204,15 +204,15 @@ export default function HostSignup() {
       'Looking up the Massachusetts residential average from EIA…'
     ) : rateInfo.status === 'eia' && rateInfo.resolution.dataMonth ? (
       <>
-        <strong className="font-bold text-ink">
-          Massachusetts residential average · EIA · {formatDataMonth(rateInfo.resolution.dataMonth)}
+        <strong className="font-medium text-ink">
+          Massachusetts residential average (EIA, {formatDataMonth(rateInfo.resolution.dataMonth)})
         </strong>
         . A statewide estimate: your ZIP only confirms a supported location, so it is not specific to your ZIP or utility.
         EIA data runs a couple of months behind. {BILL_TIP}
       </>
     ) : rateInfo.status === 'fallback' ? (
       <>
-        <strong className="font-bold text-amber-ink">Fallback estimate · {money(DEFAULT_LOCAL_RATE)}/kWh</strong>. {rateInfo.reason}{' '}
+        <strong className="font-medium text-amber-ink">Fallback estimate: {money(DEFAULT_LOCAL_RATE)}/kWh</strong>. {rateInfo.reason}{' '}
         {BILL_TIP}
       </>
     ) : (
@@ -464,7 +464,7 @@ export default function HostSignup() {
     <>
       {form.manual ? (
         <div className="flex flex-col gap-4">
-          <p className="rounded-xl bg-surface p-3.5 text-[14px] text-body">
+          <p className="rounded-card bg-surface p-3.5 text-[14px] text-body">
             {hasMapboxToken
               ? 'Entering your address by hand. '
               : 'Address search is unavailable right now (no Mapbox token), so enter your address by hand. '}
@@ -474,7 +474,7 @@ export default function HostSignup() {
                 {' '}
                 <button
                   type="button"
-                  className="font-bold text-brand hover:underline"
+                  className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep"
                   onClick={() => setForm((f) => ({ ...f, manual: false, addr: NO_ADDR, pin: null, searchText: '' }))}
                 >
                   Use address search instead
@@ -521,7 +521,7 @@ export default function HostSignup() {
           )}
           <p className="text-[13px] text-muted">
             Can’t find it?{' '}
-            <button type="button" className="font-bold text-brand hover:underline" onClick={useManualEntry}>
+            <button type="button" className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep" onClick={useManualEntry}>
               Enter the address by hand
             </button>
           </p>
@@ -554,10 +554,10 @@ export default function HostSignup() {
           error={errors.pin}
         />
       ) : (
-        <div className="rounded-2xl border border-dashed border-line-strong p-5 text-[14px] text-muted" data-testid="pin-placeholder">
+        <div className="rounded-card border border-dashed border-line-strong p-5 text-[14px] text-muted" data-testid="pin-placeholder">
           The map appears after you choose an address. You will drag the pin to your driveway or charger entrance and confirm it.
           {errors.pin && (
-            <p role="alert" className="mt-2 text-[13px] font-semibold text-amber-ink">
+            <p role="alert" className="mt-2 text-[13px] font-medium text-amber-ink">
               {errors.pin}
             </p>
           )}
@@ -571,7 +571,7 @@ export default function HostSignup() {
         onChange={(v) => set('spotType', v)}
       />
       <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-bold text-ink">Number of spots</span>
+        <span className="text-[14px] font-medium text-ink">Number of spots</span>
         <Stepper label="Spots" value={form.spots} min={1} max={4} onChange={(n) => set('spots', n)} />
       </div>
       <CheckboxCard checked={form.rightToList} onChange={(v) => set('rightToList', v)} lead="I have the right to list this spot." error={errors.rightToList}>
@@ -584,14 +584,14 @@ export default function HostSignup() {
       <ChoiceGroup<Level>
         legend="Charger level"
         options={[
-          { value: 'L2', label: 'Level 2', sub: '240 V wall charger · 7–19 kW' },
-          { value: 'L1', label: 'Level 1', sub: '120 V outlet · 1–2 kW, priced lower' },
+          { value: 'L2', label: 'Level 2', sub: '240 V wall charger, 7 to 19 kW' },
+          { value: 'L1', label: 'Level 1', sub: '120 V outlet, 1 to 2 kW, priced lower' },
         ]}
         value={form.level}
         onChange={(v) => setForm((f) => ({ ...f, level: v, kwMode: v === 'L2' ? 9.6 : 1.44, kwOther: '', outdoorOutlet: false }))}
       />
       <div role="group" aria-label="Charger power" className="flex flex-col gap-2">
-        <span className="text-[14px] font-bold text-ink">Charger power</span>
+        <span className="text-[14px] font-medium text-ink">Charger power</span>
         <div className="flex flex-wrap gap-2">
           {(form.level === 'L2' ? L2_PRESETS : L1_PRESETS).map((p) => (
             <Pill key={p} selected={form.kwMode === p} onClick={() => set('kwMode', p)}>
@@ -608,7 +608,7 @@ export default function HostSignup() {
           </div>
         )}
         {form.kwMode !== 'other' && errors.kw && (
-          <p role="alert" className="text-[13px] font-semibold text-amber-ink">
+          <p role="alert" className="text-[13px] font-medium text-amber-ink">
             {errors.kw}
           </p>
         )}
@@ -645,10 +645,10 @@ export default function HostSignup() {
           <TextField label="Solar system size (kW)" inputMode="decimal" value={form.solarKw} error={errors.solarKw} onChange={(e) => set('solarKw', e.target.value)} />
         </div>
       )}
-      <p className="rounded-xl bg-surface p-3.5 text-[14px] font-semibold text-body">
-        {form.level} · {Number.isFinite(kw) && kw > 0 ? `${kw} kW` : '— kW'} · {form.plug}
-        {form.hasAdapter ? ` · adapter to ${otherPlug}` : ''}
-        {form.solar === 'yes' && form.solarKw ? ` · ${form.solarKw} kW solar` : ''}
+      <p className="rounded-card bg-surface p-3.5 text-[14px] font-medium text-body">
+        {form.level}, {Number.isFinite(kw) && kw > 0 ? `${kw} kW` : 'kW not set'}, {form.plug}
+        {form.hasAdapter ? `, adapter to ${otherPlug}` : ''}
+        {form.solar === 'yes' && form.solarKw ? `, ${form.solarKw} kW solar` : ''}
       </p>
     </>,
 
@@ -677,13 +677,13 @@ export default function HostSignup() {
         />
       </AutoGrid>
       <div>
-        <h3 className="mb-2 text-[18px] font-extrabold text-ink">What drivers pay per hour</h3>
-        <div className="overflow-x-auto rounded-2xl border border-line">
+        <h3 className="mb-2 text-[18px] font-semibold text-ink">What drivers pay per hour</h3>
+        <div className="overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[520px] border-collapse text-left text-[14px]">
             <thead className="bg-surface text-muted">
               <tr>
                 {['Car', 'Draws', 'Electricity', 'You earn', 'Driver pays'].map((h, i) => (
-                  <th key={h} scope="col" className={`px-4 py-3 font-bold ${i > 0 ? 'text-right' : ''}`}>
+                  <th key={h} scope="col" className={`px-4 py-3 font-medium ${i > 0 ? 'text-right' : ''}`}>
                     {h}
                   </th>
                 ))}
@@ -692,11 +692,11 @@ export default function HostSignup() {
             <tbody>
               {priceRows.map(({ car, p }) => (
                 <tr key={car.id} className="border-t border-line">
-                  <th scope="row" className="px-4 py-3 font-semibold text-ink">{car.name}</th>
-                  <td className="px-4 py-3 text-right">{p ? `${p.P_eff} kW` : '—'}</td>
-                  <td className="px-4 py-3 text-right">{p ? money(p.electricity_cost_per_hr) : '—'}</td>
+                  <th scope="row" className="px-4 py-3 font-medium text-ink">{car.name}</th>
+                  <td className="px-4 py-3 text-right">{p ? `${p.P_eff} kW` : 'n/a'}</td>
+                  <td className="px-4 py-3 text-right">{p ? money(p.electricity_cost_per_hr) : 'n/a'}</td>
                   <td className="px-4 py-3 text-right">{money(Number(form.earnings) || 0)}</td>
-                  <td className="px-4 py-3 text-right font-extrabold text-ink">{p ? money(p.price_per_hr) : '—'}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-ink">{p ? money(p.price_per_hr) : 'n/a'}</td>
                 </tr>
               ))}
             </tbody>
@@ -712,23 +712,23 @@ export default function HostSignup() {
     <>
       <TextField label="Listing title" value={form.title} error={errors.title} onChange={(e) => { titleTouched.current = true; set('title', e.target.value); }} />
       <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-bold text-ink">Photos</span>
+        <span className="text-[14px] font-medium text-ink">Photos</span>
         <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
           {form.photos.map((src, i) => (
-            <div key={i} className="relative aspect-square overflow-hidden rounded-xl bg-surface">
+            <div key={i} className="relative aspect-square overflow-hidden rounded-card bg-surface">
               <img src={src} alt={`Listing photo ${i + 1}`} className="h-full w-full object-cover" />
               <button
                 type="button"
                 aria-label={`Remove photo ${i + 1}`}
                 onClick={() => set('photos', form.photos.filter((_, j) => j !== i))}
-                className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[18px] font-bold text-ink shadow-pin hover:text-brand"
+                className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-paper text-[18px] font-medium text-ink shadow-pin hover:text-brand"
               >
                 ×
               </button>
             </div>
           ))}
           {form.photos.length < 8 && (
-            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-line-strong text-[14px] font-bold text-muted hover:border-brand focus-within:outline-2">
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-card border-2 border-dashed border-line-strong text-[14px] font-medium text-muted hover:border-brand focus-within:outline-2">
               <span className="text-[26px] leading-none">+</span>
               Add photos
               <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { void addPhotos(e.target.files); e.target.value = ''; }} />
@@ -736,7 +736,7 @@ export default function HostSignup() {
           )}
         </div>
         {(errors.photos || photoError) && (
-          <p role="alert" className="text-[13px] font-semibold text-amber-ink">
+          <p role="alert" className="text-[13px] font-medium text-amber-ink">
             {errors.photos || photoError}
           </p>
         )}
@@ -755,21 +755,21 @@ export default function HostSignup() {
     <>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Add a window">
         {PRESETS.map((p) => (
-          <button key={p.label} type="button" onClick={() => addWindow(p.w)} className="h-10 rounded-full border border-pill bg-white px-3 text-[14px] font-semibold text-ink hover:border-brand">
+          <button key={p.label} type="button" onClick={() => addWindow(p.w)} className="h-10 rounded-full border border-pill bg-paper px-3 text-[14px] font-medium text-ink hover:border-brand">
             {p.label}
           </button>
         ))}
       </div>
       {errors.windows && (
-        <p role="alert" className="text-[13px] font-semibold text-amber-ink">
+        <p role="alert" className="text-[13px] font-medium text-amber-ink">
           {errors.windows}
         </p>
       )}
       <div className="flex flex-col gap-3">
         {form.windows.map((w) => (
-          <div key={w.id} className="flex flex-col gap-3 rounded-2xl border border-line p-4">
+          <div key={w.id} className="flex flex-col gap-3 rounded-card border border-line p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[16px] font-extrabold text-ink">{windowSummary(w)}</p>
+              <p className="text-[16px] font-semibold text-ink">{windowSummary(w)}</p>
               <Button variant="ghost" size="nav" onClick={() => set('windows', form.windows.filter((x) => x.id !== w.id))}>
                 Remove
               </Button>
@@ -783,7 +783,7 @@ export default function HostSignup() {
                     type="button"
                     aria-pressed={on}
                     onClick={() => patchWindow(w.id, { days: on ? w.days.filter((x) => x !== i) : [...w.days, i].sort() })}
-                    className={`h-11 w-12 rounded-full border text-[14px] font-semibold ${on ? 'border-ink bg-ink text-white' : 'border-pill bg-white text-ink hover:border-brand'}`}
+                    className={`h-11 w-12 rounded-full border text-[14px] font-medium ${on ? 'border-ink bg-ink text-on-ink' : 'border-pill bg-paper text-ink hover:border-brand'}`}
                   >
                     {d}
                   </button>
@@ -810,19 +810,19 @@ export default function HostSignup() {
 
     // 6 Review
     <>
-      <dl className="m-0 flex flex-col divide-y divide-line rounded-2xl border border-line">
+      <dl className="m-0 flex flex-col divide-y divide-line rounded-card border border-line">
         {[
-          { i: 0, k: 'Account', v: `${form.name} · ${form.email}` },
-          { i: 1, k: 'Spot', v: `${form.spotType} · ${form.addr.line}${form.unit ? ` #${form.unit}` : ''}, ${form.addr.city}, MA ${form.addr.zip} · pin ${form.pin?.confirmed ? 'confirmed' : 'not confirmed'} · ${form.spots} spot${form.spots > 1 ? 's' : ''}` },
-          { i: 2, k: 'Charger', v: `${form.level} · ${kw} kW · ${form.plug}${form.hasAdapter ? ` · adapter to ${otherPlug}` : ''}${form.solar === 'yes' ? ` · ${form.solarKw} kW solar` : ''}` },
-          { i: 3, k: 'Pricing', v: `${money(Number(form.rate) || 0)}/kWh · you earn ${money(Number(form.earnings) || 0)}/hr` },
-          { i: 4, k: 'Listing', v: `${form.title} · ${form.photos.length} photo${form.photos.length === 1 ? '' : 's'}` },
-          { i: 5, k: 'Availability', v: form.windows.map(windowSummary).join(' · ') },
+          { i: 0, k: 'Account', v: `${form.name}, ${form.email}` },
+          { i: 1, k: 'Spot', v: `${form.spotType}, ${form.addr.line}${form.unit ? ` #${form.unit}` : ''}, ${form.addr.city}, MA ${form.addr.zip}. Pin ${form.pin?.confirmed ? 'confirmed' : 'not confirmed'}, ${form.spots} spot${form.spots > 1 ? 's' : ''}` },
+          { i: 2, k: 'Charger', v: `${form.level}, ${kw} kW, ${form.plug}${form.hasAdapter ? `, adapter to ${otherPlug}` : ''}${form.solar === 'yes' ? `, ${form.solarKw} kW solar` : ''}` },
+          { i: 3, k: 'Pricing', v: `${money(Number(form.rate) || 0)}/kWh, you earn ${money(Number(form.earnings) || 0)}/hr` },
+          { i: 4, k: 'Listing', v: `${form.title}, ${form.photos.length} photo${form.photos.length === 1 ? '' : 's'}` },
+          { i: 5, k: 'Availability', v: form.windows.map(windowSummary).join('; ') },
         ].map((r) => (
           <div key={r.k} className="flex flex-wrap items-start justify-between gap-3 p-4">
             <div className="min-w-0">
-              <dt className="text-[13px] font-bold text-muted">{r.k}</dt>
-              <dd className="m-0 text-[15px] font-semibold text-ink">{r.v}</dd>
+              <dt className="text-[13px] font-medium text-muted">{r.k}</dt>
+              <dd className="m-0 text-[15px] font-medium text-ink">{r.v}</dd>
             </div>
             <Button variant="link" size="nav" onClick={() => setStep(r.i)} aria-label={`Edit ${r.k}`}>
               Edit
@@ -830,8 +830,8 @@ export default function HostSignup() {
           </div>
         ))}
       </dl>
-      <div className="rounded-2xl bg-surface p-4">
-        <h3 className="text-[16px] font-extrabold text-ink">What happens next</h3>
+      <div className="rounded-card bg-surface p-4">
+        <h3 className="text-[16px] font-semibold text-ink">What happens next</h3>
         <ul className="mt-2 flex list-disc flex-col gap-1.5 pl-5 text-[15px] text-body">
           <li>Your listing goes live in search right away.</li>
           <li>Drivers book a window. You never hand over a key or touch the car.</li>
@@ -845,7 +845,7 @@ export default function HostSignup() {
   ];
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto max-w-[1120px] px-6 pb-16 pt-8">
         <Wizard

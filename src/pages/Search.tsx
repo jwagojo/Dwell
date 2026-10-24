@@ -61,13 +61,13 @@ export default function Search() {
 
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
-  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? ` · ${c.maxAcKw} kW` : ''}`;
+  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}`;
 
   return (
-    <div className="flex min-h-screen flex-col lg:h-screen lg:min-h-[640px]">
+    <div className="flex min-h-dvh flex-col lg:h-screen lg:min-h-[640px]">
       <Header wide />
 
-      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-white px-6 py-3">
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-paper px-6 py-3">
         <div className="min-w-[260px] flex-1 sm:max-w-[420px]">
           <DestinationSearch
             label="To"
@@ -88,14 +88,14 @@ export default function Search() {
         </div>
 
         <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
-          <legend className="mb-1.5 p-0 text-[14px] font-bold text-ink">When</legend>
-          <div className="flex h-12 items-center gap-2 rounded-[10px] border border-line-strong bg-white px-3.5 text-[16px] font-medium text-ink">
+          <legend className="mb-1.5 p-0 text-[14px] font-medium text-ink">When</legend>
+          <div className="flex h-12 items-center gap-2 rounded-card border border-line-strong bg-paper px-3.5 text-[16px] font-medium text-ink">
             Today from
             <select
               aria-label="Start time"
               value={startHour}
               onChange={(e) => update({ startHour: Number(e.target.value) })}
-              className="rounded-md bg-transparent py-1 font-bold text-ink"
+              className="bg-transparent py-1 font-medium text-ink underline decoration-line-strong underline-offset-4"
             >
               {START_HOURS.map((h) => (
                 <option key={h} value={h}>
@@ -108,7 +108,7 @@ export default function Search() {
               aria-label="Duration in hours"
               value={hours}
               onChange={(e) => update({ hours: Number(e.target.value) })}
-              className="rounded-md bg-transparent py-1 font-bold text-ink"
+              className="bg-transparent py-1 font-medium text-ink underline decoration-line-strong underline-offset-4"
             >
               {DURATIONS.map((h) => (
                 <option key={h} value={h}>
@@ -170,11 +170,11 @@ export default function Search() {
         <section aria-label="Chargers" className="flex flex-col gap-4 px-6 py-5 lg:w-[min(720px,55%)] lg:shrink-0 lg:overflow-y-auto">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">
+              <h1 className="text-[24px] font-semibold text-ink">
                 {destination ? `Chargers near ${destination.label}` : 'Chargers on the map'}
               </h1>
-              <p className="text-[14px] font-semibold text-muted">
-                {shown.length} charger{shown.length === 1 ? '' : 's'} · {fmtRange(startHour, hours)} · prices for your {activeCar.name}
+              <p className="text-[14px] font-medium text-muted">
+                {shown.length} charger{shown.length === 1 ? '' : 's'}, {fmtRange(startHour, hours)}. Prices for your {activeCar.name}.
               </p>
               <p className="text-[13px] text-muted">
                 {destination
@@ -207,7 +207,7 @@ export default function Search() {
           )}
 
           {shown.length === 0 ? (
-            <div className="rounded-2xl border border-line p-6 text-[16px] text-body">
+            <div className="rounded-card border border-line p-6 text-[16px] text-body">
               {destination
                 ? `No chargers near ${destination.label} for this filter yet.`
                 : 'No chargers in this part of the map for this filter. Drag the map or zoom out to look elsewhere.'}

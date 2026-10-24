@@ -169,9 +169,9 @@ export default function Combobox<T>({
         }
       }}
     >
-      <label htmlFor={id} className={labelClassName ?? 'text-[14px] font-bold text-ink'}>
+      <label htmlFor={id} className={labelClassName ?? 'text-[14px] font-medium text-ink'}>
         {label}
-        {optional && <span className="font-semibold text-muted"> (optional)</span>}
+        {optional && <span className="font-medium text-muted"> (optional)</span>}
       </label>
       <input
         id={id}
@@ -201,7 +201,7 @@ export default function Combobox<T>({
       />
 
       {panelVisible && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-80 min-w-[260px] overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-panel">
+        <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-80 min-w-[260px] overflow-y-auto rounded-card border border-line bg-paper py-1 shadow-panel">
           {options.length > 0 && (
             <ul id={listId} role="listbox" aria-label={label} className="m-0 list-none p-0">
               {options.map((o, i) => (
@@ -216,19 +216,19 @@ export default function Combobox<T>({
                   className={`flex cursor-pointer items-center justify-between gap-3 px-3.5 py-2.5 ${i === active ? 'bg-brand-wash' : ''}`}
                 >
                   <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-bold text-ink">{o.primary}</span>
+                    <span className="block truncate text-[15px] font-medium text-ink">{o.primary}</span>
                     {o.secondary && <span className="block truncate text-[13px] text-muted">{o.secondary}</span>}
                   </span>
-                  {o.badge && <span className="shrink-0 rounded-md bg-chip px-2 py-0.5 text-[12px] font-bold text-body">{o.badge}</span>}
+                  {o.badge && <span className="shrink-0 text-[12px] font-medium text-muted">{o.badge}</span>}
                 </li>
               ))}
             </ul>
           )}
           {options.length === 0 && <span id={listId} role="listbox" aria-label={label} className="hidden" />}
-          {status === 'loading' && <p className="px-3.5 py-2.5 text-[14px] font-semibold text-muted">Searching…</p>}
+          {status === 'loading' && <p className="px-3.5 py-2.5 text-[14px] font-medium text-muted">Searching…</p>}
           {showEmpty && <p className="px-3.5 py-2.5 text-[14px] text-body">{emptyText}</p>}
           {status === 'error' && (
-            <p className="px-3.5 py-2.5 text-[14px] font-semibold text-amber-ink">
+            <p className="px-3.5 py-2.5 text-[14px] font-medium text-amber-ink">
               {errorMsg}
               {unavailableNote ? ` ${unavailableNote}` : ''}
             </p>
@@ -238,7 +238,7 @@ export default function Combobox<T>({
       )}
 
       {error ? (
-        <p id={msgId} role="alert" className="text-[13px] font-semibold text-amber-ink">
+        <p id={msgId} role="alert" className="text-[13px] font-medium text-amber-ink">
           {error}
         </p>
       ) : (

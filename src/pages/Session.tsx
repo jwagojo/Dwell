@@ -28,7 +28,7 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'done', label: 'Done' },
 ];
 
-const card = 'flex flex-col gap-5 rounded-2xl border border-line bg-white p-6';
+const card = 'flex flex-col gap-5 rounded-card border border-line bg-paper p-6';
 
 export default function Session() {
   const { user, booking, listings, update } = useApp();
@@ -55,11 +55,11 @@ export default function Session() {
   const listing = booking ? listings.find((l) => l.id === booking.listingId) : undefined;
   if (!booking || !listing) {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-dvh bg-surface">
         <Header />
         <main className="mx-auto max-w-[1120px] px-6 py-16">
           <div className={card}>
-            <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">No active booking</h1>
+            <h1 className="text-[28px] font-semibold text-ink">No active booking</h1>
             <p className="text-[16px] text-body">Book a charger and your session will show up here.</p>
             <LinkButton to="/search" size="lg" className="w-fit">
               Find parking
@@ -126,9 +126,9 @@ export default function Session() {
 
   const arrived = (
     <div className={card}>
-      <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">You’ve arrived</h1>
+      <h1 className="text-[28px] font-semibold text-ink">You’ve arrived</h1>
       {listing.privateAddress && (
-        <p className="text-[15px] font-semibold text-ink">
+        <p className="text-[15px] font-medium text-ink">
           Address: {listing.privateAddress.line}
           {listing.privateAddress.unit ? ` #${listing.privateAddress.unit}` : ''}, {listing.privateAddress.city}, {listing.privateAddress.state} {listing.privateAddress.zip}
         </p>
@@ -136,7 +136,7 @@ export default function Session() {
       <p className="max-w-[640px] text-[16px] leading-[1.6] text-body">{listing.instructions}</p>
       <div className="grid grid-cols-3 gap-2">
         {['Street view', 'Charger', 'Your spot'].map((label, i) => (
-          <Photo key={label} src={listing.photos[i]} index={i} label={label} className="h-24 rounded-xl" />
+          <Photo key={label} src={listing.photos[i]} index={i} label={label} className="h-24 rounded-card" />
         ))}
       </div>
       <PhotoCapture
@@ -164,17 +164,17 @@ export default function Session() {
       <StatusDot>Charging</StatusDot>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[44px] font-extrabold leading-none tracking-[-0.03em] text-ink">
+          <h1 className="text-[44px] font-semibold leading-none text-ink">
             {minutesLeft >= 0 ? `${fmtDuration(minutesLeft)} left` : `${Math.abs(minutesLeft)} min late`}
           </h1>
-          <p className={`mt-2 text-[15px] ${minutesLeft < 0 ? 'font-semibold text-amber-ink' : 'text-body'}`}>
+          <p className={`mt-2 text-[15px] ${minutesLeft < 0 ? 'font-medium text-amber-ink' : 'text-body'}`}>
             Booking ends {fmtClock(endTs)}. After that, {money(lateRatePerMinute(b.pricePerHr))}/min.
           </p>
         </div>
         <div className="text-right">
-          <p className="text-[13px] font-bold text-muted">Estimated miles added so far</p>
-          <p className="text-[22px] font-extrabold text-ink">
-            +{milesSoFar} <span className="text-[15px] font-semibold text-muted">of +{estMiles} mi</span>
+          <p className="text-[13px] font-medium text-muted">Estimated miles added so far</p>
+          <p className="text-[22px] font-semibold text-ink">
+            +{milesSoFar} <span className="text-[15px] font-medium text-muted">of +{estMiles} mi</span>
           </p>
         </div>
       </div>
@@ -197,26 +197,26 @@ export default function Session() {
     </div>
   );
 
-  const panelBase = 'flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4';
+  const panelBase = 'flex flex-wrap items-center justify-between gap-3 rounded-card p-4';
   const pickup = (
     <div className={card}>
-      <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">Pick up your car</h1>
+      <h1 className="text-[28px] font-semibold text-ink">Pick up your car</h1>
       <div aria-live="polite">
         {loc.kind === 'idle' && (
           <div className={`${panelBase} bg-surface`}>
-            <p className="text-[16px] font-bold text-ink">Check that you are at the car</p>
+            <p className="text-[16px] font-medium text-ink">Check that you are at the car</p>
             <Button variant="secondary" onClick={checkLocation}>Check location</Button>
           </div>
         )}
         {loc.kind === 'checking' && (
           <div className={`${panelBase} bg-surface`}>
-            <p className="text-[16px] font-bold text-ink">Checking your location…</p>
+            <p className="text-[16px] font-medium text-ink">Checking your location…</p>
           </div>
         )}
         {loc.kind === 'ok' && (
           <div className={`${panelBase} bg-green-bg`}>
             <div>
-              <p className="text-[16px] font-extrabold text-green-ink">You’re at the car · {loc.meters} m away</p>
+              <p className="text-[16px] font-semibold text-green-ink">You’re at the car, {loc.meters} m away</p>
               <p className="text-[14px] text-green-ink">Within the {PICKUP_RADIUS_M} m pickup radius.</p>
             </div>
           </div>
@@ -224,8 +224,8 @@ export default function Session() {
         {loc.kind === 'far' && (
           <div className={`${panelBase} bg-amber-bg`}>
             <div>
-              <p className="text-[16px] font-extrabold text-amber-deep">You’re {loc.meters} m from the car</p>
-              <p className="text-[14px] text-amber-ink">Pickup unlocks within {PICKUP_RADIUS_M} m. Late minutes keep counting.</p>
+              <p className="text-[16px] font-semibold text-amber-deep">You’re {loc.meters} m from the car</p>
+              <p className="text-[14px] text-amber-ink">Pickup opens within {PICKUP_RADIUS_M} m. Late minutes keep counting.</p>
             </div>
             <Button variant="secondary" onClick={checkLocation}>Try again</Button>
           </div>
@@ -233,7 +233,7 @@ export default function Session() {
         {loc.kind === 'denied' && (
           <div className={`${panelBase} bg-amber-bg`}>
             <div>
-              <p className="text-[16px] font-extrabold text-amber-deep">Location unavailable</p>
+              <p className="text-[16px] font-semibold text-amber-deep">Location unavailable</p>
               <p className="text-[14px] text-amber-ink">You can still pick up with a photo. The host reviews it.</p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export default function Session() {
         {loc.kind === 'unavailable' && (
           <div className={`${panelBase} bg-amber-bg`}>
             <div>
-              <p className="text-[16px] font-extrabold text-amber-deep">We couldn’t get your location in time</p>
+              <p className="text-[16px] font-semibold text-amber-deep">We couldn’t get your location in time</p>
               <p className="text-[14px] text-amber-ink">Try again. Your session stays open until you pick up.</p>
             </div>
             <Button variant="secondary" onClick={checkLocation}>Try again</Button>
@@ -272,27 +272,27 @@ export default function Session() {
   const r = b.result;
   const done = r && (
     <div className={card}>
-      <p className="text-[14px] font-bold text-green-ink">
+      <p className="text-[14px] font-medium text-green-ink">
         Picked up at {fmtClock(r.pickupAt)}
-        {r.flagged ? ' · flagged for host review' : ''}
+        {r.flagged ? ', flagged for host review' : ''}
       </p>
-      <h1 className="-mt-3 text-[28px] font-extrabold tracking-[-0.02em] text-ink">Trip complete</h1>
+      <h1 className="-mt-3 text-[28px] font-semibold text-ink">Trip complete</h1>
       <dl className="m-0 flex max-w-[480px] flex-col gap-2.5 text-[15px] text-body">
         <div className="flex justify-between gap-3">
           <dt>{money(b.pricePerHr)} × {b.hours} h</dt>
-          <dd className="m-0 font-bold text-ink">{money(r.subtotal)}</dd>
+          <dd className="m-0 font-medium text-ink">{money(r.subtotal)}</dd>
         </div>
         {r.lateMinutes > 0 && (
           <div className="flex justify-between gap-3 text-amber-ink">
-            <dt>Late · {r.lateMinutes} min</dt>
-            <dd className="m-0 font-bold">{money(r.lateFee)}</dd>
+            <dt>Late, {r.lateMinutes} min</dt>
+            <dd className="m-0 font-medium">{money(r.lateFee)}</dd>
           </div>
         )}
         <div className="flex justify-between gap-3">
           <dt>Service fee ({Math.round(SERVICE_FEE * 100)}%)</dt>
-          <dd className="m-0 font-bold text-ink">{money(r.serviceFee)}</dd>
+          <dd className="m-0 font-medium text-ink">{money(r.serviceFee)}</dd>
         </div>
-        <div className="flex justify-between gap-3 border-t border-line pt-3 text-[17px] font-extrabold text-ink">
+        <div className="flex justify-between gap-3 border-t border-line pt-3 text-[17px] font-semibold text-ink">
           <dt>Total</dt>
           <dd className="m-0">{money(r.total)}</dd>
         </div>
@@ -310,7 +310,7 @@ export default function Session() {
   );
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto flex max-w-[1120px] flex-wrap items-start gap-8 px-6 pb-16 pt-8">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-5">
@@ -318,17 +318,17 @@ export default function Session() {
             {STEPS.map((s, i) => (
               <li key={s.id} aria-current={i === stepIndex ? 'step' : undefined}>
                 <div className={`h-1.5 rounded-full ${i <= stepIndex ? 'bg-brand' : 'bg-pill'}`} />
-                <span className={`mt-2 block text-[14px] font-bold ${i <= stepIndex ? 'text-ink' : 'text-muted'}`}>{s.label}</span>
+                <span className={`mt-2 block text-[14px] font-medium ${i <= stepIndex ? 'text-ink' : 'text-muted'}`}>{s.label}</span>
               </li>
             ))}
           </ol>
 
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-white p-4">
-            <Photo src={listing.photos[0]} className="h-14 w-14 shrink-0 rounded-xl" />
+          <div className="flex flex-wrap items-center gap-4 rounded-card border border-line bg-paper p-4">
+            <Photo src={listing.photos[0]} className="h-14 w-14 shrink-0 rounded-card" />
             <div className="min-w-[200px] flex-1">
-              <p className="text-[17px] font-extrabold text-ink">{listing.title}</p>
+              <p className="text-[17px] font-semibold text-ink">{listing.title}</p>
               <p className="text-[14px] text-muted">
-                {fmtRange(b.startHour, b.hours, ' – ')} · {b.carName} · {b.pEff} kW draw
+                {fmtRange(b.startHour, b.hours)}, {b.carName}, {b.pEff} kW draw
               </p>
             </div>
             <PaidPill amount={money(b.total)} />
@@ -342,9 +342,9 @@ export default function Session() {
 
         <aside
           aria-label="Demo controls"
-          className="flex min-w-0 flex-[1_1_260px] flex-col gap-4 rounded-2xl border-2 border-dashed border-disabled bg-white p-4"
+          className="flex min-w-0 flex-[1_1_260px] flex-col gap-4 rounded-card border-2 border-dashed border-disabled bg-paper p-4"
         >
-          <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-muted">Demo controls</p>
+          <p className="text-[12px] font-semibold text-muted">Demo controls</p>
           <Segmented<Step>
             label="Jump to step"
             value={step}

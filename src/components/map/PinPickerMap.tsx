@@ -10,9 +10,9 @@ const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min
 
 function PinGlyph() {
   return (
-    <svg width="36" height="46" viewBox="0 0 36 46" aria-hidden="true" focusable="false" className="drop-shadow-md">
-      <path d="M18 45C18 45 33 29.5 33 17.5C33 8.9 26.3 2 18 2C9.7 2 3 8.9 3 17.5C3 29.5 18 45 18 45Z" fill="#2B3FE0" stroke="#fff" strokeWidth="2.5" />
-      <circle cx="18" cy="17.5" r="6.5" fill="#fff" />
+    <svg width="36" height="46" viewBox="0 0 36 46" aria-hidden="true" focusable="false" className="drop-shadow-panel">
+      <path d="M18 45C18 45 33 29.5 33 17.5C33 8.9 26.3 2 18 2C9.7 2 3 8.9 3 17.5C3 29.5 18 45 18 45Z" fill="var(--color-brand)" stroke="var(--color-paper)" strokeWidth="2.5" />
+      <circle cx="18" cy="17.5" r="6.5" fill="var(--color-paper)" />
     </svg>
   );
 }
@@ -114,12 +114,12 @@ export default function PinPickerMap({
       ariaLabel="Map for placing the charger pin"
       fallback={(reason) => (
         <div className="flex h-full w-full flex-col justify-center gap-2 bg-surface p-5" data-testid="pin-map-fallback">
-          <p className="text-[15px] font-extrabold text-amber-ink">Map unavailable</p>
+          <p className="text-[15px] font-semibold text-amber-ink">Map unavailable</p>
           <p className="text-[14px] text-body">
             {reason} You can still place the pin with your location or the nudge buttons below, then confirm it.
           </p>
           {position && (
-            <p className="text-[14px] font-semibold text-ink">
+            <p className="text-[14px] font-medium text-ink">
               Pin: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
             </p>
           )}

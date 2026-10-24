@@ -1,0 +1,28 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "site",
+  "shape": "Index",
+  "theme": "garden",
+  "axes": "light/roman-serif/chromatic-green",
+  "hero": "Index",
+  "nav": "edge-aligned",
+  "footer": "mast",
+  "imagery": "product",
+  "photos": [],
+  "entry": "none",
+  "fingerprint": "index/garden/map-ledger/steps-ol/rows/statement-ink",
+  "sections": [
+   "hero: map and priced ledger",
+   "steps",
+   "rows",
+   "statement on green ink",
+   "footer mast"
+  ],
+  "signature": "four sample listings near Central priced for the visitor car",
+  "waived": [],
+  "prompt": "peer-to-peer home EV charger parking near T stations, dark green",
+  "date": "2026-10-24"
+ }
+]

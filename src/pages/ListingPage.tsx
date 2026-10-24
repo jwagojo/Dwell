@@ -22,7 +22,7 @@ const HOURS_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
 function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: 'grey' | 'brand' }) {
   return (
     <div className="grid grid-cols-[120px_1fr_72px] items-center gap-3 text-[14px]">
-      <span className="font-semibold text-body">{label}</span>
+      <span className="font-medium text-body">{label}</span>
       <div className="h-3 overflow-hidden rounded-full bg-chip">
         {kw !== null && (
           <div
@@ -31,7 +31,7 @@ function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: '
           />
         )}
       </div>
-      <span className="text-right font-extrabold text-ink">{kw !== null ? `${kw} kW` : 'Unknown'}</span>
+      <span className="text-right font-semibold text-ink">{kw !== null ? `${kw} kW` : 'Unknown'}</span>
     </div>
   );
 }
@@ -45,11 +45,11 @@ export default function ListingPage() {
   if (!user) return <Navigate to="/signup/driver" replace />;
   if (!listing) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-dvh bg-paper">
         <Header />
         <main className="mx-auto max-w-[1240px] px-8 py-16">
-          <h1 className="text-[36px] font-extrabold tracking-[-0.03em] text-ink">We couldn’t find that listing</h1>
-          <Link to="/search" className="mt-4 inline-block text-[16px] font-bold text-brand hover:underline">
+          <h1 className="text-[36px] font-semibold text-ink">We couldn’t find that listing</h1>
+          <Link to="/search" className="mt-4 inline-block text-[16px] font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep">
             Back to search
           </Link>
         </main>
@@ -93,21 +93,22 @@ export default function ListingPage() {
   const gallery = GALLERY_LABELS.map((label, i) => ({ label, src: listing.photos[i] }));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-dvh bg-paper">
       <Header />
       <main className="mx-auto flex max-w-[1240px] flex-col gap-6 px-6 pb-20 pt-4 sm:px-8">
-        <Link to="/search" className="inline-flex h-11 w-fit items-center gap-1 text-[15px] font-semibold text-ink hover:text-brand">
+        <Link to="/search" className="inline-flex h-11 w-fit items-center gap-1 text-[15px] font-medium text-ink hover:text-brand">
           <ChevronLeft size={18} />
           Back to search
         </Link>
 
-        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-[18px] sm:grid-cols-2 md:h-[320px] md:grid-cols-4 md:grid-rows-[1fr_1fr]">
+        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-card sm:grid-cols-2 md:h-[320px] md:grid-cols-4 md:grid-rows-[1fr_1fr]">
           {gallery.map((g, i) => (
             <Photo
               key={g.label}
               src={g.src}
               index={i}
               label={g.label}
+              priority={i === 0}
               className={i === 0 ? 'min-h-[180px] md:col-span-2 md:row-span-2 md:min-h-0' : 'min-h-[140px] md:min-h-0'}
             />
           ))}
@@ -117,7 +118,7 @@ export default function ListingPage() {
             aria-label="View more photos"
           >
             <Camera size={30} />
-            <span className="px-2 text-center text-[13px] font-bold">View more photos</span>
+            <span className="px-2 text-center text-[13px] font-medium">View more photos</span>
           </div>
         </div>
 
@@ -125,21 +126,24 @@ export default function ListingPage() {
           <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-10">
             <section className="flex flex-col gap-5">
               <div>
-                <h1 className="text-[36px] font-extrabold leading-[1.1] tracking-[-0.03em] text-ink">{listing.title}</h1>
+                <h1 className="text-[36px] font-semibold leading-[1.1] text-ink">{listing.title}</h1>
                 <p className="mt-2 text-[16px] text-body">
-                  {listing.street}, {listing.neighborhood} · exact address after booking · hosted by {listing.hostName}
+                  {listing.street}, {listing.neighborhood}
+                </p>
+                <p className="mt-1 text-[14px] text-muted">
+                  Hosted by {listing.hostName}. Exact address after booking.
                 </p>
               </div>
-              <dl className="m-0 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+              <dl className="m-0 grid grid-cols-2 gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-4">
                 {[
-                  { k: 'Charger', v: `${listing.level} · ${listing.chargerKw} kW` },
+                  { k: 'Charger', v: `${listing.level}, ${listing.chargerKw} kW` },
                   { k: 'Plug', v: listing.plug, sub: listing.adapters !== 'NONE' ? 'Adapter available' : undefined },
                   { k: 'Solar', v: listing.solarKw > 0 ? `${listing.solarKw} kW` : 'None' },
                   { k: 'Spots', v: String(listing.spots) },
                 ].map((c) => (
-                  <div key={c.k} className="bg-white p-4">
-                    <dt className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">{c.k}</dt>
-                    <dd className="m-0 mt-1 text-[18px] font-extrabold text-ink">{c.v}</dd>
+                  <div key={c.k} className="bg-paper p-4">
+                    <dt className="text-[12px] font-medium text-muted">{c.k}</dt>
+                    <dd className="m-0 mt-1 text-[18px] font-semibold text-ink">{c.v}</dd>
                     {c.sub && <p className="text-[13px] text-muted">{c.sub}</p>}
                   </div>
                 ))}
@@ -147,25 +151,25 @@ export default function ListingPage() {
             </section>
 
             <section className="flex flex-col gap-4" aria-labelledby="trip">
-              <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">
+              <h2 id="trip" className="text-[22px] font-semibold text-ink">
                 {destination ? `Your trip to ${destination.label}` : 'Your trip'}
               </h2>
               {!destination || ev.walkMinutes === null || ev.walkMeters === null ? (
-                <div className="rounded-2xl border border-line p-4 text-[14px] text-muted">
+                <div className="rounded-card border border-line p-4 text-[14px] text-muted">
                   You haven’t chosen a destination, so there is no walk or route to show.{' '}
-                  <Link to="/search" className="font-bold text-brand hover:underline">
+                  <Link to="/search" className="font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep">
                     Choose one in search
                   </Link>
                   .
                 </div>
               ) : (
-              <div className="divide-y divide-line rounded-2xl border border-line">
+              <div className="divide-y divide-line rounded-card border border-line">
                 <div className="flex items-center gap-4 p-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-chip text-ink">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center text-ink">
                     <Walk size={22} />
                   </span>
                   <div>
-                    <p className="text-[16px] font-extrabold text-ink">
+                    <p className="text-[16px] font-semibold text-ink">
                       {ev.walkMinutes} min walk · {metersToMiles(ev.walkMeters).toFixed(1)} mi
                     </p>
                     <p className="text-[14px] text-muted">
@@ -176,14 +180,14 @@ export default function ListingPage() {
                 {destination.routes && destination.routes.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-4 p-4">
                     <span
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-extrabold text-white"
-                      style={{ background: destination.primary ? LINE_STYLES[destination.primary].stroke : '#586070' }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[18px] font-semibold text-on-ink"
+                      style={{ background: destination.primary ? LINE_STYLES[destination.primary].stroke : 'var(--color-pin-fallback)' }}
                       aria-hidden="true"
                     >
                       T
                     </span>
                     <div className="min-w-[200px] flex-1">
-                      <p className="text-[16px] font-extrabold text-ink">Routes serving {destination.label}</p>
+                      <p className="text-[16px] font-semibold text-ink">Routes serving {destination.label}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         <RouteBadges routes={destination.routes} max={destination.routes.length} />
                       </div>
@@ -200,7 +204,7 @@ export default function ListingPage() {
 
             <section className="flex flex-col gap-4" aria-labelledby="fit">
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <h2 id="fit" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Charger fit for your car</h2>
+                <h2 id="fit" className="text-[22px] font-semibold text-ink">Charger fit for your car</h2>
                 <div className="min-w-[220px]">
                   <SelectField
                     label="Your car"
@@ -213,13 +217,13 @@ export default function ListingPage() {
                     {carOptions.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
-                        {c.maxAcKw !== null ? ` · ${c.maxAcKw} kW` : ''}
+                        {c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}
                       </option>
                     ))}
                   </SelectField>
                 </div>
               </div>
-              <div className="flex flex-col gap-3 rounded-2xl border border-line p-4">
+              <div className="flex flex-col gap-3 rounded-card border border-line p-4">
                 <FitBar label="Charger" kw={listing.chargerKw} tone="grey" />
                 <FitBar label="Your car max" kw={activeCar.maxAcKw} tone="grey" />
                 <FitBar label="You’ll draw" kw={ev.pEff} tone="brand" />
@@ -253,46 +257,46 @@ export default function ListingPage() {
 
             <section className="flex flex-col gap-4" aria-labelledby="green">
               <div className="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 id="green" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Green Score</h2>
+                <h2 id="green" className="text-[22px] font-semibold text-ink">Green Score</h2>
                 {ev.greenScore !== null && (
-                  <p className="text-[30px] font-extrabold tracking-[-0.02em] text-green-ink">
-                    {ev.greenScore.toFixed(2)} <span className="text-[16px] font-bold text-muted">/ 1.00</span>
+                  <p className="text-[30px] font-semibold text-green-ink">
+                    {ev.greenScore.toFixed(2)} <span className="text-[16px] font-medium text-muted">/ 1.00</span>
                   </p>
                 )}
               </div>
               {t && ev.solarShare !== null ? (
-                <div className="overflow-x-auto rounded-2xl border border-line">
+                <div className="overflow-x-auto rounded-card border border-line">
                   <table className="w-full min-w-[520px] border-collapse text-left text-[14px]">
                     <thead className="bg-surface text-muted">
                       <tr>
-                        <th scope="col" className="px-4 py-3 font-bold">Term</th>
-                        <th scope="col" className="px-4 py-3 text-right font-bold">Your numbers</th>
-                        <th scope="col" className="px-4 py-3 text-right font-bold">Weight</th>
-                        <th scope="col" className="px-4 py-3 text-right font-bold">Score</th>
+                        <th scope="col" className="px-4 py-3 font-medium">Term</th>
+                        <th scope="col" className="px-4 py-3 text-right font-medium">Your numbers</th>
+                        <th scope="col" className="px-4 py-3 text-right font-medium">Weight</th>
+                        <th scope="col" className="px-4 py-3 text-right font-medium">Score</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-t border-line">
-                        <th scope="row" className="px-4 py-3 font-semibold text-ink">Solar share</th>
-                        <td className="px-4 py-3 text-right font-bold">{Math.round(t.solar.value * 100)}% of the charge</td>
+                        <th scope="row" className="px-4 py-3 font-medium text-ink">Solar share</th>
+                        <td className="px-4 py-3 text-right font-medium">{Math.round(t.solar.value * 100)}% of the charge</td>
                         <td className="px-4 py-3 text-right">× {GREEN_WEIGHTS.solar.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right font-extrabold">{t.solar.score.toFixed(3)}</td>
+                        <td className="px-4 py-3 text-right font-semibold">{t.solar.score.toFixed(3)}</td>
                       </tr>
                       <tr className="border-t border-line">
-                        <th scope="row" className="px-4 py-3 font-semibold text-ink">Transit miles replaced</th>
-                        <td className="px-4 py-3 text-right font-bold">{t.transit.value.toFixed(1)} mi ÷ {GREEN_REF_TRANSIT_MILES} mi (max 1)</td>
+                        <th scope="row" className="px-4 py-3 font-medium text-ink">Transit miles replaced</th>
+                        <td className="px-4 py-3 text-right font-medium">{t.transit.value.toFixed(1)} mi ÷ {GREEN_REF_TRANSIT_MILES} mi (max 1)</td>
                         <td className="px-4 py-3 text-right">× {GREEN_WEIGHTS.transit.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right font-extrabold">{t.transit.score.toFixed(3)}</td>
+                        <td className="px-4 py-3 text-right font-semibold">{t.transit.score.toFixed(3)}</td>
                       </tr>
                       <tr className="border-t border-line">
-                        <th scope="row" className="px-4 py-3 font-semibold text-ink">CO₂ avoided vs. gas</th>
-                        <td className="px-4 py-3 text-right font-bold">{t.co2.value.toFixed(1)} kg ÷ {GREEN_REF_CO2_KG} kg (max 1)</td>
+                        <th scope="row" className="px-4 py-3 font-medium text-ink">CO₂ avoided vs. gas</th>
+                        <td className="px-4 py-3 text-right font-medium">{t.co2.value.toFixed(1)} kg ÷ {GREEN_REF_CO2_KG} kg (max 1)</td>
                         <td className="px-4 py-3 text-right">× {GREEN_WEIGHTS.co2.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right font-extrabold">{t.co2.score.toFixed(3)}</td>
+                        <td className="px-4 py-3 text-right font-semibold">{t.co2.score.toFixed(3)}</td>
                       </tr>
                       <tr className="border-t border-line bg-surface">
-                        <th scope="row" className="px-4 py-3 font-extrabold text-ink" colSpan={3}>Green Score</th>
-                        <td className="px-4 py-3 text-right font-extrabold text-green-ink">{ev.greenScore?.toFixed(3)}</td>
+                        <th scope="row" className="px-4 py-3 font-semibold text-ink" colSpan={3}>Green Score</th>
+                        <td className="px-4 py-3 text-right font-semibold text-green-ink">{ev.greenScore?.toFixed(3)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -310,12 +314,12 @@ export default function ListingPage() {
             </section>
 
             <section className="flex flex-col gap-3" aria-labelledby="instructions">
-              <h2 id="instructions" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Parking instructions</h2>
+              <h2 id="instructions" className="text-[22px] font-semibold text-ink">Parking instructions</h2>
               <p className="max-w-[640px] text-[16px] leading-[1.6] text-body">{listing.instructions}</p>
             </section>
 
             <section className="flex flex-col gap-3" aria-labelledby="know">
-              <h2 id="know" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Good to know</h2>
+              <h2 id="know" className="text-[22px] font-semibold text-ink">Good to know</h2>
               <ul className="m-0 flex max-w-[640px] list-disc flex-col gap-2 pl-5 text-[16px] leading-[1.55] text-body">
                 <li>Pickup ends your session. Minutes after your booked end cost {money(lateRate)}/min.</li>
                 <li>Leaving early? There’s no refund for unused hours.</li>
@@ -327,72 +331,72 @@ export default function ListingPage() {
 
           <aside
             aria-label="Booking"
-            className="flex min-w-0 flex-[1_1_340px] flex-col gap-5 rounded-[18px] border border-line bg-white p-[22px] shadow-panel"
+            className="flex min-w-0 flex-[1_1_340px] flex-col gap-5 rounded-card border border-line bg-paper p-[22px] shadow-panel"
           >
             <div>
-              <p className="text-[30px] font-extrabold tracking-[-0.02em] text-ink">
+              <p className="text-[30px] font-semibold text-ink">
                 {money(ev.pricePerHr)}
-                <span className="text-[16px] font-semibold text-muted">/hr</span>
+                <span className="text-[16px] font-medium text-muted">/hr</span>
               </p>
               <p className="text-[14px] text-muted">for your {activeCar.name}</p>
             </div>
 
-            <div className="grid grid-cols-2 divide-x divide-line-strong rounded-xl border border-line-strong">
-              <div className="p-3">
-                <label htmlFor="book-start" className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">Start</label>
+            <div className="grid grid-cols-2 divide-x divide-line border-y border-line-strong">
+              <div className="py-3 pr-3">
+                <label htmlFor="book-start" className="text-[12px] font-medium text-muted">Start</label>
                 <select
                   id="book-start"
                   value={startHour}
                   onChange={(e) => update({ startHour: Number(e.target.value) })}
-                  className="mt-1 block w-full bg-transparent text-[16px] font-bold text-ink"
+                  className="mt-1 block w-full bg-transparent text-[16px] font-medium text-ink"
                 >
                   {HOURS_OPTIONS.map((h) => (
                     <option key={h} value={h}>{fmtHour(h)}</option>
                   ))}
                 </select>
               </div>
-              <div className="p-3">
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">End</p>
-                <p className="mt-1 py-0.5 text-[16px] font-bold text-ink">{fmtHour(startHour + hours)}</p>
+              <div className="py-3 pl-4">
+                <p className="text-[12px] font-medium text-muted">End</p>
+                <p className="mt-1 py-0.5 text-[16px] font-medium text-ink">{fmtHour(startHour + hours)}</p>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[14px] font-bold text-ink">Hours</span>
+              <span className="text-[14px] font-medium text-ink">Hours</span>
               <Stepper label="Hours" value={hours} min={1} max={12} onChange={(n) => update({ hours: n })} format={(n) => `${n} h`} />
             </div>
 
             <dl className="m-0 flex flex-col gap-2.5 text-[15px] text-body">
               <div className="flex justify-between gap-3">
                 <dt>Electricity · {ev.pEff} kW × ${listing.rate.toFixed(2)}</dt>
-                <dd className="m-0 font-bold text-ink">{money(ev.electricityPerHr)}/hr</dd>
+                <dd className="m-0 font-medium text-ink">{money(ev.electricityPerHr)}/hr</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt>Host earnings</dt>
-                <dd className="m-0 font-bold text-ink">{money(listing.earningsHr)}/hr</dd>
+                <dd className="m-0 font-medium text-ink">{money(listing.earningsHr)}/hr</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt>{money(ev.pricePerHr)} × {hours} h</dt>
-                <dd className="m-0 font-bold text-ink">{money(subtotal)}</dd>
+                <dd className="m-0 font-medium text-ink">{money(subtotal)}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt>Service fee ({Math.round(SERVICE_FEE * 100)}%)</dt>
-                <dd className="m-0 font-bold text-ink">{money(serviceFee)}</dd>
+                <dd className="m-0 font-medium text-ink">{money(serviceFee)}</dd>
               </div>
-              <div className="flex justify-between gap-3 border-t border-line pt-3 text-[17px] font-extrabold text-ink">
+              <div className="flex justify-between gap-3 border-t border-line pt-3 text-[17px] font-semibold text-ink">
                 <dt>Total</dt>
                 <dd className="m-0">{money(ev.total)}</dd>
               </div>
             </dl>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-surface p-3">
-                <div className="text-[12px] font-bold text-muted">Estimated miles added</div>
-                <div className="mt-0.5 text-[20px] font-extrabold text-ink">+{Math.round(ev.milesAdded)} mi</div>
+            <div className="grid grid-cols-2 divide-x divide-line border-t border-line pt-3">
+              <div className="pr-3">
+                <div className="text-[12px] font-medium text-muted">Estimated miles added</div>
+                <div className="mt-0.5 text-[20px] font-semibold text-ink">+{Math.round(ev.milesAdded)} mi</div>
               </div>
-              <div className="rounded-xl bg-amber-bg p-3">
-                <div className="text-[12px] font-bold text-amber-ink">Late rate ({LATE_MULTIPLIER}×)</div>
-                <div className="mt-0.5 text-[20px] font-extrabold text-amber-deep">{money(lateRate)}/min</div>
+              <div className="pl-4">
+                <div className="text-[12px] font-medium text-amber-ink">Late rate ({LATE_MULTIPLIER}×)</div>
+                <div className="mt-0.5 text-[20px] font-semibold text-amber-deep">{money(lateRate)}/min</div>
               </div>
             </div>
 

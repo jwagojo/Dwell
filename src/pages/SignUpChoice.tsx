@@ -21,22 +21,21 @@ function RoleCard({
   return (
     <Link
       to={to}
-      className="group flex flex-col gap-5 rounded-[20px] border border-line bg-white p-7 transition-all hover:border-brand hover:shadow-role"
+      className="group flex flex-col gap-5 rounded-card border border-line bg-paper p-7 transition-colors duration-200 hover:border-brand hover:bg-brand-wash active:bg-brand-tint"
     >
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-tint text-brand">{icon}</span>
+      <span className="flex h-10 items-center text-brand">{icon}</span>
       <div>
-        <h2 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink">{title}</h2>
+        <h2 className="text-[26px] font-semibold text-ink">{title}</h2>
         <p className="mt-2 text-[16px] text-body">{body}</p>
       </div>
-      <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+      <ul className="m-0 flex list-none flex-col p-0">
         {bullets.map((b) => (
-          <li key={b} className="flex items-start gap-3 text-[15px] text-body">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
+          <li key={b} className="border-t border-line py-2.5 text-[15px] text-body">
             {b}
           </li>
         ))}
       </ul>
-      <span className="mt-auto flex h-[52px] items-center justify-center rounded-xl bg-brand text-[17px] font-extrabold text-white group-hover:bg-brand-dark">
+      <span className="mt-auto flex h-[52px] items-center justify-center whitespace-nowrap rounded-full border border-brand text-[17px] font-semibold text-brand transition-colors duration-200 group-hover:bg-brand group-hover:text-on-ink">
         {cta}
       </span>
     </Link>
@@ -47,11 +46,11 @@ export default function SignUpChoice() {
   const [params] = useSearchParams();
   const to = params.get('to');
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto max-w-[960px] px-6 pb-16 pt-14">
-        <div className="text-center">
-          <h1 className="text-[44px] font-extrabold leading-[1.1] tracking-[-0.03em] text-ink">How will you use Dwell?</h1>
+        <div>
+          <h1 className="text-[44px] leading-[1.1] text-ink">How will you use Dwell?</h1>
           <p className="mt-3 text-[18px] text-hero-sub">You can add the other role later.</p>
         </div>
         <div className="auto-grid mt-10" style={{ '--min': '320px', '--gap': '20px' } as CSSProperties}>
@@ -72,8 +71,8 @@ export default function SignUpChoice() {
             cta="Sign up as a host"
           />
         </div>
-        <p className="mt-8 text-center text-[15px] text-muted">
-          Already have an account? <span className="font-bold text-brand">Sign in</span> (coming with Cognito)
+        <p className="mt-8 text-[15px] text-muted">
+          Already have an account? <span className="font-medium text-ink">Sign in</span> (coming with Cognito)
         </p>
       </main>
     </div>

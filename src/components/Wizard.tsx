@@ -32,7 +32,7 @@ export default function Wizard({
   return (
     <div className="flex flex-wrap items-start gap-8">
       <nav aria-label="Steps" className="flex w-full flex-col gap-3 md:w-[240px] md:shrink-0">
-        <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">{title}</h1>
+        <h1 className="text-[24px] font-semibold text-ink">{title}</h1>
         <ol className="m-0 flex list-none flex-col gap-1 p-0">
           {steps.map((s, i) => {
             const done = i < current;
@@ -44,17 +44,17 @@ export default function Wizard({
                   disabled={!done}
                   aria-current={isCurrent ? 'step' : undefined}
                   onClick={() => onStepClick(i)}
-                  className={`flex h-11 w-full items-center gap-3 rounded-[10px] px-2 text-left text-[15px] font-semibold ${
-                    isCurrent ? 'bg-brand-tint text-brand' : done ? 'text-ink hover:bg-white' : 'text-muted'
+                  className={`flex h-11 w-full items-center gap-3 rounded-card px-2 text-left text-[15px] font-medium ${
+                    isCurrent ? 'bg-brand-tint text-brand' : done ? 'text-ink hover:bg-paper' : 'text-muted'
                   }`}
                 >
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-medium ${
                       done
-                        ? 'bg-brand text-white'
+                        ? 'bg-brand text-on-ink'
                         : isCurrent
-                          ? 'border-2 border-brand bg-white text-brand'
-                          : 'border border-line-strong bg-white text-muted'
+                          ? 'border-2 border-brand bg-paper text-brand'
+                          : 'border border-line-strong bg-paper text-muted'
                     }`}
                     aria-hidden="true"
                   >
@@ -71,9 +71,9 @@ export default function Wizard({
         </ol>
       </nav>
 
-      <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-6 rounded-[18px] border border-line bg-white p-5 shadow-panel sm:p-7">
+      <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-6 rounded-card border border-line bg-paper p-5 shadow-panel sm:p-7">
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink">{stepTitle}</h2>
+          <h2 className="text-[26px] font-semibold text-ink">{stepTitle}</h2>
           <p className="text-[16px] text-body">{stepWhy}</p>
         </div>
         <div className="flex flex-col gap-5">{children}</div>
@@ -85,7 +85,7 @@ export default function Wizard({
               </Button>
             )}
           </div>
-          <span className="text-[14px] font-semibold text-muted">
+          <span className="text-[14px] font-medium text-muted">
             Step {current + 1} of {steps.length}
           </span>
           <Button size="lg" onClick={onNext} disabled={busy}>

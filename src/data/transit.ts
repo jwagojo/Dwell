@@ -23,13 +23,14 @@ export function routeStyle(route: string): { bg: string; text: string } {
   return { bg: BUS_STYLE.badgeBg, text: BUS_STYLE.badgeText };
 }
 
+// Schematic fallback map colours, resolved from the theme tokens in src/index.css.
 export const MAP_PALETTE = {
-  land: '#EEF0EA',
-  parks: '#D7E8D0',
-  water: '#BFD9F0',
-  streets: '#FFFFFF',
-  place: '#7A8190',
-  station: '#586070',
-  waterLabel: '#3C6A92',
-  farBank: '#E6E8E2',
+  land: 'var(--color-map-land)',
+  parks: 'var(--color-map-parks)',
+  water: 'var(--color-map-water)',
+  streets: 'var(--color-map-streets)',
+  place: 'var(--color-map-place)',
+  station: 'var(--color-map-station)',
+  waterLabel: 'var(--color-map-water-label)',
+  farBank: 'var(--color-map-far-bank)',
 } as const;

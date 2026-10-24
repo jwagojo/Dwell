@@ -42,7 +42,7 @@ export default function LiveMap({
         <div ref={containerRef} className="h-full w-full" role="group" aria-label={ariaLabel} />
       </div>
       {status === 'loading' && (
-        <div role="status" className="absolute inset-0 z-10 flex items-center justify-center bg-[#EEF0EA] text-[14px] font-semibold text-muted">
+        <div role="status" className="absolute inset-0 z-10 flex items-center justify-center bg-map-loading text-[14px] font-medium text-muted">
           Loading map…
         </div>
       )}

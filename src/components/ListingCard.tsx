@@ -28,14 +28,14 @@ export default function ListingCard({
     <article
       onMouseEnter={onSelect}
       onFocusCapture={onSelect}
-      className={`flex flex-wrap gap-4 rounded-2xl border bg-white p-3.5 transition-shadow hover:shadow-lg ${
+      className={`flex flex-wrap gap-4 rounded-card border bg-paper p-3.5 transition-colors duration-200 hover:border-line-strong ${
         selected ? 'border-brand shadow-selected ring-1 ring-brand' : 'border-line'
       }`}
     >
-      <Photo src={l.photos[0]} index={l.id.length} className="h-[150px] w-[150px] shrink-0 rounded-xl">
+      <Photo src={l.photos[0]} index={l.id.length} className="h-[150px] w-[150px] shrink-0 rounded-card">
         <span className="absolute bottom-2 left-2">
           <LevelTag>
-            {l.level} · {l.chargerKw} kW
+            {l.level}, {l.chargerKw} kW
           </LevelTag>
         </span>
       </Photo>
@@ -44,7 +44,7 @@ export default function ListingCard({
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-[18px] font-extrabold leading-tight text-ink">
+              <h3 className="text-[18px] font-semibold leading-tight text-ink">
                 <Link to={`/listing/${l.id}`} className="hover:text-brand">
                   {l.title}
                 </Link>
@@ -52,15 +52,15 @@ export default function ListingCard({
               {l.isNew && <NewBadge />}
             </div>
             <p className="text-[14px] text-muted">
-              {l.street} · {l.neighborhood}
+              {l.street}, {l.neighborhood}
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[22px] font-extrabold leading-none text-ink">
+            <div className="text-[22px] font-semibold leading-none text-ink">
               ${ev.pricePerHr.toFixed(2)}
-              <span className="text-[13px] font-semibold text-muted">/hr</span>
+              <span className="text-[13px] font-medium text-muted">/hr</span>
             </div>
-            <div className="mt-1 text-[13px] font-semibold text-muted">${ev.total.toFixed(2)} total</div>
+            <div className="mt-1 text-[13px] font-medium text-muted">${ev.total.toFixed(2)} total</div>
           </div>
         </div>
 
@@ -69,10 +69,10 @@ export default function ListingCard({
           {routes.length > 0 && <RouteBadges routes={routes} max={5} />}
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px] font-semibold text-body">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px] font-medium text-body">
           <span className="inline-flex items-center gap-1.5">
             <Plug size={16} />
-            {l.plug} · {l.chargerKw} kW
+            {l.plug}, {l.chargerKw} kW
           </span>
           <span title="Estimated miles added" aria-label={`${Math.round(ev.milesAdded)} estimated miles added`}>
             +{Math.round(ev.milesAdded)} mi

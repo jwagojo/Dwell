@@ -1,40 +1,70 @@
+/* Hallmark · shape: Index (landing), app screen (7 routes) · genre: editorial · theme: Garden (by request) · redesign: full · draw: f2f046 · job: book
+ * hero: Index · nav: edge-aligned · footer: statement · imagery: the product (live map and priced listings) · signature: four real listings near Central, each priced for the visitor's car, beside the search
+ * axes: light/roman-serif/chromatic-green · posture: committed · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R5 V4 · weakest: P, the landing argued nothing about the price; the hero now shows real per-car prices from the engines instead of a single floating card */
+/* Hallmark · swapped draw f2f046: Stat-Led shape refused (no user figures, 46a), Index hero taken; the host statement on green ink replaces the left-out Band; footer is a mast */
+/* Hallmark · dropped "Charge-and-ride · Cambridge" · 54 names it; the lede already names Central, Harvard and Kendall */
+/* Hallmark · dropped "01 · Book" step labels · 54 names them; the steps are a real ol with numerals */
+/* Hallmark · reworded "unlocks" to "opens" in Session · 19 names it */
+/* Hallmark · reworded middle-dot meta strings to commas and line breaks, en and em dashes to "to" and "n/a" · 19 and 63 name them */
+/* Hallmark · dismissed 49 · both HostSignup inline buttons carry whitespace-nowrap */
+/* Hallmark · dismissed F1 · the straight quotes are JSX attribute delimiters, not prose */
 @import 'tailwindcss';
-@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource/vollkorn/600.css';
+@import '@fontsource-variable/hanken-grotesk';
+@import "./tokens.css";
+@import "./base.css" layer(base);
 
-/* Design tokens: docs from the Dwell UI design spec §2. Use the Tailwind names (bg-brand, text-muted, border-line). */
-@theme {
-  --font-sans: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+/* The project's own token names, now resolved to Garden (src/tokens.css). Use the Tailwind names (bg-brand, text-muted, border-line). */
+@theme static {
+  --font-sans: var(--font-body);
 
-  /* Color */
-  --color-brand: #2b3fe0;
-  --color-brand-dark: #1e2db0;
-  --color-brand-tint: #eef0fd;
-  --color-brand-wash: #f3f5ff;
-  --color-avatar: #e4e7fb;
-  --color-ink: #12151c;
-  --color-body: #3a404c;
-  --color-muted: #586070;
-  --color-hero-sub: #4a5160;
-  --color-line: #e2e5ea;
-  --color-line-strong: #c9ced6;
-  --color-pill: #d5d9e0;
-  --color-surface: #f5f6f8;
-  --color-chip: #f0f1f4;
-  --color-disabled: #9aa3b2;
-  --color-green: #177a3a;
-  --color-green-ink: #146c33;
-  --color-green-deep: #0f5a2a;
-  --color-green-bg: #e8f5ec;
-  --color-amber-ink: #8a3d05;
-  --color-amber-deep: #6e3004;
-  --color-amber-bg: #fdf1e3;
+  /* Colour */
+  --color-brand: var(--color-accent);
+  --color-brand-dark: oklch(38% 0.12 142);
+  --color-brand-tint: oklch(90.5% 0.045 128);
+  --color-brand-wash: oklch(93.5% 0.035 115);
+  --color-avatar: var(--color-paper-3);
+  --color-body: var(--color-ink-2);
+  --color-hero-sub: var(--color-ink-2);
+  --color-line: var(--color-rule);
+  --color-line-strong: var(--color-rule-2);
+  --color-pill: var(--color-rule-2);
+  --color-surface: var(--color-paper-2);
+  --color-chip: var(--color-paper-3);
+  --color-disabled: oklch(66% 0.025 130);
+  --color-green: var(--color-accent);
+  --color-green-ink: oklch(38% 0.11 142);
+  --color-green-deep: oklch(32% 0.09 145);
+  --color-green-bg: oklch(91% 0.05 128);
+  --color-amber-ink: oklch(44% 0.12 48);
+  --color-amber-deep: oklch(38% 0.11 45);
+  --color-amber-bg: oklch(92.5% 0.04 70);
+  --color-on-ink: var(--color-accent-ink);
+  --color-on-ink-muted: oklch(82% 0.03 110);
+  --color-pin-fallback: var(--color-muted);
+  --color-map-loading: var(--color-paper-2);
+  --color-map-land: oklch(94% 0.022 95);
+  --color-map-parks: oklch(88% 0.06 135);
+  --color-map-water: oklch(85% 0.045 225);
+  --color-map-streets: oklch(98% 0.01 95);
+  --color-map-place: var(--color-muted);
+  --color-map-station: var(--color-ink-2);
+  --color-map-water-label: oklch(44% 0.07 235);
+  --color-map-far-bank: oklch(92% 0.024 100);
+  --color-photo-1: oklch(90% 0.03 85);
+  --color-photo-2: oklch(89% 0.03 130);
+  --color-photo-3: oklch(91% 0.025 100);
+  --color-photo-4: oklch(88% 0.035 70);
+  --color-photo-5: oklch(90% 0.02 150);
+  --color-photo-6: oklch(91% 0.03 95);
 
-  /* Elevation */
-  --shadow-panel: 0 12px 32px rgba(18, 21, 28, 0.07);
-  --shadow-hero: 0 10px 30px rgba(18, 21, 28, 0.08);
-  --shadow-role: 0 16px 40px rgba(43, 63, 224, 0.14);
-  --shadow-pin: 0 3px 10px rgba(18, 21, 28, 0.28);
-  --shadow-selected: 0 0 0 4px rgba(43, 63, 224, 0.12);
+  /* Elevation: flat paper. Only surfaces floating over the map keep a shadow. */
+  --shadow-panel: 0 1px 2px oklch(20% 0.02 142 / 0.08);
+  --shadow-hero: none;
+  --shadow-role: none;
+  --shadow-pin: 0 1px 3px oklch(20% 0.03 142 / 0.3);
+  --shadow-selected: 0 0 0 3px var(--tint-moss);
 }
 
 @layer base {
@@ -42,37 +72,18 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    margin: 0;
-    font-family: var(--font-sans);
-    color: var(--color-ink);
-    background: #fff;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    font-variant-numeric: oldstyle-nums;
   }
-  h1,
-  h2,
-  h3 {
-    text-wrap: balance;
-    margin: 0;
-  }
-  p {
-    margin: 0;
-  }
-  button,
-  select,
-  input,
-  textarea {
-    font: inherit;
+  table,
+  .num,
+  [data-num] {
+    font-variant-numeric: lining-nums tabular-nums;
   }
   button {
     cursor: pointer;
   }
   button:disabled {
     cursor: not-allowed;
-  }
-  :focus-visible {
-    outline: 2px solid var(--color-brand);
-    outline-offset: 2px;
   }
 }
 

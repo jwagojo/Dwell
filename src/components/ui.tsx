@@ -9,20 +9,22 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'link';
 type Size = 'nav' | 'md' | 'lg' | 'xl';
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-dark disabled:bg-disabled disabled:hover:bg-disabled rounded-xl font-extrabold',
-  secondary: 'bg-white border border-line-strong text-ink hover:border-brand rounded-[10px] font-bold',
-  ghost: 'text-ink hover:bg-surface rounded-[10px] font-semibold',
-  link: 'text-brand hover:bg-surface rounded-[10px] font-semibold',
+  primary:
+    'bg-brand text-on-ink hover:bg-brand-dark active:bg-green-deep disabled:bg-disabled disabled:opacity-55 disabled:hover:bg-disabled rounded-full font-semibold',
+  secondary:
+    'bg-paper border border-line-strong text-ink hover:border-brand hover:bg-brand-wash active:bg-brand-tint disabled:opacity-55 rounded-full font-medium',
+  ghost: 'text-ink hover:bg-surface active:bg-chip disabled:opacity-55 rounded-full font-medium',
+  link: 'text-brand underline decoration-1 underline-offset-4 hover:decoration-2 active:text-green-deep disabled:opacity-55 rounded-full font-medium',
 };
 const SIZE: Record<Size, string> = {
-  nav: 'h-11 px-4 text-[15px]',
+  nav: 'h-10 px-4 text-[15px]',
   md: 'h-12 px-5 text-[16px]',
   lg: 'h-[52px] px-6 text-[17px]',
-  xl: 'h-14 px-7 text-[17px]',
+  xl: 'h-[52px] px-7 text-[17px]',
 };
 
 export const btn = (variant: Variant = 'primary', size: Size = 'md', extra = '') =>
-  `inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors duration-200 ease-out ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -80,8 +82,8 @@ export function Pill({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`h-10 rounded-full border px-3 text-[14px] font-semibold transition-colors ${
-        selected ? 'border-ink bg-ink text-white' : 'border-pill bg-white text-ink hover:border-brand'
+      className={`h-10 rounded-full border px-3 text-[14px] font-medium transition-colors ${
+        selected ? 'border-ink bg-ink text-on-ink' : 'border-pill bg-paper text-ink hover:border-brand hover:bg-brand-wash active:bg-brand-tint'
       } ${className}`}
     >
       {children}
@@ -104,7 +106,7 @@ export function Segmented<T extends string | number>({
 }) {
   return (
     <div role="group" aria-label={label} className={`flex flex-wrap items-center gap-2 ${className}`}>
-      <span className="text-[13px] font-bold text-muted">{label}</span>
+      <span className="text-[13px] font-medium text-muted">{label}</span>
       {options.map((o) => (
         <Pill key={String(o.value)} selected={o.value === value} onClick={() => onChange(o.value)}>
           {o.label}
@@ -119,7 +121,7 @@ export function Segmented<T extends string | number>({
 export function RouteBadge({ route }: { route: string }) {
   const { bg, text } = routeStyle(route);
   return (
-    <span className="rounded-md px-2 py-1 text-[13px] font-bold" style={{ background: bg, color: text }}>
+    <span className="rounded-xs px-2 py-1 text-[13px] font-medium" style={{ background: bg, color: text }}>
       {route}
     </span>
   );
@@ -133,14 +135,14 @@ export function RouteBadges({ routes, max = 5 }: { routes: string[]; max?: numbe
       {shown.map((r) => (
         <RouteBadge key={r} route={r} />
       ))}
-      {extra > 0 && <span className="rounded-md bg-chip px-2 py-1 text-[13px] font-bold text-ink">+{extra}</span>}
+      {extra > 0 && <span className="rounded-xs bg-chip px-2 py-1 text-[13px] font-medium text-ink">+{extra}</span>}
     </>
   );
 }
 
 export function WalkChip({ minutes }: { minutes: number }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md bg-chip px-2 py-1 text-[13px] font-bold text-ink">
+    <span className="inline-flex items-center gap-1.5 rounded-xs bg-chip px-2 py-1 text-[13px] font-medium text-ink">
       <Walk size={14} />
       {minutes} min walk
     </span>
@@ -149,38 +151,37 @@ export function WalkChip({ minutes }: { minutes: number }) {
 
 export function GreenPill({ score }: { score: number }) {
   return (
-    <span className="rounded-full bg-green-bg px-2.5 py-1 text-[13px] font-extrabold text-green-ink">
+    <span className="rounded-full bg-green-bg px-2.5 py-1 text-[13px] font-semibold text-green-ink">
       Green {score.toFixed(2)}
     </span>
   );
 }
 
 export function LevelTag({ children }: { children: ReactNode }) {
-  return <span className="rounded-md bg-white px-2 py-1 text-[12px] font-bold text-ink">{children}</span>;
+  return <span className="rounded-xs bg-paper px-2 py-1 text-[12px] font-medium text-ink">{children}</span>;
 }
 
 export function NewBadge() {
-  return <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-[12px] font-extrabold text-brand">New listing</span>;
+  return <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-[12px] font-semibold text-brand">New listing</span>;
 }
 
 export function StatusDot({ children, tone = 'green' }: { children: ReactNode; tone?: 'green' | 'muted' }) {
   return (
-    <span className={`inline-flex items-center gap-2 text-[14px] font-bold ${tone === 'green' ? 'text-green' : 'text-muted'}`}>
-      <span className={`h-2 w-2 rounded-full ${tone === 'green' ? 'bg-green' : 'bg-disabled'}`} aria-hidden="true" />
+    <span className={`inline-flex items-center gap-2 text-[14px] font-medium ${tone === 'green' ? 'text-green' : 'text-muted'}`}>
       {children}
     </span>
   );
 }
 
 export function PaidPill({ amount }: { amount: string }) {
-  return <span className="rounded-full bg-green-bg px-2.5 py-1 text-[13px] font-bold text-green-ink">Paid {amount}</span>;
+  return <span className="rounded-full bg-green-bg px-2.5 py-1 text-[13px] font-medium text-green-ink">Paid {amount}</span>;
 }
 
 /* ---------- Notes (spec §4.7) ---------- */
 
 export function InfoNote({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-[10px] bg-surface p-3 text-[14px] text-body">
+    <div className="flex items-start gap-2.5 rounded-card bg-surface p-3 text-[14px] text-body">
       <span className="mt-0.5 text-muted">
         <Info size={18} />
       </span>
@@ -191,7 +192,7 @@ export function InfoNote({ children }: { children: ReactNode }) {
 
 export function WarnNote({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`flex items-start gap-2 rounded-lg bg-amber-bg p-2.5 text-[13px] font-semibold text-amber-ink ${className}`}>
+    <div className={`flex items-start gap-2 rounded-card bg-amber-bg p-2.5 text-[13px] font-medium text-amber-ink ${className}`}>
       <span className="mt-0.5 shrink-0">
         <Warn size={16} />
       </span>
@@ -203,7 +204,7 @@ export function WarnNote({ children, className = '' }: { children: ReactNode; cl
 export function FitNote({ tone, children }: { tone: 'green' | 'amber'; children: ReactNode }) {
   const cls = tone === 'green' ? 'bg-green-bg text-green-ink' : 'bg-amber-bg text-amber-ink';
   return (
-    <div className={`flex items-start gap-2 rounded-[10px] p-3 text-[14px] font-semibold ${cls}`}>
+    <div className={`flex items-start gap-2 rounded-card p-3 text-[14px] font-medium ${cls}`}>
       <span className="mt-0.5 shrink-0">{tone === 'green' ? <Plug size={16} /> : <Warn size={16} />}</span>
       <p>{children}</p>
     </div>
@@ -226,16 +227,16 @@ export function StatTile({
   const bg = { surface: 'bg-surface', green: 'bg-green-bg', amber: 'bg-amber-bg' }[tone];
   const fg = { surface: 'text-ink', green: 'text-green-ink', amber: 'text-amber-ink' }[tone];
   return (
-    <div className={`rounded-xl p-3.5 ${bg}`}>
-      <div className={`text-[12px] font-bold ${tone === 'surface' ? 'text-muted' : fg}`}>{label}</div>
-      <div className={`mt-0.5 font-extrabold ${fg} ${big ? 'text-[22px]' : 'text-[18px]'}`}>{value}</div>
+    <div className={`rounded-card p-3.5 ${bg}`}>
+      <div className={`text-[12px] font-medium ${tone === 'surface' ? 'text-muted' : fg}`}>{label}</div>
+      <div className={`mt-0.5 font-semibold ${fg} ${big ? 'text-[22px]' : 'text-[18px]'}`}>{value}</div>
     </div>
   );
 }
 
 /* ---------- Photo (host photo or labeled placeholder, spec §2.1) ---------- */
 
-const PHOTO_TONES = ['#E7E1D6', '#DCE6EE', '#E3E8DC', '#EDE3DE', '#E6E4EE', '#E9E6DA'];
+const PHOTO_TONES = [1, 2, 3, 4, 5, 6].map((n) => `var(--color-photo-${n})`);
 
 export function Photo({
   src,
@@ -243,6 +244,7 @@ export function Photo({
   label,
   className = '',
   fit = 'cover',
+  priority = false,
   children,
 }: {
   src?: string;
@@ -250,6 +252,8 @@ export function Photo({
   label?: string;
   className?: string;
   fit?: 'cover' | 'contain';
+  /** The page's largest image: load it first instead of lazily. */
+  priority?: boolean;
   children?: ReactNode;
 }) {
   // A hotlinked photo can disappear. Fall back to the labeled placeholder instead of a broken image.
@@ -266,15 +270,16 @@ export function Photo({
         <img
           src={src}
           alt=""
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'auto'}
           referrerPolicy="no-referrer"
           onError={() => setFailedSrc(src!)}
           className={`h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}
         />
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-black/30">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted">
           <House size={30} />
-          {label && <span className="px-2 text-center text-[12px] font-bold text-body">[HOST PHOTO] {label}</span>}
+          {label && <span className="px-2 text-center text-[12px] font-medium text-body">Host photo: {label}</span>}
         </div>
       )}
       {children}

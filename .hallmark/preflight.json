@@ -1,0 +1,12 @@
+{
+  "scanned": "2026-10-24",
+  "findings": {
+    "fonts": "Plus Jakarta Sans Variable via @fontsource-variable (package.json, src/index.css L2)",
+    "palette": "Tailwind 4 @theme tokens, brand blue #2b3fe0 (src/index.css L5-40)",
+    "motion": "none beyond transition-colors; no motion library",
+    "spacing": "Tailwind defaults plus arbitrary px values in class strings",
+    "framework": "Vite 8 + React 18 + React Router 7, 8 routes (src/App.tsx)"
+  },
+  "preserve": ["routes, handlers, ids, test hooks", "Tailwind @theme token names", "Mapbox maps and fallbacks", "copy rules in .kiro/steering/voltlot-rules.md"],
+  "introduce": ["dark green theme", "Hallmark tokens and base layer", "landing recomposition", "app-screen restyle of the 7 working screens"]
+}

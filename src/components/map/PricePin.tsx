@@ -22,7 +22,7 @@ export default function PricePin({
   static?: boolean;
 }) {
   const positioned = x !== undefined && y !== undefined;
-  const cls = `flex h-8 items-center gap-1 rounded-full border-2 border-white px-2.5 text-[14px] font-extrabold text-white shadow-pin transition-transform ${
+  const cls = `flex h-8 items-center gap-1 rounded-full border-2 border-paper px-2.5 text-[14px] font-semibold text-on-ink shadow-pin transition-transform duration-200 ease-out ${
     positioned ? 'absolute -translate-x-1/2 -translate-y-1/2' : ''
   } ${selected ? 'scale-110 bg-brand' : 'bg-ink hover:scale-[1.06]'} ${positioned ? (selected ? 'z-20' : 'z-10') : ''}`;
   const style = positioned ? { left: x, top: y } : undefined;

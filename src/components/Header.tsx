@@ -5,11 +5,11 @@ import { LinkButton } from './ui';
 
 export function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="Dwell home">
-      <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand text-white">
-        <Bolt size={18} />
+    <Link to="/" className="flex h-11 items-center gap-1.5 rounded-card text-ink" aria-label="Dwell home">
+      <span className="text-brand">
+        <Bolt size={20} />
       </span>
-      <span className="text-[20px] font-extrabold tracking-[-0.02em] text-ink">Dwell</span>
+      <span className="font-display text-[24px] font-semibold leading-none">Dwell</span>
     </Link>
   );
 }
@@ -25,8 +25,8 @@ export default function Header({ wide = false }: { wide?: boolean }) {
   ];
 
   return (
-    <header className="border-b border-line bg-white">
-      <div className={`flex items-center justify-between gap-4 px-6 py-3 ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
+    <header className="border-b border-line bg-paper">
+      <div className={`flex min-h-16 items-center justify-between gap-4 px-6 py-2.5 sm:px-8 ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
           {links.map((l) => (
@@ -34,8 +34,8 @@ export default function Header({ wide = false }: { wide?: boolean }) {
               key={l.label}
               to={l.to}
               aria-current={l.active ? 'page' : undefined}
-              className={`flex h-11 items-center rounded-[10px] px-4 text-[15px] font-semibold hover:bg-surface ${
-                l.active ? 'text-brand' : 'text-ink'
+              className={`flex h-11 items-center rounded-full px-4 text-[15px] font-medium transition-colors hover:bg-surface active:bg-chip ${
+                l.active ? 'text-brand underline decoration-1 underline-offset-[6px]' : 'text-ink'
               }`}
             >
               {l.label}
@@ -44,9 +44,9 @@ export default function Header({ wide = false }: { wide?: boolean }) {
         </nav>
         {user ? (
           <div className="flex items-center gap-3">
-            <span className="hidden text-[14px] font-semibold text-muted sm:inline">{user.role === 'host' ? 'Host' : 'Driver'}</span>
+            <span className="hidden text-[14px] font-medium text-muted sm:inline">{user.role === 'host' ? 'Host' : 'Driver'}</span>
             <span
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-avatar text-[16px] font-extrabold text-brand"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-avatar text-[16px] font-semibold text-brand"
               aria-label={`Signed in as ${user.name}`}
               role="img"
             >
@@ -58,7 +58,7 @@ export default function Header({ wide = false }: { wide?: boolean }) {
             <LinkButton to="/signup" variant="ghost" size="nav">
               Sign in
             </LinkButton>
-            <LinkButton to="/signup" size="nav">
+            <LinkButton to="/signup" variant="secondary" size="nav">
               Sign up
             </LinkButton>
           </div>

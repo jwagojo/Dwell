@@ -114,7 +114,7 @@ export function SchematicMap({
             const color = LINE_STYLES[s.primary].stroke;
             return (
               <g key={s.id}>
-                <circle cx={c.x} cy={c.y} r={6} fill="#fff" stroke={color} strokeWidth={3} />
+                <circle cx={c.x} cy={c.y} r={6} fill="var(--color-paper)" stroke={color} strokeWidth={3} />
                 {showLabels && (
                   <text
                     x={c.x + 11}
@@ -122,7 +122,7 @@ export function SchematicMap({
                     fontSize={12}
                     fontWeight={700}
                     fill={MAP_PALETTE.station}
-                    stroke="#fff"
+                    stroke="var(--color-paper)"
                     strokeWidth={3}
                     paintOrder="stroke"
                   >
