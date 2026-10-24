@@ -2,7 +2,7 @@
 <p align="center">
   <img src="Dwell-wordmark.png" alt="Dwell Logo" width="180" />
 </p>
-# Dwell
+#Dwell
 
 A peer-to-peer EV charging and parking platform designed for Massachusetts drivers who lack reliable home charging. Dwell bridges the gap between suburban driveway owners with unused charging capacity and urban or apartment-dwelling EV drivers needing dependable destination charging.
 
