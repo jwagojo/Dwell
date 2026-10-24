@@ -1,0 +1,21 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - node --version
+        - npm ci --cache .npm --prefer-offline
+    build:
+      commands:
+        # VITE_MAPBOX_TOKEN and VITE_EIA_API_KEY are set in the Amplify Console
+        # under Hosting → Environment Variables. Vite picks them up automatically
+        # because they are prefixed with VITE_.
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .npm/**/*
+      - node_modules/**/*
