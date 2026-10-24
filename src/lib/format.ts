@@ -8,7 +8,7 @@ export function fmtHour(h: number): string {
   return `${h12} ${suffix}`;
 }
 
-export const fmtRange = (start: number, hours: number, sep = '–') => `${fmtHour(start)}${sep}${fmtHour(start + hours)}`;
+export const fmtRange = (start: number, hours: number, sep = ' to ') => `${fmtHour(start)}${sep}${fmtHour(start + hours)}`;
 
 export function fmtClock(ms: number): string {
   return new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });

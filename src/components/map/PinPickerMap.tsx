@@ -11,8 +11,8 @@ const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min
 function PinGlyph() {
   return (
     <svg width="36" height="46" viewBox="0 0 36 46" aria-hidden="true" focusable="false" className="drop-shadow-md">
-      <path d="M18 45C18 45 33 29.5 33 17.5C33 8.9 26.3 2 18 2C9.7 2 3 8.9 3 17.5C3 29.5 18 45 18 45Z" fill="#2B3FE0" stroke="#fff" strokeWidth="2.5" />
-      <circle cx="18" cy="17.5" r="6.5" fill="#fff" />
+      <path d="M18 45C18 45 33 29.5 33 17.5C33 8.9 26.3 2 18 2C9.7 2 3 8.9 3 17.5C3 29.5 18 45 18 45Z" fill="var(--color-accent)" stroke="var(--color-paper)" strokeWidth="2.5" />
+      <circle cx="18" cy="17.5" r="6.5" fill="var(--color-paper)" />
     </svg>
   );
 }

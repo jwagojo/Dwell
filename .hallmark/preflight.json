@@ -1,0 +1,12 @@
+{
+  "scanned": "2026-10-24",
+  "findings": {
+    "fonts": "Plus Jakarta Sans Variable, self-hosted via @fontsource-variable/plus-jakarta-sans (package.json, src/main.tsx)",
+    "palette": "Brand blue #2B3FE0 in Tailwind 4 @theme tokens (src/index.css); literal hex still in several TSX files",
+    "motion": "none (no motion library, CSS transitions only)",
+    "spacing": "Tailwind 4 default scale",
+    "framework": "React 18.3.1 + Vite 8 + React Router 7 + Tailwind CSS 4 (@tailwindcss/vite)"
+  },
+  "preserve": ["brand blue #2B3FE0", "Plus Jakarta Sans", "Tailwind 4 and React Router 7", "engines, adapters, Mapbox, booking flow", "data-testid and aria-label hooks", "mandatory copy in voltlot-rules.md"],
+  "introduce": ["theme tokens in tokens.css and base.css", "Floor compliance", "app-screen scope for 7 routes", "design.md lock"]
+}

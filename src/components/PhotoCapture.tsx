@@ -36,7 +36,7 @@ export default function PhotoCapture({
     <div className="flex flex-col gap-1.5">
       <div
         className={`flex flex-wrap items-center gap-4 rounded-2xl border-2 p-4 ${
-          value ? 'border-green bg-green-bg' : 'border-dashed border-line-strong bg-white'
+          value ? 'border-green bg-green-bg' : 'border-dashed border-muted bg-paper'
         }`}
       >
         {value ? (
@@ -52,7 +52,7 @@ export default function PhotoCapture({
         </div>
         <label
           htmlFor={id}
-          className="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl border border-line-strong bg-white px-5 text-[16px] font-bold text-ink focus-within:outline-2 hover:border-brand"
+          className="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl border border-muted bg-paper px-5 text-[16px] font-bold text-ink focus-within:outline-2 hover:border-brand"
         >
           {value ? 'Retake' : 'Open camera'}
           <input

@@ -85,19 +85,19 @@ export default function DriverSignup() {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="bg-paper">
       <Header />
-      <main className="mx-auto max-w-[760px] px-6 pb-16 pt-10">
-        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8 rounded-[18px] border border-line bg-white p-5 shadow-panel sm:p-7">
+      <main className="container max-w-[820px] pb-20 pt-10">
+        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-10">
           <div>
-            <h1 className="text-[30px] font-extrabold tracking-[-0.03em] text-ink">Sign up to park and charge</h1>
+            <h1 className="max-w-none text-[clamp(1.75rem,3.2vw,2.5rem)] font-extrabold text-ink">Sign up to park and charge</h1>
             <p className="mt-2 text-[16px] text-body">
               Your car sets the price you see on every listing, because it decides how much power you can actually draw.
             </p>
           </div>
 
-          <section aria-labelledby="acct" className="flex flex-col gap-4">
-            <h2 id="acct" className="text-[18px] font-extrabold text-ink">Your account</h2>
+          <section aria-labelledby="acct" className="flex flex-col gap-4 border-t border-line pt-8">
+            <h2 id="acct" className="text-[20px] font-extrabold text-ink">Your account</h2>
             <AutoGrid min={240} gap={16}>
               <TextField label="Full name" autoComplete="name" value={form.name} error={errors.name} onChange={(e) => set('name', e.target.value)} />
               <TextField label="Phone" type="tel" autoComplete="tel" inputMode="tel" value={form.phone} error={errors.phone} onChange={(e) => set('phone', e.target.value)} />
@@ -114,8 +114,8 @@ export default function DriverSignup() {
             />
           </section>
 
-          <section aria-labelledby="ev" className="flex flex-col gap-4">
-            <h2 id="ev" className="text-[18px] font-extrabold text-ink">Your EV</h2>
+          <section aria-labelledby="ev" className="flex flex-col gap-4 border-t border-line pt-8">
+            <h2 id="ev" className="text-[20px] font-extrabold text-ink">Your EV</h2>
             <SelectField label="Make and model" value={form.carId} error={errors.car} onChange={(e) => set('carId', e.target.value)}>
               <option value="">Select your car</option>
               {EV_MODELS.map((c) => (
@@ -168,8 +168,8 @@ export default function DriverSignup() {
             />
           </section>
 
-          <section aria-labelledby="dest" className="flex flex-col gap-4">
-            <h2 id="dest" className="text-[18px] font-extrabold text-ink">Where are you headed first?</h2>
+          <section aria-labelledby="dest" className="flex flex-col gap-4 border-t border-line pt-8">
+            <h2 id="dest" className="text-[20px] font-extrabold text-ink">Where are you headed first?</h2>
             <DestinationSearch
               label="Destination"
               value={form.destinationText}
@@ -187,7 +187,7 @@ export default function DriverSignup() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-[15px] text-body">
               Have a charger instead?{' '}
-              <Link to="/signup/host" className="font-bold text-brand hover:underline">
+              <Link to="/signup/host" className="font-bold text-brand underline">
                 List it
               </Link>
             </p>

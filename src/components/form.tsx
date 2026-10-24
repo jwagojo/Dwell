@@ -3,8 +3,8 @@ import { useId, type CSSProperties, type InputHTMLAttributes, type ReactNode, ty
 /* Form primitives (spec §4.4, §4.5). Errors replace hints, use role="alert" and link via aria-describedby. */
 
 export const CONTROL =
-  'w-full rounded-[10px] border bg-white px-3.5 text-[16px] font-medium text-ink outline-none transition-shadow focus:border-brand focus:ring-4 focus:ring-brand/10';
-export const controlBorder = (error?: string) => (error ? 'border-amber-ink' : 'border-line-strong');
+  'w-full rounded-[10px] border bg-paper px-3.5 text-[16px] text-ink transition-colors placeholder:text-muted hover:border-ink disabled:cursor-not-allowed disabled:opacity-55';
+export const controlBorder = (error?: string) => (error ? 'border-amber-ink' : 'border-muted');
 
 export function FieldShell({
   id,
@@ -161,7 +161,7 @@ export function ChoiceGroup<T extends string>({
               aria-checked={selected}
               onClick={() => onChange(o.value)}
               className={`min-h-12 rounded-xl px-3.5 py-2.5 text-left transition-colors ${
-                selected ? 'border-2 border-brand bg-brand-wash' : 'border border-line-strong bg-white hover:border-brand'
+                selected ? 'border border-brand bg-brand-wash ring-1 ring-inset ring-brand' : 'border border-muted bg-paper hover:border-brand active:bg-surface'
               }`}
             >
               <span className="block text-[15px] font-bold text-ink">{o.label}</span>
@@ -199,7 +199,7 @@ export function CheckboxCard({
       <label
         htmlFor={id}
         className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 ${
-          checked ? 'border-brand bg-brand-wash' : error ? 'border-amber-ink bg-white' : 'border-line-strong bg-white'
+          checked ? 'border-brand bg-brand-wash' : error ? 'border-amber-ink bg-paper' : 'border-muted bg-paper'
         }`}
       >
         <input
@@ -241,7 +241,7 @@ export function Stepper({
   format?: (n: number) => string;
 }) {
   const circle =
-    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-white text-[20px] font-bold text-ink hover:border-brand disabled:text-disabled disabled:hover:border-line-strong';
+    'flex h-11 w-11 items-center justify-center rounded-full border border-muted bg-paper text-[20px] font-bold text-ink transition-colors hover:border-brand active:bg-surface disabled:border-line-strong disabled:text-disabled disabled:hover:border-line-strong';
   return (
     <div role="group" aria-label={label} className="flex items-center gap-4">
       <button type="button" aria-label={`Decrease ${label.toLowerCase()}`} className={circle} disabled={value <= min} onClick={() => onChange(value - 1)}>

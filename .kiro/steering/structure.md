@@ -4,7 +4,7 @@ inclusion: always
 
 # Dwell Repository Structure
 
-Companion to `tech.md`. The build order is in `.kiro/specs/voltlot-mvp/tasks.md`. Screen layout and tokens follow the Dwell UI design spec v1 (provided as a text file; not stored in this repo yet).
+Companion to `tech.md`. The build order is in `.kiro/specs/voltlot-mvp/tasks.md`. Screen layout and tokens follow the Hallmark redesign (`tokens.css`); the Dwell UI design spec v1 applies only where it does not conflict with Hallmark's Floor.
 
 ## Current structure (verified)
 
@@ -20,7 +20,8 @@ VoltLot/
 │   └── steering/                  voltlot-rules.md, product.md, tech.md, structure.md
 └── src/
     ├── main.tsx, App.tsx          Entry, router (8 routes), providers
-    ├── index.css                  Tailwind import, font, design tokens (@theme), .auto-grid
+    ├── index.css                  Hallmark stamp, Tailwind import, legacy colour names aliased to tokens, .auto-grid
+    ├── tokens.css, base.css       Hallmark tokens (@theme) and base rules; the only place colours are defined
     ├── pages/                     One file per route: Landing, SignUpChoice, DriverSignup, HostSignup,
     │                              HostHome, Search, ListingPage, Session
     ├── components/                Header, Icons, ui, form, ListingCard, PhotoCapture, Wizard,

@@ -1,3 +1,4 @@
+import { Arrow } from './Icons';
 import { offsetMeters, type LatLng } from '../lib/geo';
 import PinPickerMap from './map/PinPickerMap';
 import { Button } from './ui';
@@ -29,7 +30,7 @@ export default function PinPicker({
   error?: string;
 }) {
   const arrow =
-    'flex h-11 w-11 items-center justify-center rounded-full border border-line-strong bg-white text-[18px] font-bold text-ink hover:border-brand disabled:text-disabled disabled:hover:border-line-strong';
+    'flex h-11 w-11 items-center justify-center rounded-full border border-muted bg-paper text-ink transition-colors hover:border-brand hover:text-brand active:bg-surface disabled:border-line-strong disabled:text-disabled disabled:hover:border-line-strong';
   const step = (n: number, e: number) => () => position && onMove(offsetMeters(position, n, e));
 
   return (
@@ -47,16 +48,16 @@ export default function PinPicker({
         <div role="group" aria-label="Nudge the pin" className="flex items-center gap-2">
           <span className="text-[13px] font-bold text-muted">Nudge {NUDGE_METERS} m</span>
           <button type="button" className={arrow} aria-label="Nudge pin west" disabled={!position} onClick={step(0, -NUDGE_METERS)}>
-            ←
+            <Arrow size={18} direction="left" />
           </button>
           <button type="button" className={arrow} aria-label="Nudge pin north" disabled={!position} onClick={step(NUDGE_METERS, 0)}>
-            ↑
+            <Arrow size={18} direction="up" />
           </button>
           <button type="button" className={arrow} aria-label="Nudge pin south" disabled={!position} onClick={step(-NUDGE_METERS, 0)}>
-            ↓
+            <Arrow size={18} direction="down" />
           </button>
           <button type="button" className={arrow} aria-label="Nudge pin east" disabled={!position} onClick={step(0, NUDGE_METERS)}>
-            →
+            <Arrow size={18} direction="right" />
           </button>
         </div>
       </div>

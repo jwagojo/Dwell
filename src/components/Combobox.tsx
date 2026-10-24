@@ -201,7 +201,7 @@ export default function Combobox<T>({
       />
 
       {panelVisible && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-80 min-w-[260px] overflow-y-auto rounded-xl border border-line bg-white py-1 shadow-panel">
+        <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-80 min-w-[260px] overflow-y-auto rounded-xl border border-line bg-paper py-1 shadow-panel">
           {options.length > 0 && (
             <ul id={listId} role="listbox" aria-label={label} className="m-0 list-none p-0">
               {options.map((o, i) => (

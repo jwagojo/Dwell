@@ -6,7 +6,7 @@ import { LinkButton } from './ui';
 export function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2.5" aria-label="Dwell home">
-      <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand text-white">
+      <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-brand text-accent-ink">
         <Bolt size={18} />
       </span>
       <span className="text-[20px] font-extrabold tracking-[-0.02em] text-ink">Dwell</span>
@@ -25,8 +25,8 @@ export default function Header({ wide = false }: { wide?: boolean }) {
   ];
 
   return (
-    <header className="border-b border-line bg-white">
-      <div className={`flex items-center justify-between gap-4 px-6 py-3 ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
+    <header className="relative z-[var(--z-sticky-nav)] border-b border-line bg-paper">
+      <div className={`flex items-center justify-between gap-4 py-3 ${wide ? 'px-6' : 'container'}`}>
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
           {links.map((l) => (
@@ -34,7 +34,7 @@ export default function Header({ wide = false }: { wide?: boolean }) {
               key={l.label}
               to={l.to}
               aria-current={l.active ? 'page' : undefined}
-              className={`flex h-11 items-center rounded-[10px] px-4 text-[15px] font-semibold hover:bg-surface ${
+              className={`flex h-11 items-center rounded-xl px-4 text-[15px] font-semibold transition-colors hover:bg-surface active:bg-chip ${
                 l.active ? 'text-brand' : 'text-ink'
               }`}
             >

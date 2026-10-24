@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import Header from '../components/Header';
 import PhotoCapture from '../components/PhotoCapture';
-import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusDot } from '../components/ui';
+import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusText } from '../components/ui';
 import { lateRatePerMinute } from '../engines/billing';
 import { MILES_PER_KWH, PICKUP_RADIUS_M, SERVICE_FEE } from '../engines/constants';
 import { bookedEndTs, bookedStartTs, settleBooking } from '../features/session/settleBooking';
@@ -28,7 +28,7 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'done', label: 'Done' },
 ];
 
-const card = 'flex flex-col gap-5 rounded-2xl border border-line bg-white p-6';
+const card = 'flex flex-col gap-6';
 
 export default function Session() {
   const { user, booking, listings, update } = useApp();
@@ -55,11 +55,11 @@ export default function Session() {
   const listing = booking ? listings.find((l) => l.id === booking.listingId) : undefined;
   if (!booking || !listing) {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="bg-paper">
         <Header />
-        <main className="mx-auto max-w-[1120px] px-6 py-16">
+        <main className="container py-[var(--section-gap-s)]">
           <div className={card}>
-            <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">No active booking</h1>
+            <h1 className="max-w-none text-display-s font-extrabold text-ink">No active booking</h1>
             <p className="text-[16px] text-body">Book a charger and your session will show up here.</p>
             <LinkButton to="/search" size="lg" className="w-fit">
               Find parking
@@ -126,7 +126,7 @@ export default function Session() {
 
   const arrived = (
     <div className={card}>
-      <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">You’ve arrived</h1>
+      <h1 className="max-w-none text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold text-ink">You’ve arrived</h1>
       {listing.privateAddress && (
         <p className="text-[15px] font-semibold text-ink">
           Address: {listing.privateAddress.line}
@@ -161,10 +161,10 @@ export default function Session() {
 
   const charging = (
     <div className={card}>
-      <StatusDot>Charging</StatusDot>
+      <StatusText>Charging</StatusText>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[44px] font-extrabold leading-none tracking-[-0.03em] text-ink">
+          <h1 className="num max-w-none text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-none text-ink">
             {minutesLeft >= 0 ? `${fmtDuration(minutesLeft)} left` : `${Math.abs(minutesLeft)} min late`}
           </h1>
           <p className={`mt-2 text-[15px] ${minutesLeft < 0 ? 'font-semibold text-amber-ink' : 'text-body'}`}>
@@ -197,10 +197,10 @@ export default function Session() {
     </div>
   );
 
-  const panelBase = 'flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4';
+  const panelBase = 'flex flex-wrap items-center justify-between gap-3 rounded-xl p-4';
   const pickup = (
     <div className={card}>
-      <h1 className="text-[28px] font-extrabold tracking-[-0.02em] text-ink">Pick up your car</h1>
+      <h1 className="max-w-none text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold text-ink">Pick up your car</h1>
       <div aria-live="polite">
         {loc.kind === 'idle' && (
           <div className={`${panelBase} bg-surface`}>
@@ -216,7 +216,7 @@ export default function Session() {
         {loc.kind === 'ok' && (
           <div className={`${panelBase} bg-green-bg`}>
             <div>
-              <p className="text-[16px] font-extrabold text-green-ink">You’re at the car · {loc.meters} m away</p>
+              <p className="text-[16px] font-extrabold text-green-ink">You’re at the car, {loc.meters} m away</p>
               <p className="text-[14px] text-green-ink">Within the {PICKUP_RADIUS_M} m pickup radius.</p>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function Session() {
           <div className={`${panelBase} bg-amber-bg`}>
             <div>
               <p className="text-[16px] font-extrabold text-amber-deep">You’re {loc.meters} m from the car</p>
-              <p className="text-[14px] text-amber-ink">Pickup unlocks within {PICKUP_RADIUS_M} m. Late minutes keep counting.</p>
+              <p className="text-[14px] text-amber-ink">Pickup opens within {PICKUP_RADIUS_M} m. Late minutes keep counting.</p>
             </div>
             <Button variant="secondary" onClick={checkLocation}>Try again</Button>
           </div>
@@ -274,9 +274,9 @@ export default function Session() {
     <div className={card}>
       <p className="text-[14px] font-bold text-green-ink">
         Picked up at {fmtClock(r.pickupAt)}
-        {r.flagged ? ' · flagged for host review' : ''}
+        {r.flagged ? ', flagged for host review' : ''}
       </p>
-      <h1 className="-mt-3 text-[28px] font-extrabold tracking-[-0.02em] text-ink">Trip complete</h1>
+      <h1 className="-mt-3 max-w-none text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold text-ink">Trip complete</h1>
       <dl className="m-0 flex max-w-[480px] flex-col gap-2.5 text-[15px] text-body">
         <div className="flex justify-between gap-3">
           <dt>{money(b.pricePerHr)} × {b.hours} h</dt>
@@ -284,7 +284,7 @@ export default function Session() {
         </div>
         {r.lateMinutes > 0 && (
           <div className="flex justify-between gap-3 text-amber-ink">
-            <dt>Late · {r.lateMinutes} min</dt>
+            <dt>Late, {r.lateMinutes} min</dt>
             <dd className="m-0 font-bold">{money(r.lateFee)}</dd>
           </div>
         )}
@@ -310,9 +310,9 @@ export default function Session() {
   );
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="bg-paper">
       <Header />
-      <main className="mx-auto flex max-w-[1120px] flex-wrap items-start gap-8 px-6 pb-16 pt-8">
+      <main className="container flex flex-wrap items-start gap-12 pb-16 pt-8">
         <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-5">
           <ol className="m-0 grid list-none grid-cols-4 gap-2 p-0" aria-label="Session progress">
             {STEPS.map((s, i) => (
@@ -323,12 +323,12 @@ export default function Session() {
             ))}
           </ol>
 
-          <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-white p-4">
+          <div className="flex flex-wrap items-center gap-4 border-y border-line py-4">
             <Photo src={listing.photos[0]} className="h-14 w-14 shrink-0 rounded-xl" />
             <div className="min-w-[200px] flex-1">
               <p className="text-[17px] font-extrabold text-ink">{listing.title}</p>
               <p className="text-[14px] text-muted">
-                {fmtRange(b.startHour, b.hours, ' – ')} · {b.carName} · {b.pEff} kW draw
+                {fmtRange(b.startHour, b.hours)}, {b.carName}, {b.pEff} kW draw
               </p>
             </div>
             <PaidPill amount={money(b.total)} />
@@ -340,11 +340,8 @@ export default function Session() {
           {step === 'done' && done}
         </div>
 
-        <aside
-          aria-label="Demo controls"
-          className="flex min-w-0 flex-[1_1_260px] flex-col gap-4 rounded-2xl border-2 border-dashed border-disabled bg-white p-4"
-        >
-          <p className="text-[12px] font-extrabold uppercase tracking-[0.08em] text-muted">Demo controls</p>
+        <aside aria-label="Demo controls" className="flex min-w-0 flex-[1_1_260px] flex-col gap-4 rounded-card bg-surface p-5">
+          <h2 className="max-w-none text-[18px] font-extrabold text-ink">Demo controls</h2>
           <Segmented<Step>
             label="Jump to step"
             value={step}

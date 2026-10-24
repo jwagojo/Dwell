@@ -21,7 +21,7 @@ const HOURS_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
 
 function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: 'grey' | 'brand' }) {
   return (
-    <div className="grid grid-cols-[120px_1fr_72px] items-center gap-3 text-[14px]">
+    <div className="grid grid-cols-[120px_minmax(0,1fr)_72px] items-center gap-3 text-[14px]">
       <span className="font-semibold text-body">{label}</span>
       <div className="h-3 overflow-hidden rounded-full bg-chip">
         {kw !== null && (
@@ -45,11 +45,11 @@ export default function ListingPage() {
   if (!user) return <Navigate to="/signup/driver" replace />;
   if (!listing) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-paper">
         <Header />
-        <main className="mx-auto max-w-[1240px] px-8 py-16">
-          <h1 className="text-[36px] font-extrabold tracking-[-0.03em] text-ink">We couldn’t find that listing</h1>
-          <Link to="/search" className="mt-4 inline-block text-[16px] font-bold text-brand hover:underline">
+        <main className="container py-[var(--section-gap-s)]">
+          <h1 className="max-w-none text-display-s font-extrabold text-ink">We couldn’t find that listing</h1>
+          <Link to="/search" className="mt-6 inline-block text-[16px] font-bold text-brand underline">
             Back to search
           </Link>
         </main>
@@ -93,20 +93,21 @@ export default function ListingPage() {
   const gallery = GALLERY_LABELS.map((label, i) => ({ label, src: listing.photos[i] }));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-paper">
       <Header />
-      <main className="mx-auto flex max-w-[1240px] flex-col gap-6 px-6 pb-20 pt-4 sm:px-8">
+      <main className="container flex flex-col gap-6 pb-20 pt-4">
         <Link to="/search" className="inline-flex h-11 w-fit items-center gap-1 text-[15px] font-semibold text-ink hover:text-brand">
           <ChevronLeft size={18} />
           Back to search
         </Link>
 
-        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-[18px] sm:grid-cols-2 md:grid-cols-4 md:grid-rows-2">
+        <div className="grid grid-cols-1 gap-2 overflow-hidden rounded-card sm:grid-cols-2 md:grid-cols-4 md:grid-rows-2">
           {gallery.map((g, i) => (
             <Photo
               key={g.label}
               src={g.src}
               index={i}
+              priority={i === 0}
               label={g.label}
               className={i === 0 ? 'min-h-[196px] md:col-span-2 md:row-span-2 md:min-h-[400px]' : 'min-h-[196px]'}
             />
@@ -117,20 +118,20 @@ export default function ListingPage() {
           <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-10">
             <section className="flex flex-col gap-5">
               <div>
-                <h1 className="text-[36px] font-extrabold leading-[1.1] tracking-[-0.03em] text-ink">{listing.title}</h1>
+                <h1 className="max-w-none text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold text-ink">{listing.title}</h1>
                 <p className="mt-2 text-[16px] text-body">
-                  {listing.street}, {listing.neighborhood} · exact address after booking · hosted by {listing.hostName}
+                  {listing.street}, {listing.neighborhood}, exact address after booking, hosted by {listing.hostName}
                 </p>
               </div>
-              <dl className="m-0 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+              <dl className="m-0 grid grid-cols-2 border-y border-line sm:grid-cols-4 sm:divide-x sm:divide-line">
                 {[
-                  { k: 'Charger', v: `${listing.level} · ${listing.chargerKw} kW` },
+                  { k: 'Charger', v: `${listing.level}, ${listing.chargerKw} kW` },
                   { k: 'Plug', v: listing.plug, sub: listing.adapters !== 'NONE' ? 'Adapter available' : undefined },
                   { k: 'Solar', v: listing.solarKw > 0 ? `${listing.solarKw} kW` : 'None' },
                   { k: 'Spots', v: String(listing.spots) },
-                ].map((c) => (
-                  <div key={c.k} className="bg-white p-4">
-                    <dt className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">{c.k}</dt>
+                ].map((c, i) => (
+                  <div key={c.k} className={`py-4 ${i > 0 ? 'sm:pl-5' : ''}`}>
+                    <dt className="text-[14px] font-semibold text-muted">{c.k}</dt>
                     <dd className="m-0 mt-1 text-[18px] font-extrabold text-ink">{c.v}</dd>
                     {c.sub && <p className="text-[13px] text-muted">{c.sub}</p>}
                   </div>
@@ -140,14 +141,14 @@ export default function ListingPage() {
 
             <section className="flex flex-col gap-4" aria-labelledby="trip">
               <h2 id="trip" className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">Your trip to {destination.label}</h2>
-              <div className="divide-y divide-line rounded-2xl border border-line">
+              <div className="divide-y divide-line border-y border-line">
                 <div className="flex items-center gap-4 p-4">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-chip text-ink">
                     <Walk size={22} />
                   </span>
                   <div>
                     <p className="text-[16px] font-extrabold text-ink">
-                      {ev.walkMinutes} min walk · {metersToMiles(ev.walkMeters).toFixed(1)} mi
+                      {ev.walkMinutes} min walk, {metersToMiles(ev.walkMeters).toFixed(1)} mi
                     </p>
                     <p className="text-[14px] text-muted">
                       Estimated from straight-line distance, from {listing.street} to {destination.label}
@@ -157,8 +158,8 @@ export default function ListingPage() {
                 {destination.routes && destination.routes.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-4 p-4">
                     <span
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-extrabold text-white"
-                      style={{ background: destination.primary ? LINE_STYLES[destination.primary].stroke : '#586070' }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[18px] font-extrabold text-accent-ink"
+                      style={{ background: destination.primary ? LINE_STYLES[destination.primary].stroke : 'var(--color-muted)' }}
                       aria-hidden="true"
                     >
                       T
@@ -193,13 +194,13 @@ export default function ListingPage() {
                     {carOptions.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
-                        {c.maxAcKw !== null ? ` · ${c.maxAcKw} kW` : ''}
+                        {c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}
                       </option>
                     ))}
                   </SelectField>
                 </div>
               </div>
-              <div className="flex flex-col gap-3 rounded-2xl border border-line p-4">
+              <div className="flex flex-col gap-3 py-2">
                 <FitBar label="Charger" kw={listing.chargerKw} tone="grey" />
                 <FitBar label="Your car max" kw={activeCar.maxAcKw} tone="grey" />
                 <FitBar label="You’ll draw" kw={ev.pEff} tone="brand" />
@@ -221,7 +222,7 @@ export default function ListingPage() {
               )}
               {usesAdapter && (
                 <p className="text-[15px] text-body">
-                  Host leaves a {listing.plug} → {activeCar.plug} adapter at the charger.
+                  Host leaves a {listing.plug} to {activeCar.plug} adapter at the charger.
                 </p>
               )}
               {!ev.plugOk && (
@@ -241,7 +242,7 @@ export default function ListingPage() {
                 )}
               </div>
               {t && ev.solarShare !== null ? (
-                <div className="overflow-x-auto rounded-2xl border border-line">
+                <div className="overflow-x-auto">
                   <table className="w-full min-w-[520px] border-collapse text-left text-[14px]">
                     <thead className="bg-surface text-muted">
                       <tr>
@@ -303,7 +304,7 @@ export default function ListingPage() {
 
           <aside
             aria-label="Booking"
-            className="flex min-w-0 flex-[1_1_340px] flex-col gap-5 rounded-[18px] border border-line bg-white p-[22px] shadow-panel"
+            className="flex min-w-0 flex-[1_1_340px] flex-col gap-5 rounded-card border border-line bg-paper p-6 lg:sticky lg:top-6"
           >
             <div>
               <p className="text-[30px] font-extrabold tracking-[-0.02em] text-ink">
@@ -313,9 +314,9 @@ export default function ListingPage() {
               <p className="text-[14px] text-muted">for your {activeCar.name}</p>
             </div>
 
-            <div className="grid grid-cols-2 divide-x divide-line-strong rounded-xl border border-line-strong">
+            <div className="grid grid-cols-2 divide-x divide-muted rounded-xl border border-muted">
               <div className="p-3">
-                <label htmlFor="book-start" className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">Start</label>
+                <label htmlFor="book-start" className="text-[13px] font-semibold text-muted">Start</label>
                 <select
                   id="book-start"
                   value={startHour}
@@ -328,7 +329,7 @@ export default function ListingPage() {
                 </select>
               </div>
               <div className="p-3">
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-muted">End</p>
+                <p className="text-[13px] font-semibold text-muted">End</p>
                 <p className="mt-1 py-0.5 text-[16px] font-bold text-ink">{fmtHour(startHour + hours)}</p>
               </div>
             </div>
@@ -340,7 +341,7 @@ export default function ListingPage() {
 
             <dl className="m-0 flex flex-col gap-2.5 text-[15px] text-body">
               <div className="flex justify-between gap-3">
-                <dt>Electricity · {ev.pEff} kW × ${listing.rate.toFixed(2)}</dt>
+                <dt>Electricity, {ev.pEff} kW × ${listing.rate.toFixed(2)}</dt>
                 <dd className="m-0 font-bold text-ink">{money(ev.electricityPerHr)}/hr</dd>
               </div>
               <div className="flex justify-between gap-3">
@@ -361,16 +362,16 @@ export default function ListingPage() {
               </div>
             </dl>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-surface p-3">
-                <div className="text-[12px] font-bold text-muted">Estimated miles added</div>
-                <div className="mt-0.5 text-[20px] font-extrabold text-ink">+{Math.round(ev.milesAdded)} mi</div>
+            <dl className="m-0 grid grid-cols-2 divide-x divide-line border-y border-line">
+              <div className="py-3 pr-3">
+                <dt className="text-[13px] font-semibold text-muted">Estimated miles added</dt>
+                <dd className="m-0 mt-0.5 text-[20px] font-extrabold text-ink">+{Math.round(ev.milesAdded)} mi</dd>
               </div>
-              <div className="rounded-xl bg-amber-bg p-3">
-                <div className="text-[12px] font-bold text-amber-ink">Late rate ({LATE_MULTIPLIER}×)</div>
-                <div className="mt-0.5 text-[20px] font-extrabold text-amber-deep">{money(lateRate)}/min</div>
+              <div className="py-3 pl-4">
+                <dt className="text-[13px] font-semibold text-amber-ink">Late rate ({LATE_MULTIPLIER}×)</dt>
+                <dd className="m-0 mt-0.5 text-[20px] font-extrabold text-amber-deep">{money(lateRate)}/min</dd>
               </div>
-            </div>
+            </dl>
 
             {!ev.plugOk ? (
               <WarnNote>This plug doesn’t fit your {activeCar.name} and the host has no adapter, so booking is turned off.</WarnNote>

@@ -1,0 +1,112 @@
+@theme static {
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem);
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem);
+  --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem);
+  --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --color-error: oklch(52% 0.19 27);
+  --color-success: oklch(50% 0.12 150);
+  --color-paper: oklch(99% 0.004 268);
+  --color-paper-2: oklch(97.3% 0.005 268);
+  --color-paper-3: oklch(95.6% 0.007 268);
+  --color-ink: oklch(20% 0.015 268);
+  --color-ink-2: oklch(38% 0.02 268);
+  --color-muted: oklch(48% 0.025 268);
+  --color-rule: oklch(92% 0.007 268);
+  --color-accent: oklch(47.6% 0.24 268.5);
+  --color-accent-ink: oklch(99% 0.004 268);
+  --color-focus: oklch(47.6% 0.24 268.5);
+  /* Brand extensions, all derived from the accent's hue (268.5) */
+  --color-accent-deep: oklch(38% 0.2 268);
+  --color-accent-tint: oklch(96% 0.025 268);
+  --color-accent-wash: oklch(97.6% 0.014 268);
+  --color-avatar: oklch(92% 0.04 268);
+  --color-edge: oklch(86% 0.008 268);
+  --color-disabled: oklch(72% 0.02 262);
+  --color-focus-on-dark: oklch(82% 0.11 268);
+  --color-ink-on-dark: oklch(86% 0.012 268);
+  /* Status: green for good fit and solar, amber for a warning */
+  --color-green: oklch(52% 0.13 150);
+  --color-green-ink: oklch(46% 0.12 150);
+  --color-green-deep: oklch(39% 0.1 150);
+  --color-green-bg: oklch(96% 0.025 150);
+  --color-amber-ink: oklch(44% 0.1 55);
+  --color-amber-deep: oklch(37% 0.09 55);
+  --color-amber-bg: oklch(96.5% 0.025 70);
+  /* MBTA line colours: badge fill, badge text, line stroke on the map */
+  --color-line-red-bg: oklch(94% 0.03 20);
+  --color-line-red-ink: oklch(42% 0.15 25);
+  --color-line-red: oklch(56% 0.19 27);
+  --color-line-green-bg: oklch(95% 0.03 155);
+  --color-line-green-ink: oklch(38% 0.09 155);
+  --color-line-green: oklch(54% 0.14 155);
+  --color-line-orange-bg: oklch(95% 0.035 65);
+  --color-line-orange-ink: oklch(44% 0.1 55);
+  --color-line-orange: oklch(68% 0.17 55);
+  --color-line-rail-bg: oklch(94% 0.025 320);
+  --color-line-rail-ink: oklch(40% 0.11 325);
+  --color-line-rail: oklch(52% 0.1 325);
+  /* Schematic map, photo placeholders */
+  --color-map-land: oklch(95.5% 0.01 120);
+  --color-map-far: oklch(93.5% 0.008 120);
+  --color-map-park: oklch(91% 0.045 135);
+  --color-map-water: oklch(88% 0.045 245);
+  --color-map-water-ink: oklch(48% 0.07 245);
+  --color-map-street: oklch(99% 0.004 268);
+  --color-map-place: oklch(60% 0.02 262);
+  --color-tone-1: oklch(92% 0.02 85);
+  --color-tone-2: oklch(92% 0.02 240);
+  --color-tone-3: oklch(92% 0.02 130);
+  --color-tone-4: oklch(92% 0.02 30);
+  --color-tone-5: oklch(92% 0.02 290);
+  --color-tone-6: oklch(92% 0.02 100);
+  --font-display: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: var(--font-body);
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-card: 0 1px 2px oklch(20% 0.015 268 / 0.06), 0 10px 28px oklch(20% 0.015 268 / 0.08);
+  --tracking-display: -0.03em;
+}
+:root {
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 144px;
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --container: 1440px;
+  --gutter: 64px;
+  --gap-columns: 32px;
+  --section-gap-s: 120px;
+  --section-gap: 144px;
+  --section-gap-l: 176px;
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-sticky-nav: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+  --rule-hair: 1px;
+}
+@media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; } }

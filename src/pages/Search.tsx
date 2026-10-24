@@ -53,13 +53,13 @@ export default function Search() {
 
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
-  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? ` · ${c.maxAcKw} kW` : ''}`;
+  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}`;
 
   return (
     <div className="flex min-h-screen flex-col lg:h-screen lg:min-h-[640px]">
       <Header wide />
 
-      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-white px-6 py-3">
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-paper px-6 py-3">
         <div className="min-w-[260px] flex-1 sm:max-w-[420px]">
           <DestinationSearch
             label="To"
@@ -77,7 +77,7 @@ export default function Search() {
 
         <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
           <legend className="mb-1.5 p-0 text-[14px] font-bold text-ink">When</legend>
-          <div className="flex h-12 items-center gap-2 rounded-[10px] border border-line-strong bg-white px-3.5 text-[16px] font-medium text-ink">
+          <div className="flex h-12 items-center gap-2 rounded-[10px] border border-muted bg-paper px-3.5 text-[16px] font-medium text-ink">
             Today from
             <select
               aria-label="Start time"
@@ -158,7 +158,7 @@ export default function Search() {
             <div>
               <h1 className="text-[24px] font-extrabold tracking-[-0.02em] text-ink">Chargers near {destination.label}</h1>
               <p className="text-[14px] font-semibold text-muted">
-                {shown.length} charger{shown.length === 1 ? '' : 's'} · {fmtRange(startHour, hours)} · prices for your {activeCar.name}
+                {shown.length} charger{shown.length === 1 ? '' : 's'}, {fmtRange(startHour, hours)}, prices for your {activeCar.name}
               </p>
               <p className="text-[13px] text-muted">Miles shown are estimated miles added. Walk times are estimates.</p>
             </div>
@@ -187,11 +187,11 @@ export default function Search() {
           )}
 
           {shown.length === 0 ? (
-            <div className="rounded-2xl border border-line p-6 text-[16px] text-body">
+            <div className="py-8 text-[16px] text-body">
               No chargers near {destination.label} for this filter yet.
             </div>
           ) : (
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-2">
               {shown.map((ev) => (
                 <ListingCard
                   key={ev.listing.id}

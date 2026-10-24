@@ -27,14 +27,14 @@ export default function ListingCard({
     <article
       onMouseEnter={onSelect}
       onFocusCapture={onSelect}
-      className={`flex flex-wrap gap-4 rounded-2xl border bg-white p-3.5 transition-shadow hover:shadow-lg ${
-        selected ? 'border-brand shadow-selected ring-1 ring-brand' : 'border-line'
+      className={`flex flex-wrap gap-4 rounded-xl p-3 transition-colors ${
+        selected ? 'bg-brand-wash ring-1 ring-inset ring-brand' : 'hover:bg-surface'
       }`}
     >
-      <Photo src={l.photos[0]} index={l.id.length} className="h-[150px] w-[150px] shrink-0 rounded-xl">
+      <Photo src={l.photos[0]} index={l.id.length} className="h-[150px] w-[150px] shrink-0 rounded-lg">
         <span className="absolute bottom-2 left-2">
           <LevelTag>
-            {l.level} · {l.chargerKw} kW
+            {l.level}, {l.chargerKw} kW
           </LevelTag>
         </span>
       </Photo>
@@ -51,7 +51,7 @@ export default function ListingCard({
               {l.isNew && <NewBadge />}
             </div>
             <p className="text-[14px] text-muted">
-              {l.street} · {l.neighborhood}
+              {l.street}, {l.neighborhood}
             </p>
           </div>
           <div className="text-right">
@@ -71,7 +71,7 @@ export default function ListingCard({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px] font-semibold text-body">
           <span className="inline-flex items-center gap-1.5">
             <Plug size={16} />
-            {l.plug} · {l.chargerKw} kW
+            {l.plug}, {l.chargerKw} kW
           </span>
           <span title="Estimated miles added" aria-label={`${Math.round(ev.milesAdded)} estimated miles added`}>
             +{Math.round(ev.milesAdded)} mi
@@ -94,7 +94,7 @@ export default function ListingCard({
         )}
         {usesAdapter && (
           <p className="text-[14px] text-body">
-            Host leaves a {l.plug} → {car.plug} adapter at the charger
+            Host leaves a {l.plug} to {car.plug} adapter at the charger
           </p>
         )}
       </div>

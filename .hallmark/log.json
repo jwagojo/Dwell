@@ -1,0 +1,18 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "date": "2026-10-24",
+  "genre": "modern-minimal",
+  "theme": "brand",
+  "shape": "app screens with one landing page",
+  "hero": "Settled",
+  "nav": "top bar, wordmark left, links centre, actions right",
+  "footer": "one line",
+  "signature": "the listing card",
+  "pages": 8,
+  "floor": "0 FAIL",
+  "waived": []
+ }
+]

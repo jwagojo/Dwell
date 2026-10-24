@@ -4,28 +4,28 @@ import Header from '../components/Header';
 import { Search } from '../components/Icons';
 import DestinationSearch from '../components/DestinationSearch';
 import MapPreview from '../components/map/MapPreview';
-import { AutoGrid, LinkButton, RouteBadge, WalkChip, GreenPill } from '../components/ui';
+import { CONTROL } from '../components/form';
+import { Button, LinkButton, RouteBadge, WalkChip, GreenPill } from '../components/ui';
 import { DEFAULT_CAR } from '../data/evFallbackSeed';
 import { SEEDED_LISTINGS } from '../data/listings';
 import { stationIdToDestination, stationToDestination } from '../data/destinations';
 import { POPULAR_STATION_IDS, findStation, stationById } from '../data/stations';
 import type { Destination } from '../types/destination';
-import { LINE_STYLES } from '../data/transit';
 import { evaluateListing } from '../features/search/evaluateListing';
 import { todayIndex } from '../lib/availability';
 import { useApp } from '../state/AppState';
 
 const STEPS = [
-  { n: '01', title: 'Book', body: "Pick a charger near your stop. The price is set for your car, so you only pay for the power it can take." },
-  { n: '02', title: 'Park', body: 'Park in the host’s spot and take an arrival photo. No key handoff, the car never moves, and the host never touches it.' },
-  { n: '03', title: 'Charge', body: 'Set your charge limit in your car’s app and plug in. Then head to the T.' },
-  { n: '04', title: 'Go', body: 'Come back, tap Pick up, and take a photo. Your session ends when you do.' },
+  { title: 'Book', body: 'Pick a charger near your stop. The price is set for your car.' },
+  { title: 'Park', body: 'Park in the host’s spot and take an arrival photo. No key handoff, the car never moves, and the host never touches it.' },
+  { title: 'Charge', body: 'Set your charge limit in your car’s app, plug in, then head to the T.' },
+  { title: 'Go', body: 'Come back, tap Pick up, and take a photo. Your session ends when you do.' },
 ];
 
 const VALUE_PROPS = [
-  { title: 'Priced for your car', tone: 'bg-surface', body: 'A car can only draw so much power. Your price uses the lower of the charger’s speed and your car’s, so a Prius Prime doesn’t pay for a Model Y’s appetite.' },
-  { title: 'See the whole trip', tone: 'bg-surface', body: 'Every listing shows the walk to the station and the routes you can ride from there, next to the price.' },
-  { title: 'Green Score, shown as a formula', tone: 'bg-green-bg', body: 'Solar share, transit miles and CO₂ avoided, each with its weight. Open any listing to check the math.' },
+  { title: 'Priced for your car', body: 'You pay for the lower of the charger’s speed and your car’s, so a Prius Prime doesn’t pay for a Model Y’s appetite.' },
+  { title: 'See the whole trip', body: 'Each listing shows the walk to the station and the routes you can ride from there.' },
+  { title: 'Green Score, shown as a formula', body: 'Solar share, transit miles and CO₂ avoided, each with its weight. Open any listing to check the math.' },
 ];
 
 const CHIP_LABEL: Record<string, string> = { central: 'Central', harvard: 'Harvard', kendall: 'Kendall/MIT', porter: 'Porter', alewife: 'Alewife' };
@@ -45,7 +45,11 @@ function HeroArt() {
   const featured = evs.find((e) => e.listing.id === HERO_FEATURED_ID);
 
   return (
-    <div className="relative h-[440px] w-full max-w-[480px] overflow-hidden rounded-3xl border border-line shadow-panel">
+    <div
+      role="group"
+      aria-label="Map of sample chargers near Central Square"
+      className="relative h-[480px] w-full max-w-[560px] overflow-hidden [border-radius:var(--radius-card)]"
+    >
       <MapPreview
         center={{ lat: 42.358, lng: -71.111 }}
         zoom={13}
@@ -53,7 +57,7 @@ function HeroArt() {
       />
       {featured && (
         // bottom-9 keeps the card clear of Mapbox's attribution
-        <div className="absolute bottom-9 right-4 left-4 z-30 flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-panel sm:left-auto sm:w-[290px]">
+        <div className="absolute bottom-9 right-4 left-4 z-30 flex flex-col gap-2 rounded-xl bg-paper p-4 shadow-card sm:left-auto sm:w-[290px]">
           <div className="flex items-start justify-between gap-3">
             <div className="text-[16px] font-extrabold text-ink">{featured.listing.title}</div>
             <div className="text-[18px] font-extrabold text-ink">
@@ -101,26 +105,17 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-paper">
       <Header />
       <main>
         <section className="border-b border-line bg-surface">
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-12 px-6 py-[72px] sm:px-8 sm:py-20">
-            <div className="flex flex-[1_1_520px] flex-col gap-6">
-              <p className="text-[14px] font-bold uppercase tracking-[0.08em] text-brand">Charge-and-ride · Cambridge</p>
-              <h1 className="text-[clamp(40px,6vw,60px)] font-extrabold leading-[1.04] tracking-[-0.035em] text-ink">
-                Park at a neighbor’s charger. Ride the rest of the way.
-              </h1>
-              <p className="max-w-[560px] text-pretty text-[19px] leading-[1.55] text-hero-sub">
-                Book a home EV charger near Central, Harvard or Kendall. Plug in, walk away, and come back to more miles.
-              </p>
+          <div className="container grid min-h-[calc(min(100svh,860px)-68px)] items-center gap-12 py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+            <div className="flex flex-col gap-6">
+              <h1 className="max-w-[16ch] text-display-s font-extrabold text-ink">Park at a neighbor’s charger. Ride the rest of the way.</h1>
+              <p className="lead max-w-[46ch] text-body">Book a home EV charger near Central, Harvard or Kendall. Plug in, walk away, and come back to more miles.</p>
 
-              <form
-                onSubmit={onSubmit}
-                className="flex max-w-[620px] flex-wrap items-stretch gap-2 rounded-2xl border border-pill bg-white p-2 shadow-hero"
-                role="search"
-              >
-                <div className="min-w-[220px] flex-1 px-4 py-1.5">
+              <form onSubmit={onSubmit} className="flex max-w-[620px] flex-wrap items-end gap-3" role="search">
+                <div className="min-w-[240px] flex-1">
                   <DestinationSearch
                     label="Where are you headed?"
                     inputId="hero-destination"
@@ -136,17 +131,14 @@ export default function Landing() {
                       setPicked(d);
                       setError('');
                     }}
-                    labelClassName="text-[12px] font-bold uppercase tracking-[0.08em] text-muted"
-                    inputClassName="h-8 w-full border-0 bg-transparent p-0 text-[17px] font-semibold text-ink outline-none placeholder:text-muted"
+                    labelClassName="text-[14px] font-bold text-ink"
+                    inputClassName={`h-[52px] ${CONTROL} border-muted text-[17px]`}
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="inline-flex h-14 flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-7 text-[17px] font-extrabold text-white hover:bg-brand-dark sm:flex-none"
-                >
+                <Button type="submit" size="xl" className="flex-1 sm:flex-none">
                   <Search size={20} />
                   Find chargers
-                </button>
+                </Button>
               </form>
               {error && (
                 <p role="alert" className="-mt-3 text-[14px] font-semibold text-amber-ink">
@@ -155,7 +147,7 @@ export default function Landing() {
               )}
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[14px] font-semibold text-muted">Popular:</span>
+                <span className="text-[14px] text-muted">Popular</span>
                 {POPULAR_STATION_IDS.map((id) => {
                   const s = stationById(id);
                   return (
@@ -163,9 +155,8 @@ export default function Landing() {
                       key={id}
                       type="button"
                       onClick={() => goTo(stationIdToDestination(id))}
-                      className="inline-flex h-10 items-center gap-2 rounded-full border border-pill bg-white px-3 text-[14px] font-semibold text-ink hover:border-brand"
+                      className="inline-flex h-11 items-center rounded-full border border-pill bg-paper px-3.5 text-[14px] font-semibold text-ink transition-colors hover:border-brand hover:text-brand active:bg-chip"
                     >
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: LINE_STYLES.red.stroke }} aria-hidden="true" />
                       {CHIP_LABEL[id] ?? s.name}
                     </button>
                   );
@@ -174,52 +165,47 @@ export default function Landing() {
 
               <p className="text-[16px] text-body">
                 Have a charger?{' '}
-                <Link to="/signup/host" className="font-bold text-brand hover:underline">
+                <Link to="/signup/host" className="font-bold text-brand underline">
                   List it and earn from idle hours
                 </Link>
               </p>
             </div>
 
-            <div className="flex flex-[1_1_420px] justify-center lg:justify-end">
+            <div className="flex justify-center lg:relative lg:-top-14 lg:justify-end">
               <HeroArt />
             </div>
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-[1280px] px-6 py-20 sm:px-8">
-          <h2 className="text-[40px] font-extrabold tracking-[-0.03em] text-ink">Book, park, charge, go.</h2>
-          <p className="mt-3 max-w-[600px] text-[19px] text-hero-sub">Four steps, and you never meet the host or hand over a key.</p>
-          <div className="mt-10">
-            <AutoGrid min={260} gap={16}>
-              {STEPS.map((s) => (
-                <div key={s.n} className="rounded-2xl border border-line p-6">
-                  <p className="text-[14px] font-bold uppercase tracking-[0.08em] text-brand">
-                    {s.n} · {s.title}
-                  </p>
-                  <h3 className="mt-3 text-[20px] font-extrabold text-ink">{s.title}</h3>
-                  <p className="mt-2 text-[15px] leading-[1.6] text-body">{s.body}</p>
-                </div>
-              ))}
-            </AutoGrid>
+        <section id="how" className="container py-[var(--section-gap-s)]">
+          <h2 className="max-w-none text-section font-extrabold text-ink">Book, park, charge, go.</h2>
+          <ol className="m-0 mt-12 grid list-none gap-x-8 gap-y-10 p-0 [counter-reset:step] sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((s) => (
+              <li key={s.title} className="border-t-2 border-ink pt-5 [counter-increment:step]">
+                <span className="num block text-[28px] font-extrabold leading-none text-muted before:content-[counter(step)]" aria-hidden="true" />
+                <h3 className="mt-4 text-[22px] font-extrabold text-ink">{s.title}</h3>
+                <p className="mt-2 max-w-[34ch] text-[16px] leading-[1.6] text-body">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="bg-surface">
+          <div className="container grid gap-10 py-[var(--section-gap-s)] lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-line">
+            {VALUE_PROPS.map((v, i) => (
+              <div key={v.title} className={`flex flex-col gap-3 ${i > 0 ? 'lg:pl-10' : ''} ${i < VALUE_PROPS.length - 1 ? 'lg:pr-10' : ''}`}>
+                <h3 className="max-w-none text-[22px] font-extrabold text-ink">{v.title}</h3>
+                <p className="max-w-[36ch] text-[16px] leading-[1.6] text-body">{v.body}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1280px] px-6 pb-20 sm:px-8">
-          <AutoGrid min={340} gap={16}>
-            {VALUE_PROPS.map((v) => (
-              <div key={v.title} className={`rounded-2xl p-7 ${v.tone}`}>
-                <h3 className="text-[22px] font-extrabold tracking-[-0.02em] text-ink">{v.title}</h3>
-                <p className="mt-3 text-[16px] leading-[1.6] text-body">{v.body}</p>
-              </div>
-            ))}
-          </AutoGrid>
-        </section>
-
-        <section id="host" className="bg-ink text-white">
-          <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-8 px-6 py-20 sm:px-8">
+        <section id="host" className="on-dark bg-ink text-accent-ink">
+          <div className="container flex flex-wrap items-center justify-between gap-8 py-[var(--section-gap-s)]">
             <div className="max-w-[640px]">
-              <h2 className="text-[40px] font-extrabold tracking-[-0.03em]">Your charger sits idle all day. List it.</h2>
-              <p className="mt-4 text-[19px] text-[#C9CDD6]">
+              <h2 className="max-w-[22ch] text-section font-extrabold">Your charger sits idle all day. List it.</h2>
+              <p className="mt-4 max-w-[52ch] text-[19px] text-ink-on-dark">
                 Set your own hourly earnings. The price is built to cover the most electricity the booked car can draw.
               </p>
             </div>
@@ -231,8 +217,8 @@ export default function Landing() {
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-6 py-6 text-[14px] text-muted sm:px-8">
-          <span>Dwell · Hackachusetts 2026, Climate/Energy track</span>
+        <div className="container flex flex-wrap items-center justify-between gap-3 py-6 text-[14px] text-muted">
+          <span>Dwell, Hackachusetts 2026, Climate/Energy track</span>
           <span>Payments and notifications are simulated in this demo. Listings, routes and sunlight are sample data.</span>
         </div>
       </footer>

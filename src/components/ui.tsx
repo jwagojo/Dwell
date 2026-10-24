@@ -9,20 +9,20 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'link';
 type Size = 'nav' | 'md' | 'lg' | 'xl';
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-dark disabled:bg-disabled disabled:hover:bg-disabled rounded-xl font-extrabold',
-  secondary: 'bg-white border border-line-strong text-ink hover:border-brand rounded-[10px] font-bold',
-  ghost: 'text-ink hover:bg-surface rounded-[10px] font-semibold',
-  link: 'text-brand hover:bg-surface rounded-[10px] font-semibold',
+  primary: 'bg-brand text-accent-ink hover:bg-brand-dark active:bg-brand-dark disabled:bg-disabled disabled:hover:bg-disabled rounded-xl font-extrabold',
+  secondary: 'bg-paper border border-muted text-ink hover:border-brand hover:text-brand active:bg-surface rounded-xl font-bold',
+  ghost: 'text-ink hover:bg-surface active:bg-chip rounded-xl font-semibold',
+  link: 'text-brand hover:bg-surface active:bg-chip rounded-xl font-semibold',
 };
 const SIZE: Record<Size, string> = {
   nav: 'h-11 px-4 text-[15px]',
-  md: 'h-12 px-5 text-[16px]',
-  lg: 'h-[52px] px-6 text-[17px]',
-  xl: 'h-14 px-7 text-[17px]',
+  md: 'h-11 px-5 text-[16px]',
+  lg: 'h-12 px-6 text-[16px]',
+  xl: 'h-[52px] px-7 text-[17px]',
 };
 
 export const btn = (variant: Variant = 'primary', size: Size = 'md', extra = '') =>
-  `inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
+  `inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors duration-[var(--dur-micro)] active:translate-y-px ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
@@ -81,7 +81,7 @@ export function Pill({
       aria-pressed={selected}
       onClick={onClick}
       className={`h-10 rounded-full border px-3 text-[14px] font-semibold transition-colors ${
-        selected ? 'border-ink bg-ink text-white' : 'border-pill bg-white text-ink hover:border-brand'
+        selected ? 'border-ink bg-ink text-accent-ink' : 'border-pill bg-paper text-ink hover:border-brand'
       } ${className}`}
     >
       {children}
@@ -156,20 +156,16 @@ export function GreenPill({ score }: { score: number }) {
 }
 
 export function LevelTag({ children }: { children: ReactNode }) {
-  return <span className="rounded-md bg-white px-2 py-1 text-[12px] font-bold text-ink">{children}</span>;
+  return <span className="rounded-md bg-paper px-2 py-1 text-[12px] font-bold text-ink">{children}</span>;
 }
 
 export function NewBadge() {
   return <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-[12px] font-extrabold text-brand">New listing</span>;
 }
 
-export function StatusDot({ children, tone = 'green' }: { children: ReactNode; tone?: 'green' | 'muted' }) {
-  return (
-    <span className={`inline-flex items-center gap-2 text-[14px] font-bold ${tone === 'green' ? 'text-green' : 'text-muted'}`}>
-      <span className={`h-2 w-2 rounded-full ${tone === 'green' ? 'bg-green' : 'bg-disabled'}`} aria-hidden="true" />
-      {children}
-    </span>
-  );
+/** A state in words. The colour backs the words up and never stands in for them. */
+export function StatusText({ children, tone = 'green' }: { children: ReactNode; tone?: 'green' | 'muted' }) {
+  return <span className={`text-[14px] font-bold ${tone === 'green' ? 'text-green-ink' : 'text-muted'}`}>{children}</span>;
 }
 
 export function PaidPill({ amount }: { amount: string }) {
@@ -223,31 +219,34 @@ export function StatTile({
   tone?: 'surface' | 'green' | 'amber';
   big?: boolean;
 }) {
-  const bg = { surface: 'bg-surface', green: 'bg-green-bg', amber: 'bg-amber-bg' }[tone];
+  const rule = { surface: 'border-ink', green: 'border-green', amber: 'border-amber-ink' }[tone];
   const fg = { surface: 'text-ink', green: 'text-green-ink', amber: 'text-amber-ink' }[tone];
   return (
-    <div className={`rounded-xl p-3.5 ${bg}`}>
-      <div className={`text-[12px] font-bold ${tone === 'surface' ? 'text-muted' : fg}`}>{label}</div>
-      <div className={`mt-0.5 font-extrabold ${fg} ${big ? 'text-[22px]' : 'text-[18px]'}`}>{value}</div>
+    <div className={`border-t-2 pt-3 ${rule}`}>
+      <div className="text-[14px] font-semibold text-muted">{label}</div>
+      <div className={`num mt-1 font-extrabold ${fg} ${big ? 'text-[28px]' : 'text-[20px]'}`}>{value}</div>
     </div>
   );
 }
 
 /* ---------- Photo (host photo or labeled placeholder, spec §2.1) ---------- */
 
-const PHOTO_TONES = ['#E7E1D6', '#DCE6EE', '#E3E8DC', '#EDE3DE', '#E6E4EE', '#E9E6DA'];
+const PHOTO_TONES = ['var(--color-tone-1)', 'var(--color-tone-2)', 'var(--color-tone-3)', 'var(--color-tone-4)', 'var(--color-tone-5)', 'var(--color-tone-6)'];
 
 export function Photo({
   src,
   index = 0,
   label,
   className = '',
+  priority = false,
   children,
 }: {
   src?: string;
   index?: number;
   label?: string;
   className?: string;
+  /** True for the photo that is the page's largest image; it loads first. */
+  priority?: boolean;
   children?: ReactNode;
 }) {
   // A hotlinked photo can disappear. Fall back to the labeled placeholder instead of a broken image.
@@ -264,13 +263,14 @@ export function Photo({
         <img
           src={src}
           alt=""
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          {...(priority ? ({ fetchpriority: 'high' } as Record<string, string>) : {})}
           referrerPolicy="no-referrer"
           onError={() => setFailedSrc(src!)}
           className="h-full w-full object-cover"
         />
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-black/30">
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-ink/30">
           <House size={30} />
           {label && <span className="px-2 text-center text-[12px] font-bold text-body">[HOST PHOTO] {label}</span>}
         </div>

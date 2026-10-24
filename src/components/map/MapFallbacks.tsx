@@ -19,7 +19,7 @@ function FallbackBanner({ reason }: { reason: string }) {
   return (
     <div
       role="status"
-      className="absolute left-3 top-3 z-30 max-w-[calc(100%-1.5rem)] rounded-lg bg-white px-3 py-2 text-[13px] font-semibold text-amber-ink shadow-pin"
+      className="absolute left-3 top-3 z-30 max-w-[calc(100%-1.5rem)] rounded-lg bg-paper px-3 py-2 text-[13px] font-semibold text-amber-ink shadow-pin"
       data-testid="map-fallback-banner"
     >
       Schematic map, not a live map. {reason}
@@ -42,7 +42,7 @@ export function SchematicSearchMap({
 }) {
   const [zoom, setZoom] = useState(1);
   const zoomBtn =
-    'flex h-11 w-11 items-center justify-center rounded-full border border-pill bg-white text-[20px] font-bold text-ink shadow-pin hover:border-brand';
+    'flex h-11 w-11 items-center justify-center rounded-full border border-pill bg-paper text-[20px] font-bold text-ink shadow-pin hover:border-brand';
   return (
     <div className="relative h-full w-full" data-testid="map-fallback">
       <SchematicMap center={destination} zoom={zoom}>
@@ -82,7 +82,7 @@ export function SchematicSearchMap({
           −
         </button>
       </div>
-      <div className="absolute bottom-3 left-3 z-30 flex flex-col gap-1.5 rounded-[10px] bg-white px-3 py-2 text-[12px] font-semibold text-body shadow-pin">
+      <div className="absolute bottom-3 left-3 z-30 flex flex-col gap-1.5 rounded-[10px] bg-paper px-3 py-2 text-[12px] font-semibold text-body shadow-pin">
         {(['red', 'green', 'orange', 'cr'] as const).map((k) => (
           <span key={k} className="flex items-center gap-2">
             <span
@@ -121,7 +121,7 @@ export function SchematicPreview({
           })
         }
       </SchematicMap>
-      <span className="absolute left-3 top-3 z-30 rounded-md bg-white px-2 py-1 text-[12px] font-semibold text-amber-ink shadow-pin" data-testid="map-fallback-banner">
+      <span className="absolute left-3 top-3 z-30 rounded-md bg-paper px-2 py-1 text-[12px] font-semibold text-amber-ink shadow-pin" data-testid="map-fallback-banner">
         Schematic preview, not a live map
       </span>
     </div>

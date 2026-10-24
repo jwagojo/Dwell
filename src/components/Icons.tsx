@@ -87,3 +87,13 @@ export const House = (p: IconProps) => (
     <path d="M5.5 9.5V20h13V9.5" />
   </Svg>
 );
+export const Arrow = ({ direction = 'right', ...p }: IconProps & { direction?: 'up' | 'right' | 'down' | 'left' }) => (
+  <Svg {...p} style={{ transform: `rotate(${{ right: 0, down: 90, left: 180, up: 270 }[direction]}deg)` }}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Svg>
+);
+export const Check = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Svg>
+);
