@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DEFAULT_CAR } from '../data/evFallbackSeed';
 import { SEEDED_LISTINGS } from '../data/listings';
 import type { Car, Listing } from '../types/listing';
-import { DEFAULTS, migrateState, type Persisted } from './persisted';
+import { DEFAULTS, loadSavedState, saveState, type Persisted } from './persisted';
 
 export type { LevelFilter, Persisted, User } from './persisted';
 
@@ -17,14 +17,11 @@ interface AppContextValue extends Persisted {
 // PROTOTYPE ONLY. Real sign-up and sign-in arrive with Amazon Cognito (tasks.md 13.1).
 // Passwords are collected by the forms but never stored or sent anywhere.
 // Geocoded addresses saved here come from permanent geocoding (see adapters/mapboxGeocoding.ts).
-const STORAGE_KEY = 'voltlot.prototype.v1';
-
 function load(): Persisted {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? migrateState(JSON.parse(raw)) : DEFAULTS;
+    return loadSavedState(localStorage);
   } catch {
-    return DEFAULTS;
+    return DEFAULTS; // storage blocked
   }
 }
 
@@ -35,7 +32,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveState(localStorage, state);
     } catch {
       // Storage full or unavailable: the prototype keeps working in memory.
     }

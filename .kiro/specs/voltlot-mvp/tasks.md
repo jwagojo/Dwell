@@ -1,4 +1,4 @@
-# Implementation Plan: VoltLot MVP
+# Implementation Plan: Dwell MVP
 
 ## How to read this plan
 
@@ -9,7 +9,7 @@
 - Pure engines come first so the existing landing page, search, booking, and pickup all share one implementation of each formula.
 - Pin exact dependency versions. Use only Amplify Gen 2 (`amplify/*/resource.ts`, `amplify_outputs.json`). No Gen 1 CLI commands.
 
-> **Status note (UI refactor):** `src/pages/LandingPage.tsx` was replaced by a UI built to the VoltLot UI design spec v1 (8 routes, sample data, localStorage state, schematic map). The pure engines for pricing, billing, climate, rounding, and plug compatibility now exist with unit tests (partly covering tasks 2.2, 3.1, 3.2, 4.1, 4.2, 6.1 to 6.3). Not done: property tests (5.1, 7.1), the rounding decision (5.2), Amplify, auth, and S3.
+> **Status note (UI refactor):** `src/pages/LandingPage.tsx` was replaced by a UI built to the Dwell UI design spec v1 (8 routes, sample data, localStorage state, schematic map). The pure engines for pricing, billing, climate, rounding, and plug compatibility now exist with unit tests (partly covering tasks 2.2, 3.1, 3.2, 4.1, 4.2, 6.1 to 6.3). Not done: property tests (5.1, 7.1), the rounding decision (5.2), Amplify, auth, and S3.
 >
 > **Maps and address search (done in the UI prototype):** the live Mapbox search map and hero preview, host address autocomplete with a draggable, explicitly confirmed pin, and address destinations (partly covering 18.1 and 18.8, and the Mapbox geocoding part of 18.5). The sample-ZIP restriction is gone: city and ZIP come from the selected address, and the rate falls back to $0.30/kWh labeled as an estimate (the EIA rate lookup, tasks 8.1 and 16.2, is now done). The 15 made-up Cambridge sample listings were replaced by `src/data/mockListings.json` (19 real Cambridge/Somerville addresses with Zillow photos and invented charger details). Still open: Mapbox Directions walking times, MBTA and Open-Meteo adapters, and server-side listing storage. Tasks below that mention `LandingPage.tsx` (10.x, 16.3, 22.1) refer to the replaced file and need rewording before they are executed.
 

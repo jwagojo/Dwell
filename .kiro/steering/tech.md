@@ -2,14 +2,14 @@
 inclusion: always
 ---
 
-# VoltLot Tech Context
+# Dwell Tech Context
 
 Specs: `README.md` §8, `.kiro/specs/voltlot-mvp/requirements.md` (Technology Constraints), `design.md` (Architecture, Components, External Integrations). Amplify Gen 2 and copy rules are in `voltlot-rules.md`. The build plan is `tasks.md`.
 
 ## Current status (update this when it changes)
 
 - **Implemented (tasks 1.1 and 1.2):** the project scaffold. Pinned dependencies with a lockfile: React 18.3.1, Vite 8.3.5, `@vitejs/plugin-react` 6.1.2, TypeScript 7.0.2, Tailwind CSS 4.3.3 (`@tailwindcss/vite`), Vitest 5.0.5, fast-check 4.10.2. Node `^22.12 || ^24 || >=26` is required (Vite 8 and Vitest 5). `.npmrc` sets `save-exact=true`.
-- **Implemented (UI prototype):** the full UI from the VoltLot UI design spec v1 (not stored in this repo yet). Eight routes in `src/App.tsx`: `/`, `/signup`, `/signup/driver`, `/signup/host`, `/host`, `/search`, `/listing/:id`, `/session`. Dependencies added: `react-router-dom` 7.18.4 and `@fontsource-variable/plus-jakarta-sans` 5.3.0 (self-hosted font, so no third-party requests).
+- **Implemented (UI prototype):** the full UI from the Dwell UI design spec v1 (not stored in this repo yet). Eight routes in `src/App.tsx`: `/`, `/signup`, `/signup/driver`, `/signup/host`, `/host`, `/search`, `/listing/:id`, `/session`. Dependencies added: `react-router-dom` 7.18.4 and `@fontsource-variable/plus-jakarta-sans` 5.3.0 (self-hosted font, so no third-party requests).
 - **Prototype data and state:** stations, routes, rates, and sunlight are made-up sample data (`src/data/`). Listings are `src/data/mockListings.json` (19 Cambridge and Somerville homes: real street addresses, geocoded coordinates and Zillow-hosted photos supplied by the project owner, with invented chargers, hosts and prices; see its `_meta` block) plus four Boston-neighborhood samples in `listings.ts`. `mockListings.test.ts` checks the file's shape and that each Cambridge station has demoable results. Accounts, the driver's car, the host's listing, the destination, and the booking live in `localStorage` (`src/state/AppState.tsx`, versioned and migrated in `src/state/persisted.ts`). Passwords are collected by the forms but never stored or sent. Photos stay in the browser. There is no backend and no sign-in page.
 - **Implemented Mapbox integration:** `mapbox-gl` 3.33.0 (lazy-loaded chunk) renders the search map, the landing hero preview, and the host pin picker (`src/components/map/`, `MapView.tsx`). `src/adapters/mapboxGeocoding.ts` is a typed Geocoding v6 adapter. The token is a public `pk.` token from `VITE_MAPBOX_TOKEN` in `.env.local`; secret `sk.` tokens are refused (`src/lib/mapbox.ts`). Setup: `docs/mapbox-setup.md`.
 - **Fallbacks:** with no token or a failed map load, every map shows a labeled schematic (`SchematicMap`), destination search offers T stations only, and hosts enter their address by hand. Listings stay usable.

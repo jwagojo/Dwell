@@ -26,7 +26,7 @@ export const EIA_API_KEY: string = rawKey.startsWith('your-') ? '' : rawKey;
 export const hasEiaKey = EIA_API_KEY.length > 0;
 
 if (import.meta.env.DEV && !hasEiaKey) {
-  console.warn('[VoltLot] VITE_EIA_API_KEY is not set. The electricity rate will use the $0.30/kWh fallback estimate. See docs/eia-rates.md.');
+  console.warn('[Dwell] VITE_EIA_API_KEY is not set. The electricity rate will use the $0.30/kWh fallback estimate. See docs/eia-rates.md.');
 }
 
 export type RateLookupFailure = 'NO_KEY' | 'TIMEOUT' | 'NETWORK' | 'HTTP' | 'BAD_RESPONSE' | 'NO_VALID_RECORD' | 'ABORTED';
@@ -145,7 +145,7 @@ export async function fetchMassachusettsResidentialRate(opts: LookupOptions = {}
 
 export const RATE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 export const RATE_FAILURE_TTL_MS = 60 * 1000;
-export const RATE_STORAGE_KEY = 'voltlot.eia.ma-residential-rate.v1';
+export const RATE_STORAGE_KEY = 'dwell.eia.ma-residential-rate.v1';
 
 type Failure = Extract<RateLookupResult, { ok: false }>;
 

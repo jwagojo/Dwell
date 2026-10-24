@@ -51,7 +51,7 @@ export default function SignUpChoice() {
       <Header />
       <main className="mx-auto max-w-[960px] px-6 pb-16 pt-14">
         <div className="text-center">
-          <h1 className="text-[44px] font-extrabold leading-[1.1] tracking-[-0.03em] text-ink">How will you use VoltLot?</h1>
+          <h1 className="text-[44px] font-extrabold leading-[1.1] tracking-[-0.03em] text-ink">How will you use Dwell?</h1>
           <p className="mt-3 text-[18px] text-hero-sub">You can add the other role later.</p>
         </div>
         <div className="auto-grid mt-10" style={{ '--min': '320px', '--gap': '20px' } as CSSProperties}>

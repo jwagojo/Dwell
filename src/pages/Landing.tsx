@@ -232,7 +232,7 @@ export default function Landing() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-3 px-6 py-6 text-[14px] text-muted sm:px-8">
-          <span>VoltLot · Hackachusetts 2026, Climate/Energy track</span>
+          <span>Dwell · Hackachusetts 2026, Climate/Energy track</span>
           <span>Payments and notifications are simulated in this demo. Listings, routes and sunlight are sample data.</span>
         </div>
       </footer>

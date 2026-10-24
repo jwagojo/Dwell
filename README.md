@@ -1,4 +1,4 @@
-# VoltLot: Project Spec
+# Dwell: Project Spec
 
 **v0.5 · Oct 24, 2026 · Hackachusetts, Climate/Energy track**
 
@@ -6,7 +6,7 @@ Items marked [PLACEHOLDER] are temporary values. Items marked [?] still need a t
 
 ## 1. Overview
 
-**One-liner:** VoltLot is peer-to-peer charge-and-ride for Massachusetts drivers. Park at a neighbor's EV charger near where you're going (a T stop, a concert venue, any destination), charge while you're away, and walk or ride the rest of the way.
+**One-liner:** Dwell is peer-to-peer charge-and-ride for Massachusetts drivers. Park at a neighbor's EV charger near where you're going (a T stop, a concert venue, any destination), charge while you're away, and walk or ride the rest of the way.
 
 **Use cases:** commuting (park near a T station), events and recreation (park at a nearby host and walk to the venue), any trip where the car sits for hours.
 
@@ -163,7 +163,7 @@ Story: **book, park, charge, go.**
 
 ## 10. Open questions
 
-- **Why not a commercial charger?** Not settled. Draft answer: public chargers near venues and T stops are scarce or full, and VoltLot adds capacity exactly where people already need to park. Verify event parking prices for the pitch.
+- **Why not a commercial charger?** Not settled. Draft answer: public chargers near venues and T stops are scarce or full, and Dwell adds capacity exactly where people already need to park. Verify event parking prices for the pitch.
 - Confirm Open EV Data covers US models (Leaf, Bolt, Model Y, Prius Prime) and whether its AC kW is 1-phase or 3-phase.
 - Trip time and cost per option (T, bus, walk) needs a source, since MBTA V3 has no trip planner.
 - Event destinations: which venue to seed, and how destination search works beyond T stations.
@@ -179,7 +179,7 @@ Story: **book, park, charge, go.**
 
 | Decision | Why |
 |---|---|
-| Name: VoltLot | Team's choice |
+| Name: Dwell (renamed from VoltLot) | Team's choice |
 | Not just commuting: events and recreation too | Same problem (parking near a destination); widens the market |
 | Any time of day, including overnight | Hosts earn from idle chargers; solar share is shown honestly |
 | Car-based pricing (min of charger and car kW) | Flat prices lose money on high-draw cars; this caps host cost |
@@ -201,7 +201,7 @@ Story: **book, park, charge, go.**
 
 ## Changes from v0.4
 
-- Named the project VoltLot.
+- Named the project Dwell (originally VoltLot).
 - Added Pickup (browser location check plus photo) as the session end.
 - Late fee set to 1.5x the hourly price, prorated per minute, with no grace period.
 - No refund for unused hours on early pickup.
