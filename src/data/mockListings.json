@@ -26,7 +26,7 @@
       "chargerKw": 9.6,
       "level": "L2",
       "plug": "J1772",
-      "adapters": "NONE",
+      "adapters": "BOTH",
       "solarKw": 6.2,
       "spots": 1,
       "hostName": "Priya",
@@ -50,7 +50,10 @@
       ],
       "instructions": "Pull into the driveway and park nose-in next to the house. The charger cable hangs by the door. Please leave the gate latched.",
       "photos": [
-        "https://photos.zillowstatic.com/fp/1026ec832c5ad2ae392b0fcdac80b383-cc_ft_1536.webp"
+        "https://photos.zillowstatic.com/fp/1026ec832c5ad2ae392b0fcdac80b383-cc_ft_1536.webp",
+        "/listings/vl-01/ev-charger-1.png",
+        "/listings/vl-01/adapter.png",
+        "/listings/vl-01/parking-spot.png"
       ],
       "isNew": true
     },

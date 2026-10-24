@@ -63,8 +63,12 @@ describe('mockListings.json', () => {
 
     expect(l.instructions.length).toBeGreaterThanOrEqual(20);
 
-    // photos: direct image links only (a Zillow page link is not an image)
-    for (const url of l.photos) expect(url).toMatch(/^https:\/\/photos\.zillowstatic\.com\/fp\/[0-9a-f]{32}-[\w]+\.webp$/);
+    // photos: direct image links only (a Zillow page link is not an image).
+    // Either a hotlinked Zillow image, or a local image served from public/.
+    for (const url of l.photos)
+      expect(url).toMatch(
+        /^(https:\/\/photos\.zillowstatic\.com\/fp\/[0-9a-f]{32}-[\w]+\.webp|\/listings\/[\w-]+\/[\w-]+\.(png|jpe?g|webp))$/,
+      );
 
     // every listing can be priced for every seeded car
     for (const car of EV_MODELS) {
