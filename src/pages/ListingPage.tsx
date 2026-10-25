@@ -4,7 +4,7 @@ import DestinationSearch from '../components/DestinationSearch';
 import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
 import { Camera, ChevronLeft, Walk } from '../components/Icons';
-import { Button, FitNote, Photo, RouteBadges, WarnNote } from '../components/ui';
+import { Button, FitNote, InfoNote, Photo, RouteBadges, WarnNote } from '../components/ui';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
 import { GREEN_REF_CO2_KG, GREEN_REF_TRANSIT_MILES, GREEN_WEIGHTS, LATE_MULTIPLIER, SERVICE_FEE } from '../engines/constants';
