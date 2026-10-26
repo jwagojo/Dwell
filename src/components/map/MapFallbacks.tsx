@@ -7,7 +7,7 @@ import DestinationPin from './DestinationPin';
 import PricePin from './PricePin';
 import { SchematicMap } from './SchematicMap';
 
-/* Labeled schematic fallbacks, shown when the live Mapbox map cannot start. Listings stay usable. */
+/* Labeled schematic fallbacks, shown when the live map cannot start. Listings stay usable. */
 
 export interface MapPin {
   id: string;

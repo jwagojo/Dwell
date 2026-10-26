@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import type { Map as MapboxMap, Marker } from 'mapbox-gl';
-import type { MapboxModule } from './useMapboxMap';
+import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
+import type { MapLibreModule } from './useMapLibreMap';
 
 /**
- * One Mapbox marker whose content is ordinary React, rendered through a portal.
+ * One MapLibre marker whose content is ordinary React, rendered through a portal.
  * Mount adds the marker, unmount removes it, and a new lat/lng moves it. Coordinates are plain lat/lng here;
- * the [longitude, latitude] order Mapbox wants is handled in this file only.
+ * the [longitude, latitude] order MapLibre wants is handled in this file only.
  */
 export default function MapMarker({
   map,
@@ -16,8 +16,8 @@ export default function MapMarker({
   zIndex = 0,
   children,
 }: {
-  map: MapboxMap;
-  api: MapboxModule;
+  map: MapLibreMap;
+  api: MapLibreModule;
   lat: number;
   lng: number;
   zIndex?: number;

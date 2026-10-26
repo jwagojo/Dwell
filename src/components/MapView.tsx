@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Map as MapboxMap } from 'mapbox-gl';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoBounds, LatLng } from '../lib/geo';
 import type { Destination } from '../types/destination';
 import DestinationPin from './map/DestinationPin';
@@ -8,7 +8,7 @@ import { SchematicSearchMap, type MapPin } from './map/MapFallbacks';
 import MapMarker from './map/MapMarker';
 import PricePin from './map/PricePin';
 import ZoomControls from './map/ZoomControls';
-import type { MapboxModule } from './map/useMapboxMap';
+import type { MapLibreModule } from './map/useMapLibreMap';
 
 export type { MapPin } from './map/MapFallbacks';
 
@@ -20,7 +20,7 @@ const BROWSING_ZOOM = 13;
 let lastView: { center: LatLng; zoom: number } | null = null;
 
 /** Tell the page which part of the world the map shows, once on start and after every pan, zoom or fly. */
-function AreaReporter({ map, onAreaChange }: { map: MapboxMap; onAreaChange: (area: GeoBounds) => void }) {
+function AreaReporter({ map, onAreaChange }: { map: MapLibreMap; onAreaChange: (area: GeoBounds) => void }) {
   const latest = useRef(onAreaChange);
   latest.current = onAreaChange;
   useEffect(() => {
@@ -44,7 +44,7 @@ function AreaReporter({ map, onAreaChange }: { map: MapboxMap; onAreaChange: (ar
  * Move the camera when the driver picks a different destination. Panning and zooming by hand never come through here,
  * and neither do changes to the set of listings, so the map stays where the driver put it.
  */
-function GoToDestination({ map, destination }: { map: MapboxMap; destination: Destination | null }) {
+function GoToDestination({ map, destination }: { map: MapLibreMap; destination: Destination | null }) {
   const previousId = useRef(destination?.id ?? null);
   useEffect(() => {
     const id = destination?.id ?? null;
@@ -58,9 +58,9 @@ function GoToDestination({ map, destination }: { map: MapboxMap; destination: De
 const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches;
 
 /**
- * Search map. Live Mapbox map with price markers and, when there is one, a destination marker. The driver can pan and
+ * Search map. Live MapLibre map with price markers and, when there is one, a destination marker. The driver can pan and
  * zoom freely, and `onAreaChange` reports what the map shows so the page can list the chargers in view. Falls back to a
- * clearly labeled schematic when Mapbox is unavailable.
+ * clearly labeled schematic when the map cannot load.
  */
 export default function MapView({
   destination,
@@ -98,7 +98,7 @@ export default function MapView({
         />
       )}
     >
-      {({ map, api }: { map: MapboxMap; api: MapboxModule }) => (
+      {({ map, api }: { map: MapLibreMap; api: MapLibreModule }) => (
         <>
           <AreaReporter map={map} onAreaChange={onAreaChange} />
           <GoToDestination map={map} destination={destination} />

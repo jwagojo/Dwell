@@ -1,10 +1,14 @@
 # Mapbox setup
 
-Dwell uses Mapbox for the live map (Mapbox GL JS) and for address search (Geocoding API v6). Both use one
-**public** access token that ends up in the browser bundle, so the token must be URL-restricted.
+The live map uses **MapLibre GL JS** with the free OpenFreeMap "positron" style. It needs no token or account.
+To use another provider, set `VITE_MAP_STYLE_URL` to a MapLibre style JSON URL (see `src/lib/map.ts`). A key inside
+that URL is visible in the browser bundle, so restrict it by URL. Keep the map attribution visible.
 
-Without a token the app still works: maps show a labeled schematic fallback, destination search offers T stations
-only, and hosts enter their address by hand.
+Mapbox is now used only for address search (Geocoding API v6). It uses one **public** access token that ends up in
+the browser bundle, so the token must be URL-restricted.
+
+Without a token the app still works: destination search offers T stations only, and hosts enter their address by
+hand. The map is unaffected. If the map cannot load (WebGL, network), a labeled schematic fallback appears.
 
 ## 1. Create a public, URL-restricted token
 
@@ -54,7 +58,7 @@ results from its **Permanent** geocoding mode, so address search sends `permanen
 
 ## 4. Check that it works
 
-- Open the landing page: the hero shows a real map with price markers and a Mapbox logo and attribution.
+- Open the landing page: the hero shows a real map with price markers and the OpenFreeMap attribution (no token needed).
 - Search page: the map shows price markers and a destination marker; type an address in **To** and pick it.
 - Become a host, step 2: type an address, pick it, drag the pin, then **Confirm pin location**.
 - A **403** message means the token's URL restrictions do not include the address you are browsing from

@@ -4,7 +4,7 @@ import { STATIONS } from '../../data/stations';
 import type { LatLng } from '../../lib/geo';
 
 /* Schematic map. Geometry is hand-drawn from approximate coordinates and is NOT survey-accurate. It is only the
-   labeled fallback shown when the live Mapbox map cannot start (no token, blocked token, WebGL, network). */
+   labeled fallback shown when the live map cannot start (WebGL, network, style failure). */
 
 const M_PER_DEG_LAT = 111_195;
 const VISIBLE_METERS_TALL = 4500;

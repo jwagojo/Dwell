@@ -2,7 +2,7 @@ import { Bolt } from '../Icons';
 
 /**
  * Price pill for a listing. With x/y it positions itself over a schematic map; without them it is an inline
- * element meant to live inside a Mapbox marker.
+ * element meant to live inside a MapLibre marker.
  */
 export default function PricePin({
   price,

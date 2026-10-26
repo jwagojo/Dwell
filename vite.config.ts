@@ -5,8 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // mapbox-gl is loaded on demand; pre-bundling it avoids a mid-session dev-server reload.
-  optimizeDeps: { include: ['mapbox-gl'] },
-  // mapbox-gl is a ~1.9 MB lazy chunk (about 520 kB gzipped) loaded only when a map or token is used.
+  // maplibre-gl is loaded on demand; pre-bundling it avoids a mid-session dev-server reload.
+  optimizeDeps: { include: ['maplibre-gl'] },
+  // maplibre-gl is a large lazy chunk loaded only when a map mounts.
   build: { chunkSizeWarningLimit: 2000 },
 });

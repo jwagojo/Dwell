@@ -12,7 +12,7 @@ export interface PreviewPin {
   selected: boolean;
 }
 
-/** Non-interactive Mapbox preview with price markers (the landing hero). Falls back to a labeled schematic. */
+/** Non-interactive MapLibre preview with price markers (the landing hero). Falls back to a labeled schematic. */
 export default function MapPreview({
   center,
   zoom = 13.4,

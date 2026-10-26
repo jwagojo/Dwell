@@ -25,7 +25,7 @@ VoltLot/
     │                              HostHome, Search, ListingPage, Session
     ├── components/                Header, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
     │                              Combobox, AddressAutocomplete, DestinationSearch, PinPicker, MapView
-    │   └── map/                   LiveMap + useMapboxMap (Mapbox lifecycle), MapMarker, PricePin, DestinationPin,
+    │   └── map/                   LiveMap + useMapLibreMap (MapLibre lifecycle), MapMarker, PricePin, DestinationPin,
     │                              PinPickerMap, MapPreview, ZoomControls, SchematicMap + MapFallbacks (labeled fallback)
     ├── adapters/                  mapboxGeocoding.ts (Geocoding v6) and eiaRates.ts (EIA rate lookup + central cache), typed, never throw, with tests
     ├── features/
@@ -34,7 +34,7 @@ VoltLot/
     ├── engines/                   Pure functions: constants, types, money, pricing, billing, climate, rate, plug
     │                              plus *.test.ts for pricing, billing, climate (26 tests)
     ├── lib/                       format, geo (haversineDistanceMeters, walk estimate, offsetMeters), availability, image,
-    │                              mapbox (token handling, never uses sk. tokens), massachusetts (ZIP check, street name)
+    │                              mapbox (geocoding token handling, never uses sk. tokens), map (map style URL), massachusetts (ZIP check, street name)
     ├── state/                     AppState.tsx (localStorage provider), persisted.ts (versioned state + migrations)
     ├── types/                     listing.ts, booking.ts, destination.ts
     └── data/                      Sample data: stations, listings.ts + mockListings.json (+ test), EV fallback table, zip areas,

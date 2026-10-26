@@ -9,4 +9,4 @@
 ## 2. AWS Amplify Gen 2 Conventions
 - Use ONLY **Amplify Gen 2** TypeScript backend definitions (`amplify/auth/resource.ts`, `amplify/data/resource.ts`, `amplify/storage/resource.ts`).
 - NEVER generate legacy Amplify Gen 1 CLI commands (`amplify add api`, `aws-exports.js`). Always import `amplify_outputs.json`.
-- DynamoDB does not support native geospatial radius queries; always fetch seeded/active listings and apply our `haversineDistanceMeters()` filter on the client before rendering Mapbox GL JS markers[cite: 1].
+- DynamoDB does not support native geospatial radius queries; always fetch seeded/active listings and apply our `haversineDistanceMeters()` filter on the client before rendering MapLibre GL JS markers[cite: 1].

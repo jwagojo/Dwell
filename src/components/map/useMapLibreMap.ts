@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { Map as MapboxMap } from 'mapbox-gl';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { LatLng } from '../../lib/geo';
-import { MAPBOX_TOKEN, MAP_STYLE, describeTokenProblem, hasMapboxToken, mapboxTokenStatus } from '../../lib/mapbox';
+import { MAP_STYLE_URL } from '../../lib/map';
 
-export type MapboxModule = typeof import('mapbox-gl');
+export type MapLibreModule = typeof import('maplibre-gl');
 
-let modulePromise: Promise<MapboxModule> | null = null;
+let modulePromise: Promise<MapLibreModule> | null = null;
 
-/** mapbox-gl is large, so it loads on demand and only when a token exists. */
-export function loadMapbox(): Promise<MapboxModule> {
-  modulePromise ??= import('mapbox-gl').then((ns) => ((ns as unknown as { default?: MapboxModule }).default ?? ns) as MapboxModule);
+/** maplibre-gl is large, so it loads on demand, the first time a map mounts. */
+export function loadMapLibre(): Promise<MapLibreModule> {
+  modulePromise ??= (async () => {
+    const [ns, worker] = await Promise.all([
+      import('maplibre-gl'),
+      // Vite serves the worker as its own file; MapLibre 6 must be told where it is.
+      import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'),
+    ]);
+    const api = ((ns as unknown as { default?: MapLibreModule }).default ?? ns) as MapLibreModule;
+    api.setWorkerUrl(worker.default);
+    return api;
+  })();
   // Allow a retry on the next mount if the chunk failed to load.
   modulePromise.catch(() => {
     modulePromise = null;
@@ -19,15 +28,15 @@ export function loadMapbox(): Promise<MapboxModule> {
 
 export type MapStatus = 'loading' | 'ready' | 'unavailable';
 
-export interface MapboxMapState {
-  map: MapboxMap | null;
-  api: MapboxModule | null;
+export interface MapLibreMapState {
+  map: MapLibreMap | null;
+  api: MapLibreModule | null;
   status: MapStatus;
   /** Plain-language reason, set when status is "unavailable" */
   reason: string;
 }
 
-export interface MapboxMapOptions {
+export interface MapLibreMapOptions {
   center: LatLng;
   zoom: number;
   interactive?: boolean;
@@ -38,27 +47,22 @@ export interface MapboxMapOptions {
 const LOAD_TIMEOUT_MS = 15_000;
 
 /**
- * Creates one Mapbox map inside `containerRef` and tears everything down on unmount.
+ * Creates one MapLibre map inside `containerRef` and tears everything down on unmount.
  * Safe under React StrictMode (effects run twice) because creation is async and guarded by `cancelled`.
  * `options` are read once, at creation. Move the camera through the returned `map` afterwards.
  */
-export function useMapboxMap(containerRef: RefObject<HTMLDivElement | null>, options: MapboxMapOptions): MapboxMapState {
-  const [state, setState] = useState<MapboxMapState>(() =>
-    hasMapboxToken
-      ? { map: null, api: null, status: 'loading', reason: '' }
-      : { map: null, api: null, status: 'unavailable', reason: describeTokenProblem(mapboxTokenStatus) },
-  );
+export function useMapLibreMap(containerRef: RefObject<HTMLDivElement | null>, options: MapLibreMapOptions): MapLibreMapState {
+  const [state, setState] = useState<MapLibreMapState>({ map: null, api: null, status: 'loading', reason: '' });
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
   useEffect(() => {
-    if (!hasMapboxToken) return;
     const container = containerRef.current;
     if (!container) return;
 
     let cancelled = false;
     let loaded = false;
-    let map: MapboxMap | null = null;
+    let map: MapLibreMap | null = null;
     let observer: ResizeObserver | null = null;
     let timer = 0;
 
@@ -69,30 +73,30 @@ export function useMapboxMap(containerRef: RefObject<HTMLDivElement | null>, opt
       map?.remove(); // also releases its event listeners, controls and markers
       map = null;
     };
-    const fail = (reason: string) => {
+    const fail = (reason: string, cause?: unknown) => {
       if (cancelled) return;
       cancelled = true;
+      console.warn(`[Dwell] Map unavailable: ${reason}`, cause ?? '');
       teardown();
       setState({ map: null, api: null, status: 'unavailable', reason });
     };
 
-    loadMapbox()
+    loadMapLibre()
       .then((api) => {
         if (cancelled) return;
         const o = optionsRef.current;
         try {
           map = new api.Map({
             container,
-            style: MAP_STYLE,
-            center: [o.center.lng, o.center.lat], // Mapbox order: [longitude, latitude]
+            style: MAP_STYLE_URL,
+            center: [o.center.lng, o.center.lat], // MapLibre order: [longitude, latitude]
             zoom: o.zoom,
-            accessToken: MAPBOX_TOKEN,
             attributionControl: false,
             interactive: o.interactive ?? true,
             cooperativeGestures: o.cooperativeGestures ?? false,
           });
-        } catch {
-          fail('This browser could not start the map (WebGL may be unavailable).');
+        } catch (e) {
+          fail('This browser could not start the map (WebGL may be unavailable).', e);
           return;
         }
         map.addControl(new api.AttributionControl({ compact: true }), 'bottom-right');
@@ -104,16 +108,9 @@ export function useMapboxMap(containerRef: RefObject<HTMLDivElement | null>, opt
         });
         map.on('error', (e) => {
           // Tile and source errors after load are not fatal. Style-level failures before load are.
-          const err = e as { error?: { status?: number }; sourceId?: string; tile?: unknown };
+          const err = e as { error?: unknown; sourceId?: string; tile?: unknown };
           if (loaded || err.sourceId || err.tile) return;
-          const status = err.error?.status;
-          fail(
-            status === 401
-              ? 'Mapbox rejected the token (401).'
-              : status === 403
-                ? 'Mapbox blocked this site (403). Check the token’s URL restrictions.'
-                : 'The map style could not be loaded.',
-          );
+          fail('The map style could not be loaded.', err.error);
         });
 
         observer = new ResizeObserver(() => map?.resize());
@@ -124,7 +121,7 @@ export function useMapboxMap(containerRef: RefObject<HTMLDivElement | null>, opt
 
         setState({ map, api, status: 'loading', reason: '' });
       })
-      .catch(() => fail('The map library could not be loaded.'));
+      .catch((e) => fail('The map library could not be loaded.', e));
 
     return () => {
       cancelled = true;

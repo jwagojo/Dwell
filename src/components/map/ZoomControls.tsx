@@ -1,7 +1,7 @@
-import type { Map as MapboxMap } from 'mapbox-gl';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 
-/** Zoom buttons for a Mapbox map. bottom-10 keeps them clear of Mapbox's attribution. */
-export default function ZoomControls({ map }: { map: MapboxMap }) {
+/** Zoom buttons for a MapLibre map. bottom-10 keeps them clear of the map attribution. */
+export default function ZoomControls({ map }: { map: MapLibreMap }) {
   const cls =
     'flex h-11 w-11 items-center justify-center rounded-full border border-pill bg-paper text-[20px] font-medium text-ink shadow-pin hover:border-brand';
   return (

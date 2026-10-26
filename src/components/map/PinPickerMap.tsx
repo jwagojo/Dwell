@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Map as MapboxMap, Marker, MapMouseEvent } from 'mapbox-gl';
+import type { Map as MapLibreMap, Marker, MapMouseEvent } from 'maplibre-gl';
 import type { LatLng } from '../../lib/geo';
 import LiveMap from './LiveMap';
-import type { MapboxModule } from './useMapboxMap';
+import type { MapLibreModule } from './useMapLibreMap';
 import ZoomControls from './ZoomControls';
 
 const STACKED_LAYOUT = typeof window !== 'undefined' && !window.matchMedia('(min-width: 1024px)').matches;
@@ -25,8 +25,8 @@ function PinLayer({
   onMove,
   recenterToken,
 }: {
-  map: MapboxMap;
-  api: MapboxModule;
+  map: MapLibreMap;
+  api: MapLibreModule;
   position: LatLng | null;
   onMove: (p: LatLng) => void;
   recenterToken: number;

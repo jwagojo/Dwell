@@ -1,8 +1,10 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** Public (pk.) Mapbox token, URL-restricted. Never a secret (sk.) token. */
+  /** Public (pk.) Mapbox token for address search, URL-restricted. Never a secret (sk.) token. */
   readonly VITE_MAPBOX_TOKEN?: string;
+  /** Optional MapLibre style JSON URL. Defaults to OpenFreeMap positron (no key). Any key in the URL is browser-visible. */
+  readonly VITE_MAP_STYLE_URL?: string;
   /** EIA Open Data API key. Browser-visible because it is a VITE_ variable; free and revocable. */
   readonly VITE_EIA_API_KEY?: string;
 }

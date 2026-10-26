@@ -1,5 +1,5 @@
 /**
- * Mapbox configuration shared by the map and geocoding code.
+ * Mapbox configuration for address search (Geocoding API). The map itself uses MapLibre and needs no token (lib/map.ts).
  * The token is a PUBLIC (pk.) token read from VITE_MAPBOX_TOKEN in .env.local. It ships in the browser bundle,
  * so restrict it by URL in the Mapbox dashboard (docs/mapbox-setup.md). Secret (sk.) tokens are refused.
  */
@@ -34,11 +34,9 @@ export function describeTokenProblem(status: MapboxTokenStatus): string {
   }
 }
 
-export const MAP_STYLE = 'mapbox://styles/mapbox/light-v11';
-
 /** Rough center of Massachusetts, used to bias address search and as a last-resort camera. */
 export const MASSACHUSETTS_CENTER = { lat: 42.3601, lng: -71.0589 };
 
 if (import.meta.env.DEV && !hasMapboxToken) {
-  console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Maps and address search use labeled fallbacks. See docs/mapbox-setup.md.`);
+  console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Address search uses a labeled fallback. See docs/mapbox-setup.md.`);
 }
