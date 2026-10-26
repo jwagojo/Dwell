@@ -24,10 +24,10 @@ VoltLot/
     ├── pages/                     One file per route: Landing, SignUp, SignIn, HostSignup (listing steps at /host/new), SignOut,
     │                              HostHome, Search, ListingPage, Session
     ├── components/                Header, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
-    │                              Combobox, AddressAutocomplete, DestinationSearch, PinPicker, MapView
+    │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView
     │   └── map/                   LiveMap + useMapLibreMap (MapLibre lifecycle), MapMarker, PricePin, DestinationPin,
     │                              PinPickerMap, MapPreview, ZoomControls, SchematicMap + MapFallbacks (labeled fallback)
-    ├── adapters/                  mapboxGeocoding.ts (Geocoding v6) and eiaRates.ts (EIA rate lookup + central cache), typed, never throw, with tests
+    ├── adapters/                  addressSearch.ts (picks the provider), mapboxGeocoding.ts (Geocoding v6), photonGeocoding.ts (OpenStreetMap, no key), geocodingTypes.ts (shared types), geolocation.ts (browser position) and eiaRates.ts (EIA rate lookup + central cache), typed, never throw, with tests
     ├── features/
     │   ├── search/evaluateListing.ts    Combines engines for one listing, car and window; sorting
     │   └── session/settleBooking.ts     Final bill and impact numbers from frozen booking values

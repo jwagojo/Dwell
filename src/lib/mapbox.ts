@@ -1,5 +1,6 @@
 /**
- * Mapbox configuration for address search (Geocoding API). The map itself uses MapLibre and needs no token (lib/map.ts).
+ * Mapbox configuration for address search (Geocoding API). The token is optional: without one, address search uses
+ * Photon (OpenStreetMap), see adapters/addressSearch.ts. The map itself uses MapLibre and needs no token (lib/map.ts).
  * The token is a PUBLIC (pk.) token read from VITE_MAPBOX_TOKEN in .env.local. It ships in the browser bundle,
  * so restrict it by URL in the Mapbox dashboard (docs/mapbox-setup.md). Secret (sk.) tokens are refused.
  */
@@ -38,5 +39,5 @@ export function describeTokenProblem(status: MapboxTokenStatus): string {
 export const MASSACHUSETTS_CENTER = { lat: 42.3601, lng: -71.0589 };
 
 if (import.meta.env.DEV && !hasMapboxToken) {
-  console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Address search uses a labeled fallback. See docs/mapbox-setup.md.`);
+  console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Address search uses OpenStreetMap (Photon) instead. See docs/mapbox-setup.md.`);
 }

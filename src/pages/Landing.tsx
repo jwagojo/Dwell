@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ActiveBookingBanner from '../components/ActiveBookingBanner';
 import Header from '../components/Header';
+import NearMeButton from '../components/NearMeButton';
 import Skyline from '../components/Skyline';
 import { Search } from '../components/Icons';
 import DestinationSearch from '../components/DestinationSearch';
@@ -128,6 +130,7 @@ export default function Landing() {
     <div className="min-h-dvh bg-paper">
       <Header />
       <main>
+        <ActiveBookingBanner />
         <section className="relative overflow-hidden border-b border-line">
           <Skyline className="absolute inset-x-0 bottom-0 h-[150px] w-full sm:h-[200px] lg:h-[260px]" />
           <div className="relative mx-auto grid max-w-[1280px] items-center gap-x-16 gap-y-12 px-6 py-12 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:py-14">
@@ -173,6 +176,8 @@ export default function Landing() {
                   </p>
                 )}
               </form>
+
+              <NearMeButton onLocated={goTo} className="w-fit" messageClassName="mt-2 max-w-[480px]" />
 
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[14px] text-muted">Popular:</span>

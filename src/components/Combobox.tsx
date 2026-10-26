@@ -42,6 +42,8 @@ interface ComboboxProps<T> {
   inputClassName?: string;
   /** Extra text under the list when the remote search is unavailable */
   unavailableNote?: string;
+  /** A credit line shown at the bottom of the list when there are results (for example a data attribution) */
+  footerNote?: string;
 }
 
 type Status = 'idle' | 'loading' | 'done' | 'error';
@@ -66,6 +68,7 @@ export default function Combobox<T>({
   labelClassName,
   inputClassName,
   unavailableNote,
+  footerNote,
 }: ComboboxProps<T>) {
   const autoId = useId();
   const id = inputId ?? autoId;
@@ -233,6 +236,7 @@ export default function Combobox<T>({
               {unavailableNote ? ` ${unavailableNote}` : ''}
             </p>
           )}
+          {footerNote && options.length > 0 && <p className="border-t border-line px-3.5 pb-1 pt-1.5 text-[12px] text-muted">{footerNote}</p>}
           {tooShort && local.length === 0 && <p className="px-3.5 py-2.5 text-[14px] text-muted">Type at least {minChars} characters to search.</p>}
         </div>
       )}

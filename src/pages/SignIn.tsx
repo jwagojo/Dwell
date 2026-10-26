@@ -6,6 +6,7 @@ import { Button } from '../components/ui';
 import { SIGNUP_PATH } from '../lib/hostEntry';
 import { authenticate } from '../state/accounts';
 import { useApp } from '../state/AppState';
+import { DEMO_EMAIL, DEMO_PASSWORD, SHOW_DEMO_HINT } from '../state/demoAccount';
 import { EMAIL_RE } from './SignUp';
 
 type Errors = Partial<Record<'email' | 'password', string>>;
@@ -83,6 +84,11 @@ export default function SignIn() {
             </Button>
           </div>
         </form>
+        {SHOW_DEMO_HINT && (
+          <p className="mt-4 text-[13px] text-muted">
+            Dev server only: try {DEMO_EMAIL} with password {DEMO_PASSWORD}.
+          </p>
+        )}
       </main>
     </div>
   );

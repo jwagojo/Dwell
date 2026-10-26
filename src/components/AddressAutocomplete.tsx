@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
-import { ADDRESS_TYPES, isMassachusetts, searchAddresses, type GeocodedAddress } from '../adapters/mapboxGeocoding';
+import { ADDRESS_SEARCH_CREDIT, ADDRESS_TYPES, isMassachusetts, searchAddresses, type GeocodedAddress } from '../adapters/addressSearch';
 import Combobox, { type ComboOption, type ComboSearch } from './Combobox';
 
 export const addressSecondary = (a: GeocodedAddress) => [a.city, `${a.state} ${a.zip}`.trim()].filter(Boolean).join(', ');
 
 /**
- * US street-address autocomplete backed by Mapbox Geocoding v6 (through the typed adapter).
+ * US street-address autocomplete (Mapbox with a token, otherwise OpenStreetMap through Photon), via the typed adapter.
  * Results outside Massachusetts are listed but flagged; the parent rejects them on selection.
  */
 export default function AddressAutocomplete({
@@ -53,6 +53,7 @@ export default function AddressAutocomplete({
       placeholder={placeholder}
       hint={hint}
       error={error}
+      footerNote={ADDRESS_SEARCH_CREDIT}
     />
   );
 }

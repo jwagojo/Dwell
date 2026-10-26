@@ -40,33 +40,12 @@ function HostButton({ className = '' }: { className?: string }) {
 
 export default function Header({ wide = false }: { wide?: boolean }) {
   const { user } = useApp();
-  const { pathname } = useLocation();
   const navigate = useNavigate();
-
-  const links = [
-    ...(user ? [{ label: 'My bookings', to: '/session', active: pathname === '/session' }] : []),
-  ];
 
   return (
     <header className="border-b border-line bg-paper">
       <div className={`flex min-h-16 items-center justify-between gap-4 px-6 py-2.5 sm:px-8 ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
         <Logo />
-        {links.length > 0 && (
-          <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
-            {links.map((l) => (
-              <Link
-                key={l.label}
-                to={l.to}
-                aria-current={l.active ? 'page' : undefined}
-                className={`flex h-11 items-center rounded-full px-4 text-[15px] font-medium transition-colors hover:bg-surface active:bg-chip ${
-                  l.active ? 'text-brand underline decoration-1 underline-offset-[6px]' : 'text-ink'
-                }`}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        )}
         {user ? (
           <div className="flex items-center gap-3">
             <HostButton className="max-lg:hidden" />

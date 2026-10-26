@@ -76,6 +76,13 @@ export const Pin = (p: IconProps) => (
     <circle cx="12" cy="9.7" r="2.4" />
   </Svg>
 );
+export const Locate = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="3.2" />
+    <circle cx="12" cy="12" r="7.5" />
+    <path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22" />
+  </Svg>
+);
 export const ChevronLeft = (p: IconProps) => (
   <Svg {...p}>
     <path d="m15 5-7 7 7 7" />

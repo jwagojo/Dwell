@@ -21,7 +21,7 @@ export default function SignUp() {
   const [params] = useSearchParams();
   const { user, update } = useApp();
   const forHosting = params.get('next') === 'host';
-  const afterSignUp = forHosting ? NEW_LISTING_PATH : '/search';
+  const afterSignUp = forHosting ? NEW_LISTING_PATH : '/';
 
   const [form, setForm] = useState({
     name: '',
@@ -79,9 +79,7 @@ export default function SignUp() {
           <div>
             <h1 className="text-[30px] font-semibold text-ink">Create your Dwell account</h1>
             <p className="mt-2 text-[16px] text-body">
-              {forHosting
-                ? 'One account covers hosting and parking. Next you’ll tell us about your charger.'
-                : 'One account covers parking and hosting. You can list a charger any time from the button at the top.'}
+              Start parking or hosting
             </p>
           </div>
 
@@ -115,7 +113,7 @@ export default function SignUp() {
               </Link>
             </p>
             <Button type="submit" size="lg" disabled={busy}>
-              {forHosting ? 'Create account and continue' : 'Create account and find chargers'}
+              Create Account
             </Button>
           </div>
         </form>

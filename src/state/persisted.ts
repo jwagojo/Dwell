@@ -1,4 +1,4 @@
-import { DEFAULT_DESTINATION, isDestination, migrateDestination } from '../data/destinations';
+import { DEFAULT_DESTINATION, isCurrentLocation, isDestination, migrateDestination } from '../data/destinations';
 import type { SortMode } from '../features/search/evaluateListing';
 import type { Booking } from '../types/booking';
 import type { Destination } from '../types/destination';
@@ -78,7 +78,9 @@ export function migrateState(raw: unknown): Persisted {
     version: STATE_VERSION,
     user,
     // An explicit null means the driver cleared the search box; anything else unreadable falls back to the default.
-    destination: saved.destination === null ? null : migrateDestination(saved),
+    // "My location" is not kept between visits: it would point at where the driver was, not where they are now.
+    destination:
+      saved.destination === null ? null : isDestination(saved.destination) && isCurrentLocation(saved.destination) ? DEFAULT_DESTINATION : migrateDestination(saved),
     booking,
   };
 }

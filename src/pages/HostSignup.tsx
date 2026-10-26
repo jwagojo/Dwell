@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { getMassachusettsResidentialRate } from '../adapters/eiaRates';
-import { isMassachusetts, type GeocodedAddress } from '../adapters/mapboxGeocoding';
+import { isMassachusetts, type GeocodedAddress } from '../adapters/addressSearch';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { CheckboxCard, ChoiceGroup, SelectField, Stepper, TextAreaField, TextField } from '../components/form';
 import Header from '../components/Header';
@@ -26,7 +26,7 @@ import { DAY_LABELS, summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { fileToDataUrl } from '../lib/image';
 import { HOST_HOME_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
-import { MASSACHUSETTS_CENTER, hasMapboxToken } from '../lib/mapbox';
+import { MASSACHUSETTS_CENTER } from '../lib/mapbox';
 import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
 import { useApp } from '../state/AppState';
 import type { AvailabilityWindow, Level, Listing, SpotType } from '../types/listing';
@@ -121,7 +121,7 @@ const windowSummary = (w: AvailabilityWindow) =>
 const INITIAL: HostForm = {
   searchText: '',
   addr: NO_ADDR,
-  manual: !hasMapboxToken,
+  manual: false,
   unit: '',
   spotType: 'Driveway',
   spots: 1,
@@ -438,22 +438,14 @@ export default function HostSignup() {
       {form.manual ? (
         <div className="flex flex-col gap-4">
           <p className="rounded-card bg-surface p-3.5 text-[14px] text-body">
-            {hasMapboxToken
-              ? 'Entering your address by hand. '
-              : 'Address search is unavailable right now (no Mapbox token), so enter your address by hand. '}
-            You will place and confirm the pin yourself.
-            {hasMapboxToken && (
-              <>
-                {' '}
-                <button
-                  type="button"
-                  className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep"
-                  onClick={() => setForm((f) => ({ ...f, manual: false, addr: NO_ADDR, pin: null, searchText: '' }))}
-                >
-                  Use address search instead
-                </button>
-              </>
-            )}
+            Entering your address by hand. You will place and confirm the pin yourself.{' '}
+            <button
+              type="button"
+              className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep"
+              onClick={() => setForm((f) => ({ ...f, manual: false, addr: NO_ADDR, pin: null, searchText: '' }))}
+            >
+              Use address search instead
+            </button>
           </p>
           <AutoGrid min={240} gap={16}>
             <TextField label="Street address" autoComplete="address-line1" value={form.addr.line} error={errors.line} onChange={(e) => editManual('line', e.target.value)} />

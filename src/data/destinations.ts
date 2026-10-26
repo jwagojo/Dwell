@@ -1,4 +1,4 @@
-import type { GeocodedAddress } from '../adapters/mapboxGeocoding';
+import type { GeocodedAddress } from '../adapters/geocodingTypes';
 import type { Destination } from '../types/destination';
 import { DEFAULT_STATION_ID, STATIONS, stationById, type Station } from './stations';
 
@@ -24,6 +24,25 @@ export const addressToDestination = (a: GeocodedAddress): Destination => ({
   lat: a.lat,
   lng: a.lng,
 });
+
+/** The destination made from "use my location". It is an address with no routes, like any other address. */
+export const CURRENT_LOCATION_ID = 'my-location';
+
+/** About 110 m. Plenty for "chargers near me", and it keeps a precise position off the device's storage. */
+const roundCoord = (n: number) => Math.round(n * 1000) / 1000;
+
+export const currentLocationDestination = (lat: number, lng: number): Destination => ({
+  kind: 'address',
+  id: CURRENT_LOCATION_ID,
+  label: 'My location',
+  lat: roundCoord(lat),
+  lng: roundCoord(lng),
+});
+
+export const isCurrentLocation = (d: Destination | null | undefined): boolean => d?.id === CURRENT_LOCATION_ID;
+
+/** How to say the place in a sentence: "Chargers near your location", "Chargers near Central". */
+export const placeName = (d: Destination): string => (isCurrentLocation(d) ? 'your location' : d.label);
 
 const isFiniteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 

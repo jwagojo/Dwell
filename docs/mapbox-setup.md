@@ -7,8 +7,11 @@ that URL is visible in the browser bundle, so restrict it by URL. Keep the map a
 Mapbox is now used only for address search (Geocoding API v6). It uses one **public** access token that ends up in
 the browser bundle, so the token must be URL-restricted.
 
-Without a token the app still works: destination search offers T stations only, and hosts enter their address by
-hand. The map is unaffected. If the map cannot load (WebGL, network), a labeled schematic fallback appears.
+**The token is optional.** Without one, address search still works for any US address: it falls back to Photon, a free
+search over OpenStreetMap data (`src/adapters/photonGeocoding.ts`). The public Photon server is for reasonable use,
+has no uptime promise and may throttle heavy traffic, so self-host it or add a Mapbox token before real launch.
+Results then show "Address data © OpenStreetMap contributors". The map is unaffected either way. If the map cannot
+load (WebGL, network), a labeled schematic fallback appears.
 
 ## 1. Create a public, URL-restricted token
 
