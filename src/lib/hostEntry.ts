@@ -8,6 +8,7 @@ export const SIGNUP_PATH = '/signup';
 export const SIGNIN_PATH = '/signin';
 export const SIGNUP_FOR_HOSTING_PATH = '/signup?next=host';
 export const NEW_LISTING_PATH = '/host/new';
+export const EDIT_LISTING_PATH = '/host/edit';
 export const HOST_HOME_PATH = '/host';
 
 export function hostEntryPath(signedIn: boolean, hasListing: boolean): string {

@@ -7,6 +7,7 @@ import ListingCard from '../components/ListingCard';
 import MapView from '../components/MapView';
 import NearMeButton from '../components/NearMeButton';
 import { InfoNote, Segmented } from '../components/ui';
+import { startHasPassed } from '../features/session/bookingGuard';
 import { DEFAULT_DESTINATION, placeName } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import {
@@ -60,6 +61,8 @@ export default function Search() {
 
   if (!user) return <Navigate to="/signup" replace />;
 
+  const nowHour = new Date().getHours();
+  const startPassed = startHasPassed(startHour, Date.now());
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
   const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}`;
@@ -111,7 +114,7 @@ export default function Search() {
               className="bg-transparent py-1 font-medium text-ink underline decoration-line-strong underline-offset-4"
             >
               {START_HOURS.map((h) => (
-                <option key={h} value={h}>
+                <option key={h} value={h} disabled={h < nowHour}>
                   {fmtHour(h)}
                 </option>
               ))}
@@ -206,6 +209,7 @@ export default function Search() {
             />
           </div>
 
+          {startPassed && <InfoNote>{fmtHour(startHour)} has already passed today. Pick a later start to book.</InfoNote>}
           {hiddenByPlug > 0 && (
             <InfoNote>
               {hiddenByPlug === 1

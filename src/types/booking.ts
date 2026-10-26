@@ -34,4 +34,9 @@ export interface Booking {
   total: number;
   status: BookingStatus;
   result?: BookingResult;
+  /** Photo data URLs and the pickup stage, kept on the booking so a reload mid-session loses nothing. Prototype only: photos move to S3 later. */
+  arrivalPhoto?: string | null;
+  pickupPhoto?: string | null;
+  /** The driver tapped "Pick up" and is on the pickup step */
+  pickupStarted?: boolean;
 }

@@ -81,7 +81,7 @@ export default function PinPicker({
               Pin at {position.lat.toFixed(5)}, {position.lng.toFixed(5)} (not confirmed yet).
             </p>
           ) : (
-            <p className="text-[13px] text-muted">Choose an address or use your location to place the pin.</p>
+            <p className="text-[13px] text-muted">Choose an address, use your location, or click the map to place the pin.</p>
           )}
         </div>
       )}

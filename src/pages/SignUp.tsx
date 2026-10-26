@@ -21,7 +21,7 @@ export default function SignUp() {
   const [params] = useSearchParams();
   const { user, update } = useApp();
   const forHosting = params.get('next') === 'host';
-  const afterSignUp = forHosting ? NEW_LISTING_PATH : '/';
+  const afterSignUp = forHosting ? NEW_LISTING_PATH : '/search';
 
   const [form, setForm] = useState({
     name: '',

@@ -121,18 +121,22 @@ export async function authenticate(storage: KeyValueStore, emailInput: string, p
   }
 }
 
+export type StashResult = { ok: true } | { ok: false; reason: 'NO_USER' | 'NOT_REGISTERED' | 'STORAGE' };
+
 /**
  * Keep an account's data while its owner is signed out, so signing back in restores it.
- * Returns false when there is nothing to keep: no signed-in user, or an account made before sign-in existed
- * (it has no password on record, so it could not be signed back in anyway).
+ * Fails with a reason instead of quietly doing nothing:
+ * - NO_USER: nobody is signed in.
+ * - NOT_REGISTERED: the account was made before sign-in existed, so it has no password and nothing to keep it under.
+ * - STORAGE: the browser refused the write, usually because storage is full (listing photos are large).
  */
-export function stashAccount(storage: KeyValueStore, state: Pick<Persisted, 'user' | 'car' | 'hostListing' | 'booking'>): boolean {
-  if (!state.user) return false;
+export function stashAccount(storage: KeyValueStore, state: Pick<Persisted, 'user' | 'car' | 'hostListing' | 'booking'>): StashResult {
+  if (!state.user) return { ok: false, reason: 'NO_USER' };
   const email = normalizeEmail(state.user.email);
   const accounts = loadAccounts(storage);
   const i = accounts.findIndex((a) => a.email === email);
-  if (i === -1) return false;
+  if (i === -1) return { ok: false, reason: 'NOT_REGISTERED' };
   const data: AccountData = { user: state.user, car: state.car, hostListing: state.hostListing, booking: state.booking };
   accounts[i] = { ...accounts[i], data };
-  return saveAccounts(storage, accounts);
+  return saveAccounts(storage, accounts) ? { ok: true } : { ok: false, reason: 'STORAGE' };
 }

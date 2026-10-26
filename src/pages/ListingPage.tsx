@@ -2,13 +2,14 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
 import { Camera, ChevronLeft, Walk } from '../components/Icons';
-import { Button, FitNote, Photo, RouteBadges, WarnNote } from '../components/ui';
+import { Button, FitNote, InfoNote, Photo, RouteBadges, WarnNote } from '../components/ui';
 import { placeName } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
 import { GREEN_REF_CO2_KG, GREEN_REF_TRANSIT_MILES, GREEN_WEIGHTS, LATE_MULTIPLIER, SERVICE_FEE } from '../engines/constants';
 import { lateRatePerMinute, settle } from '../engines/billing';
 import { evaluateListing } from '../features/search/evaluateListing';
+import { bookingBlock, startHasPassed } from '../features/session/bookingGuard';
 import { todayIndex } from '../lib/availability';
 import { fmtHour, money, todayMidnight } from '../lib/format';
 import { metersToMiles } from '../lib/geo';
@@ -40,7 +41,7 @@ function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: '
 export default function ListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, car: ownCar, activeCar, destination, startHour, hours, listings, update } = useApp();
+  const { user, car: ownCar, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update } = useApp();
 
   const listing = listings.find((l) => l.id === id);
   if (!user) return <Navigate to="/signup" replace />;
@@ -68,7 +69,13 @@ export default function ListingPage() {
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
   const usesAdapter = listing.plug !== activeCar.plug && ev.plugOk;
   const carLimits = activeCar.maxAcKw !== null && activeCar.maxAcKw < listing.chargerKw;
-  const canBook = ev.plugOk && ev.open;
+  // One booking per account in this prototype, so a reserved or running session must finish before another starts.
+  const now = Date.now();
+  const block = bookingBlock(listing.id, currentBooking, hostListing?.id ?? null, now);
+  const startPassed = startHasPassed(startHour, now);
+  const nowHour = new Date(now).getHours();
+  const blockedTitle = block?.kind === 'ACTIVE_BOOKING' ? (listings.find((l) => l.id === block.booking.listingId)?.title ?? 'another charger') : '';
+  const canBook = ev.plugOk && ev.open && block === null && !startPassed;
 
   function book() {
     if (!ev || !canBook) return;
@@ -324,7 +331,7 @@ export default function ListingPage() {
               <ul className="m-0 flex max-w-[640px] list-disc flex-col gap-2 pl-5 text-[16px] leading-[1.55] text-body">
                 <li>Pickup ends your session. Minutes after your booked end cost {money(lateRate)}/min.</li>
                 <li>Leaving early? There’s no refund for unused hours.</li>
-                <li>Free cancellation until 12 hours before your start.</li>
+                <li>Cancellation isn’t part of this demo yet.</li>
                 <li>Miles are estimates. Set your own charge limit in your car’s app.</li>
               </ul>
             </section>
@@ -352,7 +359,9 @@ export default function ListingPage() {
                   className="mt-1 block w-full bg-transparent text-[16px] font-medium text-ink"
                 >
                   {HOURS_OPTIONS.map((h) => (
-                    <option key={h} value={h}>{fmtHour(h)}</option>
+                    <option key={h} value={h} disabled={h < nowHour}>
+                      {fmtHour(h)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -401,7 +410,21 @@ export default function ListingPage() {
               </div>
             </div>
 
-            {!ev.plugOk ? (
+            {block?.kind === 'OWN_LISTING' ? (
+              <InfoNote>This is your listing, so you can’t book it. Drivers see it in search.</InfoNote>
+            ) : block?.kind === 'ACTIVE_BOOKING' ? (
+              <WarnNote>
+                <span>
+                  You already have a session {block.booking.status === 'ACTIVE' ? 'running' : 'reserved'} at {blockedTitle}. Pick up your car and
+                  finish it before booking another.{' '}
+                  <Link to="/session" className="whitespace-nowrap underline underline-offset-4">
+                    Open session
+                  </Link>
+                </span>
+              </WarnNote>
+            ) : startPassed ? (
+              <WarnNote>{fmtHour(startHour)} has already passed today. Pick a later start to book.</WarnNote>
+            ) : !ev.plugOk ? (
               <WarnNote>This plug doesn’t fit your {activeCar.name} and the host has no adapter, so booking is turned off.</WarnNote>
             ) : !ev.open ? (
               <WarnNote>This charger isn’t open for your whole window. Try another time or charger.</WarnNote>

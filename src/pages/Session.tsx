@@ -5,6 +5,8 @@ import PhotoCapture from '../components/PhotoCapture';
 import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusDot } from '../components/ui';
 import { lateRatePerMinute } from '../engines/billing';
 import { MILES_PER_KWH, PICKUP_RADIUS_M, SERVICE_FEE } from '../engines/constants';
+import { isReservationExpired } from '../features/session/bookingGuard';
+import { checkPickupDistance } from '../features/session/pickup';
 import { bookedEndTs, bookedStartTs, settleBooking } from '../features/session/settleBooking';
 import { fmtClock, fmtDuration, fmtRange, money } from '../lib/format';
 import { haversineDistanceMeters, offsetNorth, type LatLng } from '../lib/geo';
@@ -32,12 +34,10 @@ const card = 'flex flex-col gap-5 rounded-card border border-line bg-paper p-6';
 
 export default function Session() {
   const { user, booking, listings, update } = useApp();
-  const [pickupStage, setPickupStage] = useState(false);
   const [clock, setClock] = useState<ClockMode>('early');
   const [phone, setPhone] = useState<PhoneMode>('car');
+  // The location check is never kept: after a reload the driver checks again, which is what the geofence needs.
   const [loc, setLoc] = useState<Loc>({ kind: 'idle' });
-  const [arrivalPhoto, setArrivalPhoto] = useState<string | null>(null);
-  const [pickupPhoto, setPickupPhoto] = useState<string | null>(null);
   const [msgNote, setMsgNote] = useState(false);
   const [, setTick] = useState(0);
   const timer = useRef<number>(0);
@@ -71,6 +71,40 @@ export default function Session() {
   }
 
   const b = booking;
+
+  // A reservation whose window passed without a check-in. Nothing to run, and nothing is charged.
+  if (isReservationExpired(b, Date.now())) {
+    return (
+      <div className="min-h-dvh bg-surface">
+        <Header />
+        <main className="mx-auto max-w-[1120px] px-6 py-16">
+          <div className={card}>
+            <h1 className="text-[28px] font-semibold text-ink">This reservation has ended</h1>
+            <p className="text-[16px] text-body">
+              {listing.title}, {fmtRange(b.startHour, b.hours)}. The window ended at {fmtClock(bookedEndTs(b))} without a check-in, so no session started.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <LinkButton to="/search" size="lg">
+                Find parking
+              </LinkButton>
+              <Button variant="secondary" size="lg" onClick={() => update({ booking: null })}>
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Photos and the pickup step live on the booking, so a reload in the middle of a session loses nothing.
+  const pickupStage = b.pickupStarted ?? false;
+  const arrivalPhoto = b.arrivalPhoto ?? null;
+  const pickupPhoto = b.pickupPhoto ?? null;
+  const setPickupStage = (started: boolean) => update({ booking: { ...b, pickupStarted: started } });
+  const setArrivalPhoto = (photo: string | null) => update({ booking: { ...b, arrivalPhoto: photo } });
+  const setPickupPhoto = (photo: string | null) => update({ booking: { ...b, pickupPhoto: photo } });
+
   const endTs = bookedEndTs(b);
   const startTs = bookedStartTs(b);
   const nowTs = { early: endTs - 30 * 60_000, ontime: endTs, late: endTs + 25 * 60_000, real: Date.now() }[clock];
@@ -82,14 +116,13 @@ export default function Session() {
   const milesSoFar = Math.round(estMiles * progress);
   const locOk = loc.kind === 'ok' || loc.kind === 'denied';
 
+  // One update per action: separate updates built from the same `b` would overwrite each other.
   function jump(to: Step) {
     setLoc({ kind: 'idle' });
     if (to === 'arrived') {
-      setPickupStage(false);
-      update({ booking: { ...b, status: 'RESERVED', result: undefined } });
+      update({ booking: { ...b, status: 'RESERVED', result: undefined, pickupStarted: false } });
     } else if (to === 'charging' || to === 'pickup') {
-      setPickupStage(to === 'pickup');
-      update({ booking: { ...b, status: 'ACTIVE', result: undefined } });
+      update({ booking: { ...b, status: 'ACTIVE', result: undefined, pickupStarted: to === 'pickup' } });
     } else {
       finish(false);
     }
@@ -98,8 +131,7 @@ export default function Session() {
   function finish(flagged: boolean) {
     const result = settleBooking(b, listing!, nowTs, flagged);
     if (!result) return;
-    update({ booking: { ...b, status: 'COMPLETED', result } });
-    setPickupStage(false);
+    update({ booking: { ...b, status: 'COMPLETED', result, pickupStarted: false } });
     window.scrollTo({ top: 0 });
   }
 
@@ -107,8 +139,9 @@ export default function Session() {
     window.clearTimeout(timer.current);
     setLoc({ kind: 'checking' });
     const evaluate = (pos: LatLng) => {
-      const d = Math.round(haversineDistanceMeters(pos, listing!));
-      setLoc(d <= PICKUP_RADIUS_M ? { kind: 'ok', meters: d } : { kind: 'far', meters: d });
+      // Exact distance for the check; the rounded number is only for display.
+      const { ok, metersShown } = checkPickupDistance(haversineDistanceMeters(pos, listing!));
+      setLoc(ok ? { kind: 'ok', meters: metersShown } : { kind: 'far', meters: metersShown });
     };
     if (phone === 'gps') {
       if (!navigator.geolocation) return setLoc({ kind: 'denied' });
@@ -303,6 +336,21 @@ export default function Session() {
         <StatTile big label="CO₂ vs. gas" value={r.co2Kg !== null ? `${r.co2Kg.toFixed(1)} kg` : 'Unavailable'} />
         <StatTile big tone="green" label="Green Score" value={r.greenScore !== null ? r.greenScore.toFixed(2) : 'Unavailable'} />
       </AutoGrid>
+      {(b.arrivalPhoto || b.pickupPhoto) && (
+        <div className="flex flex-wrap gap-4">
+          {[
+            { src: b.arrivalPhoto, label: 'Arrival photo' },
+            { src: b.pickupPhoto, label: 'Pickup photo' },
+          ]
+            .filter((p): p is { src: string; label: string } => Boolean(p.src))
+            .map((p) => (
+              <figure key={p.label} className="m-0 flex flex-col gap-1.5">
+                <img src={p.src} alt={p.label} className="h-24 w-32 rounded-card object-cover" />
+                <figcaption className="text-[13px] font-medium text-muted">{p.label}</figcaption>
+              </figure>
+            ))}
+        </div>
+      )}
       <LinkButton to="/search" size="lg" className="w-fit">
         Book another charger
       </LinkButton>

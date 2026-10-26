@@ -17,8 +17,8 @@ export function Logo() {
 
 /**
  * The one host entry point. One account both drives and hosts, so the label follows what the account has:
- * "Host an EV charger" until something is listed, then "Switch to Hosting". On the host pages it flips to
- * "Switch to Driving" so the button always names the other side.
+ * "Host an EV charger" until something is listed, then "Switch to Hosting". On any host page it reads
+ * "Switch to Driving" (to search), so there is always a way back.
  */
 function HostButton({ className = '' }: { className?: string }) {
   const { user, hostListing } = useApp();
@@ -26,10 +26,14 @@ function HostButton({ className = '' }: { className?: string }) {
 
   let label = 'Host an EV charger';
   let to = hostEntryPath(user !== null, hostListing !== null);
-  if (user && hostListing) {
-    const hosting = pathname === HOST_HOME_PATH;
-    label = hosting ? 'Switch to Driving' : 'Switch to Hosting';
-    to = hosting ? '/search' : HOST_HOME_PATH;
+  const onHostPage = pathname === HOST_HOME_PATH || pathname.startsWith(`${HOST_HOME_PATH}/`);
+  if (user && onHostPage) {
+    // Any host page (dashboard, new or edited listing) offers the way back to finding parking.
+    label = 'Switch to Driving';
+    to = '/search';
+  } else if (user && hostListing) {
+    label = 'Switch to Hosting';
+    to = HOST_HOME_PATH;
   }
   return (
     <LinkButton to={to} variant="secondary" size="nav" className={className}>
@@ -41,6 +45,7 @@ function HostButton({ className = '' }: { className?: string }) {
 export default function Header({ wide = false }: { wide?: boolean }) {
   const { user } = useApp();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   return (
     <header className="border-b border-line bg-paper">
@@ -56,7 +61,7 @@ export default function Header({ wide = false }: { wide?: boolean }) {
             >
               {user.name.trim().charAt(0).toUpperCase() || '?'}
             </span>
-            <Button variant="ghost" size="nav" onClick={() => navigate('/signout', { replace: true })}>
+            <Button variant="ghost" size="nav" onClick={() => navigate('/signout', { replace: true, state: { from: pathname } })}>
               Sign out
             </Button>
           </div>
