@@ -2,18 +2,24 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DEFAULT_CAR } from '../data/evFallbackSeed';
 import { SEEDED_LISTINGS } from '../data/listings';
 import type { Car, Listing } from '../types/listing';
-import { stashAccount, type AccountData } from './accounts';
+import { stashAccount, type AccountData, type StashResult } from './accounts';
 import { DEFAULTS, loadSavedState, saveState, type Persisted } from './persisted';
 
 export type { LevelFilter, Persisted, User } from './persisted';
+
+/** Why signing out stopped instead of removing the account's data. */
+export type SignOutProblem = 'NOT_REGISTERED' | 'STORAGE';
+export type SignOutResult = { ok: true } | { ok: false; reason: SignOutProblem };
 
 interface AppContextValue extends Persisted {
   update: (patch: Partial<Persisted>) => void;
   /**
    * Sign out. The account's own data (profile, car, host listing, booking) is kept under its email so signing
    * back in restores it; the search choices and everything else on screen reset.
+   * If that data cannot be kept, nothing is removed and the reason comes back, so the page can ask first.
+   * `force` signs out anyway and removes the data from this browser.
    */
-  signOut: () => void;
+  signOut: (opts?: { force?: boolean }) => SignOutResult;
   /** Start a session for an account that sign-in has already verified. */
   signIn: (data: AccountData) => void;
   /** Seeded sample listings plus the one the signed-in host published */
@@ -51,13 +57,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  const signOut = useCallback(() => {
+  const signOut = useCallback((opts: { force?: boolean } = {}): SignOutResult => {
+    const current = stateRef.current;
+    if (!current.user) {
+      setState(DEFAULTS);
+      return { ok: true };
+    }
+    // Shrink the signed-in copy first. Otherwise the listing's photos are stored twice for a moment, which is often
+    // what fills the browser's storage and makes the save fail.
+    let stash: StashResult;
     try {
-      stashAccount(localStorage, stateRef.current);
+      saveState(localStorage, DEFAULTS);
+      stash = stashAccount(localStorage, current);
     } catch {
-      // Storage blocked: sign out anyway.
+      stash = { ok: false, reason: 'STORAGE' };
+    }
+    if (!stash.ok && !opts.force) {
+      // Put the signed-in copy back and stay signed in. If even that fails, the state is still in memory.
+      try {
+        saveState(localStorage, current);
+      } catch {
+        // ignore
+      }
+      return { ok: false, reason: stash.reason === 'NOT_REGISTERED' ? 'NOT_REGISTERED' : 'STORAGE' };
     }
     setState(DEFAULTS);
+    return { ok: true };
   }, []);
   const signIn = useCallback((data: AccountData) => setState({ ...DEFAULTS, ...data }), []);
 

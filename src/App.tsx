@@ -21,6 +21,7 @@ export default function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/host" element={<HostHome />} />
         <Route path="/host/new" element={<HostSignup />} />
+        <Route path="/host/edit" element={<HostSignup mode="edit" />} />
         <Route path="/search" element={<Search />} />
         <Route path="/listing/:id" element={<ListingPage />} />
         <Route path="/session" element={<Session />} />

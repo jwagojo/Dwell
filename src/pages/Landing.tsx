@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ActiveBookingBanner from '../components/ActiveBookingBanner';
+import BookingBanner from '../components/BookingBanner';
 import Header from '../components/Header';
 import NearMeButton from '../components/NearMeButton';
 import Skyline from '../components/Skyline';
@@ -111,7 +111,8 @@ export default function Landing() {
   function goTo(destination: Destination) {
     setError('');
     update({ destination });
-    navigate(user ? '/search' : destination.kind === 'station' ? `${SIGNUP_PATH}?to=${destination.id}` : SIGNUP_PATH);
+    // The destination is saved in app state, so it is still there after sign-up, which continues to search.
+    navigate(user ? '/search' : SIGNUP_PATH);
   }
 
   function onSubmit(e: FormEvent) {
@@ -130,7 +131,7 @@ export default function Landing() {
     <div className="min-h-dvh bg-paper">
       <Header />
       <main>
-        <ActiveBookingBanner />
+        <BookingBanner />
         <section className="relative overflow-hidden border-b border-line">
           <Skyline className="absolute inset-x-0 bottom-0 h-[150px] w-full sm:h-[200px] lg:h-[260px]" />
           <div className="relative mx-auto grid max-w-[1280px] items-center gap-x-16 gap-y-12 px-6 py-12 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:py-14">

@@ -21,7 +21,7 @@ VoltLot/
 └── src/
     ├── main.tsx, App.tsx          Entry, router (8 routes), providers
     ├── index.css                  Tailwind import, font, design tokens (@theme), .auto-grid
-    ├── pages/                     One file per route: Landing, SignUp, SignIn, HostSignup (listing steps at /host/new), SignOut,
+    ├── pages/                     One file per route: Landing, SignUp, SignIn, HostSignup (listing steps at /host/new and /host/edit), SignOut,
     │                              HostHome, Search, ListingPage, Session
     ├── components/                Header, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
     │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView
@@ -31,6 +31,8 @@ VoltLot/
     ├── features/
     │   ├── search/evaluateListing.ts    Combines engines for one listing, car and window; sorting
     │   └── session/settleBooking.ts     Final bill and impact numbers from frozen booking values
+    │       session/bookingGuard.ts      One live booking per account, own-listing block, reservation expiry, past start
+    │       session/pickup.ts            Exact-distance 50 m pickup check
     ├── engines/                   Pure functions: constants, types, money, pricing, billing, climate, rate, plug
     │                              plus *.test.ts for pricing, billing, climate (26 tests)
     ├── lib/                       hostEntry (host entry paths), format, geo (haversineDistanceMeters, walk estimate, offsetMeters), availability, image,

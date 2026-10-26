@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { AutoGrid, Button, LinkButton, Photo, RouteBadges, StatusDot, WalkChip } from '../components/ui';
@@ -8,7 +9,7 @@ import { computePrice } from '../engines/pricing';
 import { summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { estimateWalk, haversineDistanceMeters } from '../lib/geo';
-import { NEW_LISTING_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
+import { EDIT_LISTING_PATH, NEW_LISTING_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
 import { useApp } from '../state/AppState';
 
 const PRICE_CARS = ['toyota-prius-prime', 'nissan-leaf', 'tesla-my'].map((id) => EV_MODELS.find((c) => c.id === id)!);
@@ -16,6 +17,7 @@ const PRICE_CARS = ['toyota-prius-prime', 'nissan-leaf', 'tesla-my'].map((id) =>
 export default function HostHome() {
   const navigate = useNavigate();
   const { user, hostListing: l, update } = useApp();
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   if (!user) return <Navigate to={SIGNUP_FOR_HOSTING_PATH} replace />;
 
@@ -125,8 +127,38 @@ export default function HostHome() {
           >
             See it in search
           </Button>
-          <div className="rounded-card border border-line bg-paper px-5 py-3 text-[15px] font-medium text-body">Bookings: none yet</div>
+          <LinkButton to={EDIT_LISTING_PATH} variant="secondary" size="lg">
+            Edit listing
+          </LinkButton>
+          <Button variant="ghost" size="lg" onClick={() => setConfirmRemove(true)} aria-expanded={confirmRemove}>
+            Remove listing
+          </Button>
         </div>
+
+        {confirmRemove && (
+          <div role="alertdialog" aria-label="Remove your listing" className="flex flex-col gap-3 rounded-card border border-amber-ink bg-amber-bg p-4">
+            <p className="text-[15px] font-medium text-amber-deep">
+              Remove “{l.title}” from search? Its details and photos are deleted from this browser. You can list again later, but you’ll start from scratch.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => {
+                  setConfirmRemove(false);
+                  update({ hostListing: null });
+                }}
+              >
+                Remove listing
+              </Button>
+              <Button variant="secondary" onClick={() => setConfirmRemove(false)}>
+                Keep it
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <p className="text-[14px] text-muted">
+          Bookings from drivers show up here. Booking notifications aren’t part of this demo, so none have come in yet.
+        </p>
       </main>
     </div>
   );

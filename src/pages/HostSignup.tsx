@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { getMassachusettsResidentialRate } from '../adapters/eiaRates';
-import { isMassachusetts, type GeocodedAddress } from '../adapters/addressSearch';
+import { ADDRESS_TYPES, DESTINATION_TYPES, isMassachusetts, searchAddresses, type GeocodedAddress } from '../adapters/addressSearch';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { CheckboxCard, ChoiceGroup, SelectField, Stepper, TextAreaField, TextField } from '../components/form';
 import Header from '../components/Header';
@@ -25,7 +25,7 @@ import { resolveRate, type RateResolution } from '../engines/rate';
 import { DAY_LABELS, summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { fileToDataUrl } from '../lib/image';
-import { HOST_HOME_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
+import { HOST_HOME_PATH, NEW_LISTING_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
 import { MASSACHUSETTS_CENTER } from '../lib/mapbox';
 import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
 import { useApp } from '../state/AppState';
@@ -80,6 +80,11 @@ interface HostForm {
   addr: Addr;
   /** Typed address entry, used when address search is unavailable */
   manual: boolean;
+  /**
+   * Parts the picked search result left out (OpenStreetMap often has no ZIP, sometimes no town). The host fills them
+   * in. The ZIP matters: it confirms a supported location and starts the electricity-rate lookup.
+   */
+  missing: { city: boolean; zip: boolean };
   unit: string;
   spotType: SpotType;
   spots: number;
@@ -122,6 +127,7 @@ const INITIAL: HostForm = {
   searchText: '',
   addr: NO_ADDR,
   manual: false,
+  missing: { city: false, zip: false },
   unit: '',
   spotType: 'Driveway',
   spots: 1,
@@ -145,19 +151,63 @@ const INITIAL: HostForm = {
   terms: false,
 };
 
-export default function HostSignup() {
+/** Fill the wizard from a published listing, for editing. Everything starts confirmed and accepted. */
+function formFromListing(l: Listing): HostForm {
+  const pa = l.privateAddress;
+  const city = pa?.city ?? '';
+  const zip = pa?.zip ?? '';
+  const presets = l.level === 'L2' ? L2_PRESETS : L1_PRESETS;
+  return {
+    ...INITIAL,
+    searchText: pa?.line ?? '',
+    addr: { source: 'geocode', line: pa?.line ?? l.street, streetName: l.street, city, zip, neighborhood: l.neighborhood },
+    missing: { city: city.trim().length < 2, zip: !isMassachusettsZip(zip) },
+    unit: pa?.unit ?? '',
+    spotType: l.spotType,
+    spots: l.spots,
+    rightToList: true,
+    pin: { lat: l.lat, lng: l.lng, confirmed: true },
+    level: l.level,
+    kwMode: presets.includes(l.chargerKw) ? l.chargerKw : 'other',
+    kwOther: presets.includes(l.chargerKw) ? '' : String(l.chargerKw),
+    plug: l.plug,
+    hasAdapter: l.adapters !== 'NONE',
+    outdoorOutlet: l.level === 'L1', // required to publish an L1 listing, so it was confirmed
+    solar: l.solarKw > 0 ? 'yes' : 'no',
+    solarKw: l.solarKw > 0 ? String(l.solarKw) : '',
+    rate: formatRateInput(l.rate),
+    earnings: l.earningsHr.toFixed(2),
+    title: l.title,
+    photos: l.photos,
+    instructions: l.instructions,
+    windows: l.windows,
+    terms: true,
+  };
+}
+
+/**
+ * The listing wizard. `new` creates the account's listing; `edit` changes the published one in place (same id), and
+ * opens on the Review step so every section can be edited from there.
+ */
+export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) {
   const navigate = useNavigate();
   const { user, hostListing, update } = useApp();
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState<HostForm>(INITIAL);
+  const editing = mode === 'edit' && hostListing !== null;
+  const [step, setStep] = useState(editing ? STEPS.length - 1 : 0);
+  const [form, setForm] = useState<HostForm>(() => (editing ? formFromListing(hostListing!) : INITIAL));
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
   const [locMsg, setLocMsg] = useState('');
   const [addrNotice, setAddrNotice] = useState('');
   const [photoError, setPhotoError] = useState('');
-  const titleTouched = useRef(false);
-  const rateEditedRef = useRef(false); // mirrors rateEdited for async callbacks that must not see stale state
-  const windowId = useRef(0);
+  const [findMsg, setFindMsg] = useState('');
+  const [finding, setFinding] = useState(false);
+  const titleTouched = useRef(editing);
+  // A rate the host typed is never overwritten, including when editing a listing that already has one.
+  const ownRate = editing && hostListing!.rateSource === 'HOST';
+  const rateEditedRef = useRef(ownRate); // mirrors rateEdited for async callbacks that must not see stale state
+  // New windows must not reuse the ids of windows loaded for editing.
+  const windowId = useRef(editing ? hostListing!.windows.length + 1000 : 0);
 
   const set = <K extends keyof HostForm>(k: K, v: HostForm[K]) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -167,12 +217,20 @@ export default function HostSignup() {
      dollars/kWh. It is NOT ZIP-specific or utility-specific, which is why the lookup is keyed on "supported or not",
      not on the ZIP value. The adapter caches the statewide result, so changing ZIPs never refetches.
      A rate the host typed is never overwritten. */
-  const [rateInfo, setRateInfo] = useState<RateInfo>({ status: 'idle' });
-  const [rateEdited, setRateEdited] = useState(false);
+  // Editing a listing priced from EIA keeps that estimate (and its data month) unless the address changes. Re-fetching
+  // on open could silently swap it for the $0.30 fallback when EIA is unreachable.
+  const keepPublishedEia = editing && hostListing!.rateSource === 'EIA';
+  const [rateInfo, setRateInfo] = useState<RateInfo>(() =>
+    keepPublishedEia
+      ? { status: 'eia', resolution: { local_rate: hostListing!.rate, source: 'EIA', dataMonth: hostListing!.rateDataMonth ?? null, overridable: true } }
+      : { status: 'idle' },
+  );
+  const [rateEdited, setRateEdited] = useState(ownRate);
   const supportedLocation = isMassachusettsZip(form.addr.zip);
 
   useEffect(() => {
     if (!supportedLocation) return;
+    if (keepPublishedEia && form.addr.zip === hostListing!.privateAddress?.zip) return;
     let cancelled = false;
     setRateInfo((r) => (r.status === 'eia' ? r : { status: 'loading' }));
     void getMassachusettsResidentialRate().then((result) => {
@@ -234,6 +292,10 @@ export default function HostSignup() {
         if (!isMassachusettsZip(a.zip)) e.zip = 'Enter a 5-digit Massachusetts ZIP code.';
       } else if (a.source !== 'geocode') {
         e.address = 'Choose your address from the suggestions.';
+      } else {
+        // A picked result can still lack a town or ZIP. Never publish without them.
+        if (a.city.trim().length < 2) e.city = 'Enter your city or town.';
+        if (!isMassachusettsZip(a.zip)) e.zip = 'Enter your 5-digit Massachusetts ZIP code.';
       }
       if (!form.pin) e.pin = 'Place the pin on your driveway or charger entrance.';
       else if (!form.pin.confirmed) e.pin = 'Confirm the pin location before continuing.';
@@ -293,7 +355,8 @@ export default function HostSignup() {
     setBusy(true);
     const a = form.addr;
     const listing: Listing = {
-      id: `host-${Date.now()}`,
+      // Editing keeps the same listing, so links and the host's own-listing check still match it.
+      id: editing ? hostListing!.id : `host-${Date.now()}`,
       title: form.title.trim(),
       // Public summaries show the street name only. The exact address stays in privateAddress.
       street: a.streetName || stripHouseNumber(a.line),
@@ -316,9 +379,9 @@ export default function HostSignup() {
       windows: form.windows,
       instructions: form.instructions.trim(),
       photos: form.photos,
-      isNew: true,
+      isNew: editing ? hostListing!.isNew : true,
     };
-    // The account already exists (made at sign-up), so publishing only adds the listing to it.
+    // The account already exists (made at sign-up), so publishing only adds (or replaces) its listing.
     update({ hostListing: listing });
     navigate(HOST_HOME_PATH);
   }
@@ -336,7 +399,7 @@ export default function HostSignup() {
 
   function onSearchInput(text: string) {
     setAddrNotice('');
-    setForm((f) => ({ ...f, searchText: text, addr: NO_ADDR, pin: null }));
+    setForm((f) => ({ ...f, searchText: text, addr: NO_ADDR, pin: null, missing: { city: false, zip: false } }));
   }
 
   function onSelectAddress(a: GeocodedAddress) {
@@ -346,22 +409,67 @@ export default function HostSignup() {
       return;
     }
     setAddrNotice('');
-    clearErrors('address');
+    clearErrors('address', 'city', 'zip');
+    // Keep a ZIP only if it is a real Massachusetts one. A missing or out-of-state ZIP is asked for instead.
+    const zipOk = isMassachusettsZip(a.zip);
+    const cityOk = a.city.trim().length >= 2;
     setForm((f) => ({
       ...f,
       searchText: a.line1,
-      addr: { source: 'geocode', line: a.line1, streetName: a.streetName, city: a.city, zip: a.zip, neighborhood: a.neighborhood },
+      addr: { source: 'geocode', line: a.line1, streetName: a.streetName, city: cityOk ? a.city : '', zip: zipOk ? a.zip : '', neighborhood: a.neighborhood },
+      missing: { city: !cityOk, zip: !zipOk },
       // Start the pin at the geocoded point; the host must still place it exactly and confirm it.
       pin: { lat: a.lat, lng: a.lng, confirmed: false },
       recenter: f.recenter + 1,
     }));
   }
 
+  /**
+   * Typing an address by hand keeps the pin where it is (clearing it on every keystroke threw away a placed pin), but
+   * the pin has to be confirmed again, because the address it was confirmed for has changed.
+   */
   function editManual(field: 'line' | 'city' | 'zip', value: string) {
+    setFindMsg('');
     setForm((f) => {
       const addr = { ...f.addr, source: 'manual' as const, [field]: value };
-      return { ...f, addr: { ...addr, streetName: stripHouseNumber(addr.line), neighborhood: addr.city }, pin: null };
+      return {
+        ...f,
+        addr: { ...addr, streetName: stripHouseNumber(addr.line), neighborhood: addr.city },
+        pin: f.pin ? { ...f.pin, confirmed: false } : null,
+      };
     });
+  }
+
+  const canFindTyped = form.addr.line.trim().length >= 4 && (form.addr.city.trim().length >= 2 || isMassachusettsZip(form.addr.zip));
+
+  /** Look up the typed address and move the pin there, so the host starts close instead of at the state's center. */
+  async function findTypedAddress() {
+    const a = form.addr;
+    const q = [a.line, a.city, `MA ${a.zip}`.trim()].filter((p) => p.trim()).join(', ');
+    setFinding(true);
+    setFindMsg('');
+    // Try for the exact address first, then the street or town, so the map at least lands nearby.
+    let hit: GeocodedAddress | undefined;
+    for (const types of [ADDRESS_TYPES, DESTINATION_TYPES]) {
+      const r = await searchAddresses(q, { types, limit: 5 });
+      hit = r.ok ? r.results.find(isMassachusetts) : undefined;
+      if (hit) break;
+    }
+    setFinding(false);
+    if (!hit) {
+      setFindMsg('We couldn’t find that address. Drag the pin or click the map to place it.');
+      return;
+    }
+    clearErrors('pin');
+    const exact = hit.featureType === 'address';
+    setFindMsg(exact ? 'Pin moved to that address. Check it, then confirm.' : `Pin moved near ${hit.label}. Drag it to your driveway, then confirm.`);
+    setForm((f) => ({ ...f, pin: { lat: hit!.lat, lng: hit!.lng, confirmed: false }, recenter: f.recenter + 1 }));
+  }
+
+  /** Fill in a part the search result left out. The pin stays: the point on the map has not changed. */
+  function fillGeocoded(field: 'city' | 'zip', value: string) {
+    clearErrors(field);
+    setForm((f) => ({ ...f, addr: { ...f.addr, [field]: value } }));
   }
 
   function useManualEntry() {
@@ -464,6 +572,19 @@ export default function HostSignup() {
               onChange={(e) => editManual('zip', digitsOnly(e.target.value).slice(0, 5))}
             />
           </AutoGrid>
+          <div className="flex flex-col gap-1.5">
+            <div>
+              <Button variant="secondary" onClick={findTypedAddress} disabled={!canFindTyped || finding}>
+                <Pin size={18} />
+                {finding ? 'Finding…' : 'Find this address on the map'}
+              </Button>
+            </div>
+            {findMsg && (
+              <p className="text-[13px] text-muted" role="status">
+                {findMsg}
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -479,9 +600,33 @@ export default function HostSignup() {
           </AutoGrid>
           {form.addr.source === 'geocode' && (
             <AutoGrid min={160} gap={16}>
-              <TextField label="City or town" value={form.addr.city} readOnly hint="From your selected address" />
+              {form.missing.city ? (
+                <TextField
+                  label="City or town"
+                  autoComplete="address-level2"
+                  hint="The search result didn’t include a town."
+                  value={form.addr.city}
+                  error={errors.city}
+                  onChange={(e) => fillGeocoded('city', e.target.value)}
+                />
+              ) : (
+                <TextField label="City or town" value={form.addr.city} readOnly hint="From your selected address" />
+              )}
               <TextField label="State" value="MA" readOnly />
-              <TextField label="ZIP code" value={form.addr.zip} readOnly />
+              {form.missing.zip ? (
+                <TextField
+                  label="ZIP code"
+                  inputMode="numeric"
+                  maxLength={5}
+                  autoComplete="postal-code"
+                  hint="The search result didn’t include a ZIP. It fills in your electricity rate."
+                  value={form.addr.zip}
+                  error={errors.zip}
+                  onChange={(e) => fillGeocoded('zip', digitsOnly(e.target.value).slice(0, 5))}
+                />
+              ) : (
+                <TextField label="ZIP code" value={form.addr.zip} readOnly />
+              )}
             </AutoGrid>
           )}
           <p className="text-[13px] text-muted">
@@ -810,14 +955,19 @@ export default function HostSignup() {
 
   // Hosting needs an account (made once, at sign-up) and allows one listing for now. This comes after every hook.
   if (!user) return <Navigate to={SIGNUP_FOR_HOSTING_PATH} replace />;
-  if (hostListing) return <Navigate to={HOST_HOME_PATH} replace />;
+  // One listing per account: a new listing only when there is none, and editing only when there is one.
+  if (mode === 'new' && hostListing) return <Navigate to={HOST_HOME_PATH} replace />;
+  if (mode === 'edit' && !hostListing) return <Navigate to={NEW_LISTING_PATH} replace />;
+
+  const last = step === STEPS.length - 1;
+  const head = editing && last ? { title: 'Review and save', why: 'Use Edit on any section to change it, then save.' } : STEP_HEAD[step];
 
   return (
     <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto max-w-[1120px] px-6 pb-16 pt-8">
         <Wizard
-          title="List your charger"
+          title={editing ? 'Edit your listing' : 'List your charger'}
           steps={STEPS}
           current={step}
           onStepClick={(i) => {
@@ -825,8 +975,9 @@ export default function HostSignup() {
             setStep(i);
             window.scrollTo({ top: 0 });
           }}
-          stepTitle={STEP_HEAD[step].title}
-          stepWhy={STEP_HEAD[step].why}
+          stepTitle={head.title}
+          stepWhy={head.why}
+          nextLabel={editing && last ? 'Save changes' : undefined}
           onBack={() => {
             setErrors({});
             setStep(step - 1);
