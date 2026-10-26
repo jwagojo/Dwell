@@ -17,7 +17,7 @@ import type { Destination } from '../types/destination';
 import { LINE_STYLES } from '../data/transit';
 import { evaluateListing } from '../features/search/evaluateListing';
 import { todayIndex } from '../lib/availability';
-import { SIGNUP_PATH, hostEntryPath } from '../lib/hostEntry';
+import { hostEntryPath, SIGNIN_PATH } from '../lib/hostEntry';
 import { useApp } from '../state/AppState';
 
 const STEPS = [
@@ -112,7 +112,7 @@ export default function Landing() {
     setError('');
     update({ destination });
     // The destination is saved in app state, so it is still there after sign-up, which continues to search.
-    navigate(user ? '/search' : SIGNUP_PATH);
+    navigate(user ? '/search' : SIGNIN_PATH);
   }
 
   function onSubmit(e: FormEvent) {
