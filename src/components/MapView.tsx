@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoBounds, LatLng } from '../lib/geo';
+import { isCurrentLocation, placeName } from '../data/destinations';
 import type { Destination } from '../types/destination';
 import DestinationPin from './map/DestinationPin';
 import LiveMap from './map/LiveMap';
@@ -15,6 +16,10 @@ export type { MapPin } from './map/MapFallbacks';
 /** Zoom used when the camera goes to a destination: about 2.5 km across on a laptop screen. */
 const DESTINATION_ZOOM = 14;
 const BROWSING_ZOOM = 13;
+/** "Near me" starts one level wider: a driver standing somewhere wants chargers within a short drive, not one block. */
+const NEAR_ME_ZOOM = 13;
+
+const zoomFor = (d: Destination) => (isCurrentLocation(d) ? NEAR_ME_ZOOM : DESTINATION_ZOOM);
 
 /** Where the camera was last left. Survives leaving the page (a listing, then back) but not a reload. */
 let lastView: { center: LatLng; zoom: number } | null = null;
@@ -50,7 +55,7 @@ function GoToDestination({ map, destination }: { map: MapLibreMap; destination: 
     const id = destination?.id ?? null;
     if (id === previousId.current) return;
     previousId.current = id;
-    if (destination) map.flyTo({ center: [destination.lng, destination.lat], zoom: DESTINATION_ZOOM, duration: 700 });
+    if (destination) map.flyTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), duration: 700 });
   }, [map, destination]);
   return null;
 }
@@ -79,13 +84,13 @@ export default function MapView({
   onSelect: (id: string) => void;
   onAreaChange: (area: GeoBounds) => void;
 }) {
-  const start = destination ? { center: destination, zoom: DESTINATION_ZOOM } : (lastView ?? { center: browseCenter, zoom: BROWSING_ZOOM });
+  const start = destination ? { center: destination, zoom: zoomFor(destination) } : (lastView ?? { center: browseCenter, zoom: BROWSING_ZOOM });
   return (
     <LiveMap
       center={start.center}
       zoom={start.zoom}
       cooperativeGestures={STACKED_LAYOUT}
-      ariaLabel={destination ? `Map of chargers near ${destination.label}` : 'Map of chargers. Drag the map to search another area.'}
+      ariaLabel={destination ? `Map of chargers near ${placeName(destination)}` : 'Map of chargers. Drag the map to search another area.'}
       fallback={(reason) => (
         <SchematicSearchMap
           destination={destination}

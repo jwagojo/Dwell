@@ -3,6 +3,7 @@ import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
 import { Camera, ChevronLeft, Walk } from '../components/Icons';
 import { Button, FitNote, Photo, RouteBadges, WarnNote } from '../components/ui';
+import { placeName } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
 import { GREEN_REF_CO2_KG, GREEN_REF_TRANSIT_MILES, GREEN_WEIGHTS, LATE_MULTIPLIER, SERVICE_FEE } from '../engines/constants';
@@ -42,7 +43,7 @@ export default function ListingPage() {
   const { user, car: ownCar, activeCar, destination, startHour, hours, listings, update } = useApp();
 
   const listing = listings.find((l) => l.id === id);
-  if (!user) return <Navigate to="/signup/driver" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
   if (!listing) {
     return (
       <div className="min-h-dvh bg-paper">
@@ -152,7 +153,7 @@ export default function ListingPage() {
 
             <section className="flex flex-col gap-4" aria-labelledby="trip">
               <h2 id="trip" className="text-[22px] font-semibold text-ink">
-                {destination ? `Your trip to ${destination.label}` : 'Your trip'}
+                {destination ? `Your trip to ${placeName(destination)}` : 'Your trip'}
               </h2>
               {!destination || ev.walkMinutes === null || ev.walkMeters === null ? (
                 <div className="rounded-card border border-line p-4 text-[14px] text-muted">
@@ -173,7 +174,7 @@ export default function ListingPage() {
                       {ev.walkMinutes} min walk · {metersToMiles(ev.walkMeters).toFixed(1)} mi
                     </p>
                     <p className="text-[14px] text-muted">
-                      Estimated from straight-line distance, from {listing.street} to {destination.label}
+                      Estimated from straight-line distance, from {listing.street} to {placeName(destination)}
                     </p>
                   </div>
                 </div>
@@ -187,7 +188,7 @@ export default function ListingPage() {
                       T
                     </span>
                     <div className="min-w-[200px] flex-1">
-                      <p className="text-[16px] font-semibold text-ink">Routes serving {destination.label}</p>
+                      <p className="text-[16px] font-semibold text-ink">Routes serving {placeName(destination)}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         <RouteBadges routes={destination.routes} max={destination.routes.length} />
                       </div>
@@ -309,7 +310,7 @@ export default function ListingPage() {
                 </WarnNote>
               )}
               <p className="text-[13px] leading-[1.55] text-muted">
-                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. {destination ? `Transit miles are the straight-line distance to ${destination.label}. ` : ''}Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
+                Estimates, not meter readings. Charging while the host’s panels are producing means more of that solar power is used locally (local solar self-consumption), which raises the score. Assumes a 1 kW house load, 80% system efficiency and a sample sunny day. {destination ? `Transit miles are the straight-line distance to ${placeName(destination)}. ` : ''}Gas car 0.40 kg CO₂/mi, grid 0.33 kg CO₂/kWh (placeholder values).
               </p>
             </section>
 

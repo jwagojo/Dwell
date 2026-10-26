@@ -1,11 +1,11 @@
-import { DEFAULT_DESTINATION, isDestination, migrateDestination } from '../data/destinations';
+import { DEFAULT_DESTINATION, isCurrentLocation, isDestination, migrateDestination } from '../data/destinations';
 import type { SortMode } from '../features/search/evaluateListing';
 import type { Booking } from '../types/booking';
 import type { Destination } from '../types/destination';
 import type { Car, Listing } from '../types/listing';
 
+/** One account does both jobs: finding parking and hosting a charger. There is no role. */
 export interface User {
-  role: 'driver' | 'host';
   name: string;
   email: string;
   phone: string;
@@ -28,7 +28,7 @@ export interface Persisted {
   booking: Booking | null;
 }
 
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 export const DEFAULTS: Persisted = {
   version: STATE_VERSION,
@@ -49,6 +49,7 @@ const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !
 /**
  * Turn whatever was saved (any older version, or garbage) into valid current state.
  * v1 stored `destinationId` (a station id) on the state and on the booking; v2 stores a full Destination.
+ * v3 drops `user.role`: accounts used to be a driver or a host, and now every account can do both.
  */
 export function migrateState(raw: unknown): Persisted {
   if (!isObj(raw)) return DEFAULTS;
@@ -64,13 +65,22 @@ export function migrateState(raw: unknown): Persisted {
     };
   }
 
+  let user: User | null = null;
+  if (isObj(saved.user)) {
+    const { role: _role, ...account } = saved.user as Obj;
+    user = account as unknown as User;
+  }
+
   const { destinationId: _drop, ...rest } = saved;
   return {
     ...DEFAULTS,
     ...rest,
     version: STATE_VERSION,
+    user,
     // An explicit null means the driver cleared the search box; anything else unreadable falls back to the default.
-    destination: saved.destination === null ? null : migrateDestination(saved),
+    // "My location" is not kept between visits: it would point at where the driver was, not where they are now.
+    destination:
+      saved.destination === null ? null : isDestination(saved.destination) && isCurrentLocation(saved.destination) ? DEFAULT_DESTINATION : migrateDestination(saved),
     booking,
   };
 }

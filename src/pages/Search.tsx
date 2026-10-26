@@ -5,8 +5,9 @@ import { SelectField } from '../components/form';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import MapView from '../components/MapView';
+import NearMeButton from '../components/NearMeButton';
 import { InfoNote, Segmented } from '../components/ui';
-import { DEFAULT_DESTINATION } from '../data/destinations';
+import { DEFAULT_DESTINATION, placeName } from '../data/destinations';
 import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import {
   SEARCH_RADIUS_M,
@@ -57,7 +58,7 @@ export default function Search() {
     };
   }, [listings, area, destination, level, activeCar, startHour, hours, dayIndex, sort]);
 
-  if (!user) return <Navigate to="/signup/driver" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
 
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
@@ -68,22 +69,34 @@ export default function Search() {
       <Header wide />
 
       <div className="flex flex-wrap items-end gap-x-5 gap-y-3 border-b border-line bg-paper px-6 py-3">
-        <div className="min-w-[260px] flex-1 sm:max-w-[420px]">
-          <DestinationSearch
-            label="To"
-            value={toText}
-            placeholder="T station or address"
-            onInputChange={(t) => {
-              setToText(t);
-              // Emptying the box clears the destination. The map stays where it is and keeps listing what it shows.
-              if (!t.trim() && destination) update({ destination: null });
-            }}
-            onSelect={(d) => {
+        <div className="flex min-w-[260px] flex-1 items-end gap-2 sm:max-w-[560px]">
+          <div className="min-w-0 flex-1">
+            <DestinationSearch
+              label="To"
+              value={toText}
+              placeholder="T station or address"
+              onInputChange={(t) => {
+                setToText(t);
+                // Emptying the box clears the destination. The map stays where it is and keeps listing what it shows.
+                if (!t.trim() && destination) update({ destination: null });
+              }}
+              onSelect={(d) => {
+                setToText(d.label);
+                update({ destination: d });
+              }}
+              // Leaving the box without choosing a suggestion puts the current destination back (or leaves it empty).
+              onBlur={() => setToText(destination?.label ?? '')}
+            />
+          </div>
+          <NearMeButton
+            size="md"
+            label="Near me"
+            className="shrink-0"
+            onLocated={(d) => {
               setToText(d.label);
               update({ destination: d });
             }}
-            // Leaving the box without choosing a suggestion puts the current destination back (or leaves it empty).
-            onBlur={() => setToText(destination?.label ?? '')}
+            messageClassName="absolute left-0 top-full z-30 mt-1 w-[280px] rounded-card border border-line bg-paper px-3 py-2 shadow-panel"
           />
         </div>
 
@@ -171,7 +184,7 @@ export default function Search() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-[24px] font-semibold text-ink">
-                {destination ? `Chargers near ${destination.label}` : 'Chargers on the map'}
+                {destination ? `Chargers near ${placeName(destination)}` : 'Chargers on the map'}
               </h1>
               <p className="text-[14px] font-medium text-muted">
                 {shown.length} charger{shown.length === 1 ? '' : 's'}, {fmtRange(startHour, hours)}. Prices for your {activeCar.name}.
@@ -209,7 +222,7 @@ export default function Search() {
           {shown.length === 0 ? (
             <div className="rounded-card border border-line p-6 text-[16px] text-body">
               {destination
-                ? `No chargers near ${destination.label} for this filter yet.`
+                ? `No chargers near ${placeName(destination)} for this filter yet.`
                 : 'No chargers in this part of the map for this filter. Drag the map or zoom out to look elsewhere.'}
             </div>
           ) : (

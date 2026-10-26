@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
-import { DESTINATION_TYPES, searchAddresses, type GeocodedAddress } from '../adapters/mapboxGeocoding';
+import { ADDRESS_SEARCH_CREDIT, DESTINATION_TYPES, searchAddresses, type GeocodedAddress } from '../adapters/addressSearch';
 import { addressToDestination, stationToDestination } from '../data/destinations';
 import { STATIONS } from '../data/stations';
-import { hasMapboxToken } from '../lib/mapbox';
 import type { Destination } from '../types/destination';
 import { addressSecondary } from './AddressAutocomplete';
 import Combobox, { type ComboOption, type ComboSearch } from './Combobox';
@@ -21,8 +20,8 @@ export function matchStations(query: string): ComboOption<Destination>[] {
 const badgeFor = (a: GeocodedAddress) => (a.featureType === 'address' ? 'Address' : a.featureType === 'street' ? 'Street' : 'Area');
 
 /**
- * "Where are you headed?" field: T stations match instantly, addresses come from Mapbox Geocoding v6.
- * Without a Mapbox token it still works for stations.
+ * "Where are you headed?" field: T stations match instantly, and any US address, street or neighborhood comes from
+ * the address search (Mapbox with a token, otherwise OpenStreetMap). If the lookup fails, stations still work.
  */
 export default function DestinationSearch({
   label,
@@ -50,7 +49,6 @@ export default function DestinationSearch({
   inputClassName?: string;
 }) {
   const search = useCallback<ComboSearch<Destination>>(async (q, signal) => {
-    if (!hasMapboxToken) return { ok: false, message: 'Address search is unavailable right now.' };
     const r = await searchAddresses(q, { signal, types: DESTINATION_TYPES });
     if (!r.ok) return { ok: false, message: r.message, aborted: r.reason === 'ABORTED' };
     return {
@@ -81,6 +79,7 @@ export default function DestinationSearch({
       labelClassName={labelClassName}
       inputClassName={inputClassName}
       unavailableNote="T stations still work."
+      footerNote={ADDRESS_SEARCH_CREDIT}
       emptyText="No matching places. Try a T station or a street address."
     />
   );

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { getMassachusettsResidentialRate } from '../adapters/eiaRates';
-import { isMassachusetts, type GeocodedAddress } from '../adapters/mapboxGeocoding';
+import { isMassachusetts, type GeocodedAddress } from '../adapters/addressSearch';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { CheckboxCard, ChoiceGroup, SelectField, Stepper, TextAreaField, TextField } from '../components/form';
 import Header from '../components/Header';
@@ -25,15 +25,15 @@ import { resolveRate, type RateResolution } from '../engines/rate';
 import { DAY_LABELS, summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { fileToDataUrl } from '../lib/image';
-import { MASSACHUSETTS_CENTER, hasMapboxToken } from '../lib/mapbox';
+import { HOST_HOME_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
+import { MASSACHUSETTS_CENTER } from '../lib/mapbox';
 import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
 import { useApp } from '../state/AppState';
 import type { AvailabilityWindow, Level, Listing, SpotType } from '../types/listing';
-import { EMAIL_RE, digitsOnly } from './DriverSignup';
+import { digitsOnly } from './SignUp';
 
-const STEPS = ['Account', 'Your spot', 'Charger', 'Pricing', 'Photos & instructions', 'Availability', 'Review'];
+const STEPS = ['Your spot', 'Charger', 'Pricing', 'Photos & instructions', 'Availability', 'Review'];
 const STEP_HEAD: { title: string; why: string }[] = [
-  { title: 'Create your host account', why: 'We use your details to confirm bookings and reach you if a driver needs help.' },
   { title: 'Tell us about your spot', why: 'Drivers see the neighborhood first. The exact address is shared only after they book.' },
   { title: 'Describe your charger', why: 'The charger’s speed and plug decide which cars can use it and what they pay.' },
   { title: 'Set your pricing', why: 'Drivers pay for the power their car can draw, plus what you earn per hour.' },
@@ -75,10 +75,6 @@ interface PinState {
 }
 
 interface HostForm {
-  name: string;
-  phone: string;
-  email: string;
-  password: string;
   /** Text in the address search box */
   searchText: string;
   addr: Addr;
@@ -123,13 +119,9 @@ const windowSummary = (w: AvailabilityWindow) =>
   `${summarizeDays(w.days)}, ${fmtHour(w.start)} to ${fmtHour(w.end)}${w.end <= w.start ? ' (overnight)' : ''}`;
 
 const INITIAL: HostForm = {
-  name: '',
-  phone: '',
-  email: '',
-  password: '',
   searchText: '',
   addr: NO_ADDR,
-  manual: !hasMapboxToken,
+  manual: false,
   unit: '',
   spotType: 'Driveway',
   spots: 1,
@@ -155,7 +147,7 @@ const INITIAL: HostForm = {
 
 export default function HostSignup() {
   const navigate = useNavigate();
-  const { update } = useApp();
+  const { user, hostListing, update } = useApp();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<HostForm>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
@@ -226,7 +218,7 @@ export default function HostSignup() {
 
   // Suggest a title when the host reaches the photos step and hasn't typed their own.
   useEffect(() => {
-    if (step === 4 && !titleTouched.current && !form.title) {
+    if (step === 3 && !titleTouched.current && !form.title) {
       const hood = form.addr.neighborhood || form.addr.city || 'Massachusetts';
       set('title', `${hood} ${form.spotType.toLowerCase()}`);
     }
@@ -235,12 +227,6 @@ export default function HostSignup() {
   function validate(s: number): Errors {
     const e: Errors = {};
     if (s === 0) {
-      if (form.name.trim().length < 2) e.name = 'Enter your full name.';
-      if (!EMAIL_RE.test(form.email.trim())) e.email = 'Enter a valid email address.';
-      if (digitsOnly(form.phone).length !== 10) e.phone = 'Enter a 10-digit phone number.';
-      if (form.password.length < 8) e.password = 'Use at least 8 characters.';
-    }
-    if (s === 1) {
       const a = form.addr;
       if (form.manual) {
         if (a.line.trim().length < 4) e.line = 'Enter your street address.';
@@ -253,7 +239,7 @@ export default function HostSignup() {
       else if (!form.pin.confirmed) e.pin = 'Confirm the pin location before continuing.';
       if (!form.rightToList) e.rightToList = 'Confirm you have the right to list this spot.';
     }
-    if (s === 2) {
+    if (s === 1) {
       const [lo, hi] = form.level === 'L2' ? [3.0, CHARGER_KW_MAX] : [CHARGER_KW_MIN, 1.92];
       if (!Number.isFinite(kw) || kw < lo || kw > hi) e.kw = `Enter a power between ${lo} and ${hi} kW for ${form.level}.`;
       if (form.level === 'L1' && !form.outdoorOutlet) e.outdoorOutlet = 'L1 needs a dedicated outdoor-rated outlet.';
@@ -262,24 +248,24 @@ export default function HostSignup() {
         if (form.solarKw.trim() === '' || !Number.isFinite(s2) || s2 < 0 || s2 > 50) e.solarKw = 'Enter your system size between 0 and 50 kW.';
       }
     }
-    if (s === 3) {
+    if (s === 2) {
       const r = Number(form.rate);
       if (!Number.isFinite(r) || r < MIN_LOCAL_RATE || r > MAX_LOCAL_RATE) e.rate = `Enter a rate between ${money(MIN_LOCAL_RATE)} and ${money(MAX_LOCAL_RATE)} per kWh.`;
       const en = Number(form.earnings);
       if (!Number.isFinite(en) || en <= 0) e.earnings = 'Enter what you’d like to earn per hour.';
       else if (en > earningsCap) e.earnings = `The most you can set here is ${money(earningsCap)} per hour (2× the suggested ${money(SUGGESTED_EARNINGS_HR)}).`;
     }
-    if (s === 4) {
+    if (s === 3) {
       if (form.title.trim().length < 4) e.title = 'Give your listing a title.';
       if (form.photos.length < 1) e.photos = 'Add at least one photo.';
       if (form.instructions.trim().length < 20) e.instructions = 'Write at least 20 characters so drivers can find the spot.';
     }
-    if (s === 5) {
+    if (s === 4) {
       if (form.windows.length < 1) e.windows = 'Add at least one availability window.';
       else if (form.windows.some((w) => w.days.length === 0)) e.windows = 'Pick at least one day for each window.';
       else if (form.windows.some((w) => w.start === w.end)) e.windows = 'Each window needs different start and end times.';
     }
-    if (s === 6 && !form.terms) e.terms = 'Accept the terms to publish.';
+    if (s === 5 && !form.terms) e.terms = 'Accept the terms to publish.';
     return e;
   }
 
@@ -300,7 +286,7 @@ export default function HostSignup() {
     const pin = form.pin;
     if (!pin || !pin.confirmed || form.addr.source === 'none') {
       setErrors({ pin: 'Confirm the pin location before publishing.' });
-      setStep(1);
+      setStep(0);
       window.scrollTo({ top: 0 });
       return;
     }
@@ -322,7 +308,7 @@ export default function HostSignup() {
       adapters,
       solarKw: form.solar === 'yes' ? Number(form.solarKw) : 0,
       spots: form.spots,
-      hostName: form.name.trim().split(/\s+/)[0],
+      hostName: (user?.name ?? '').trim().split(/\s+/)[0],
       rate: Number(form.rate),
       rateSource: rateEdited ? 'HOST' : rateInfo.status === 'eia' ? 'EIA' : 'FALLBACK',
       rateDataMonth: !rateEdited && rateInfo.status === 'eia' ? rateInfo.resolution.dataMonth : null,
@@ -332,12 +318,9 @@ export default function HostSignup() {
       photos: form.photos,
       isNew: true,
     };
-    // Password is intentionally dropped: prototype only, Cognito handles it later.
-    update({
-      user: { role: 'host', name: form.name.trim(), email: form.email.trim(), phone: digitsOnly(form.phone) },
-      hostListing: listing,
-    });
-    navigate('/host');
+    // The account already exists (made at sign-up), so publishing only adds the listing to it.
+    update({ hostListing: listing });
+    navigate(HOST_HOME_PATH);
   }
 
   /* ----- Address and pin. Any address change throws away the old pin: coordinates are never reused. ----- */
@@ -450,37 +433,19 @@ export default function HostSignup() {
   /* ---------- Step bodies ---------- */
 
   const body = [
-    // 0 Account
-    <>
-      <AutoGrid min={240} gap={16}>
-        <TextField label="Full name" autoComplete="name" value={form.name} error={errors.name} onChange={(e) => set('name', e.target.value)} />
-        <TextField label="Phone" type="tel" inputMode="tel" autoComplete="tel" value={form.phone} error={errors.phone} onChange={(e) => set('phone', e.target.value)} />
-      </AutoGrid>
-      <TextField label="Email" type="email" autoComplete="email" value={form.email} error={errors.email} onChange={(e) => set('email', e.target.value)} />
-      <TextField label="Password" type="password" autoComplete="new-password" hint="At least 8 characters." value={form.password} error={errors.password} onChange={(e) => set('password', e.target.value)} />
-    </>,
-
-    // 1 Your spot
+    // 0 Your spot
     <>
       {form.manual ? (
         <div className="flex flex-col gap-4">
           <p className="rounded-card bg-surface p-3.5 text-[14px] text-body">
-            {hasMapboxToken
-              ? 'Entering your address by hand. '
-              : 'Address search is unavailable right now (no Mapbox token), so enter your address by hand. '}
-            You will place and confirm the pin yourself.
-            {hasMapboxToken && (
-              <>
-                {' '}
-                <button
-                  type="button"
-                  className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep"
-                  onClick={() => setForm((f) => ({ ...f, manual: false, addr: NO_ADDR, pin: null, searchText: '' }))}
-                >
-                  Use address search instead
-                </button>
-              </>
-            )}
+            Entering your address by hand. You will place and confirm the pin yourself.{' '}
+            <button
+              type="button"
+              className="whitespace-nowrap font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-brand hover:text-brand active:text-green-deep"
+              onClick={() => setForm((f) => ({ ...f, manual: false, addr: NO_ADDR, pin: null, searchText: '' }))}
+            >
+              Use address search instead
+            </button>
           </p>
           <AutoGrid min={240} gap={16}>
             <TextField label="Street address" autoComplete="address-line1" value={form.addr.line} error={errors.line} onChange={(e) => editManual('line', e.target.value)} />
@@ -579,7 +544,7 @@ export default function HostSignup() {
       </CheckboxCard>
     </>,
 
-    // 2 Charger
+    // 1 Charger
     <>
       <ChoiceGroup<Level>
         legend="Charger level"
@@ -652,7 +617,7 @@ export default function HostSignup() {
       </p>
     </>,
 
-    // 3 Pricing
+    // 2 Pricing
     <>
       <AutoGrid min={240} gap={16}>
         <TextField
@@ -708,7 +673,7 @@ export default function HostSignup() {
       </div>
     </>,
 
-    // 4 Photos & instructions
+    // 3 Photos & instructions
     <>
       <TextField label="Listing title" value={form.title} error={errors.title} onChange={(e) => { titleTouched.current = true; set('title', e.target.value); }} />
       <div className="flex flex-col gap-2">
@@ -751,7 +716,7 @@ export default function HostSignup() {
       />
     </>,
 
-    // 5 Availability
+    // 4 Availability
     <>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Add a window">
         {PRESETS.map((p) => (
@@ -808,16 +773,15 @@ export default function HostSignup() {
       </div>
     </>,
 
-    // 6 Review
+    // 5 Review
     <>
       <dl className="m-0 flex flex-col divide-y divide-line rounded-card border border-line">
         {[
-          { i: 0, k: 'Account', v: `${form.name}, ${form.email}` },
-          { i: 1, k: 'Spot', v: `${form.spotType}, ${form.addr.line}${form.unit ? ` #${form.unit}` : ''}, ${form.addr.city}, MA ${form.addr.zip}. Pin ${form.pin?.confirmed ? 'confirmed' : 'not confirmed'}, ${form.spots} spot${form.spots > 1 ? 's' : ''}` },
-          { i: 2, k: 'Charger', v: `${form.level}, ${kw} kW, ${form.plug}${form.hasAdapter ? `, adapter to ${otherPlug}` : ''}${form.solar === 'yes' ? `, ${form.solarKw} kW solar` : ''}` },
-          { i: 3, k: 'Pricing', v: `${money(Number(form.rate) || 0)}/kWh, you earn ${money(Number(form.earnings) || 0)}/hr` },
-          { i: 4, k: 'Listing', v: `${form.title}, ${form.photos.length} photo${form.photos.length === 1 ? '' : 's'}` },
-          { i: 5, k: 'Availability', v: form.windows.map(windowSummary).join('; ') },
+          { i: 0, k: 'Spot', v: `${form.spotType}, ${form.addr.line}${form.unit ? ` #${form.unit}` : ''}, ${form.addr.city}, MA ${form.addr.zip}. Pin ${form.pin?.confirmed ? 'confirmed' : 'not confirmed'}, ${form.spots} spot${form.spots > 1 ? 's' : ''}` },
+          { i: 1, k: 'Charger', v: `${form.level}, ${kw} kW, ${form.plug}${form.hasAdapter ? `, adapter to ${otherPlug}` : ''}${form.solar === 'yes' ? `, ${form.solarKw} kW solar` : ''}` },
+          { i: 2, k: 'Pricing', v: `${money(Number(form.rate) || 0)}/kWh, you earn ${money(Number(form.earnings) || 0)}/hr` },
+          { i: 3, k: 'Listing', v: `${form.title}, ${form.photos.length} photo${form.photos.length === 1 ? '' : 's'}` },
+          { i: 4, k: 'Availability', v: form.windows.map(windowSummary).join('; ') },
         ].map((r) => (
           <div key={r.k} className="flex flex-wrap items-start justify-between gap-3 p-4">
             <div className="min-w-0">
@@ -843,6 +807,10 @@ export default function HostSignup() {
       </CheckboxCard>
     </>,
   ];
+
+  // Hosting needs an account (made once, at sign-up) and allows one listing for now. This comes after every hook.
+  if (!user) return <Navigate to={SIGNUP_FOR_HOSTING_PATH} replace />;
+  if (hostListing) return <Navigate to={HOST_HOME_PATH} replace />;
 
   return (
     <div className="min-h-dvh bg-surface">

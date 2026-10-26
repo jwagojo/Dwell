@@ -1,4 +1,16 @@
 import { MAPBOX_TOKEN, MASSACHUSETTS_CENTER, describeTokenProblem, mapboxTokenStatus } from '../lib/mapbox';
+import {
+  ADDRESS_TYPES,
+  GEOCODE_RESULT_LIMIT,
+  MIN_QUERY_LENGTH,
+  type GeocodedAddress,
+  type GeocodeResult,
+  type SearchOptions,
+} from './geocodingTypes';
+
+// Re-exported so existing imports of these from this file keep working.
+export { ADDRESS_TYPES, DESTINATION_TYPES, GEOCODE_RESULT_LIMIT, MIN_QUERY_LENGTH, isMassachusetts } from './geocodingTypes';
+export type { GeocodedAddress, GeocodeFailure, GeocodeResult, SearchOptions } from './geocodingTypes';
 
 /**
  * Typed adapter for Mapbox Geocoding API v6 (forward). It never throws: callers get a result object.
@@ -6,8 +18,6 @@ import { MAPBOX_TOKEN, MASSACHUSETTS_CENTER, describeTokenProblem, mapboxTokenSt
  */
 
 export const GEOCODING_ENDPOINT = 'https://api.mapbox.com/search/geocode/v6/forward';
-export const MIN_QUERY_LENGTH = 3;
-export const GEOCODE_RESULT_LIMIT = 5;
 
 /**
  * Results are saved in this prototype's localStorage (listings, destinations), and Mapbox only allows storing
@@ -15,50 +25,6 @@ export const GEOCODE_RESULT_LIMIT = 5;
  * card on file. Set to false only if nothing returned is ever stored.
  */
 export const USE_PERMANENT_GEOCODING = true;
-
-export interface GeocodedAddress {
-  /** Mapbox ID, stable across requests */
-  id: string;
-  featureType: string;
-  /** Short display label, e.g. "1 University Ave, Lowell, MA 01854" */
-  label: string;
-  /** House number and street, e.g. "1 University Ave" (just the name for non-address features) */
-  line1: string;
-  addressNumber: string;
-  streetName: string;
-  city: string;
-  /** Sub-city name when Mapbox provides one, otherwise the city */
-  neighborhood: string;
-  /** Two-letter state code, e.g. "MA" */
-  state: string;
-  zip: string;
-  /** Two-letter country code, e.g. "US" */
-  country: string;
-  lat: number;
-  lng: number;
-  accuracy?: string;
-}
-
-export type GeocodeFailure = 'NO_TOKEN' | 'NETWORK' | 'HTTP' | 'BAD_RESPONSE' | 'ABORTED';
-
-export type GeocodeResult =
-  | { ok: true; results: GeocodedAddress[] }
-  | { ok: false; reason: GeocodeFailure; status?: number; message: string };
-
-export interface SearchOptions {
-  signal?: AbortSignal;
-  /** Comma-separated v6 feature types. Defaults to street addresses. */
-  types?: string;
-  proximity?: { lat: number; lng: number };
-  limit?: number;
-  /** Test seams */
-  token?: string;
-  fetchImpl?: typeof fetch;
-}
-
-export const ADDRESS_TYPES = 'address';
-/** Destinations may also be streets, neighborhoods and towns (v6 has no points of interest). */
-export const DESTINATION_TYPES = 'address,street,neighborhood,locality,place';
 
 export function buildForwardUrl(query: string, token: string, opts: SearchOptions = {}): string {
   const p = opts.proximity ?? MASSACHUSETTS_CENTER;
@@ -140,9 +106,6 @@ export function parseForwardResponse(json: unknown): GeocodedAddress[] | null {
   if (!isObj(json) || !Array.isArray(json.features)) return null;
   return json.features.map(parseFeature).filter((a): a is GeocodedAddress => a !== null);
 }
-
-/** Validate Massachusetts from the result's own geographic context, never from the typed text. */
-export const isMassachusetts = (a: Pick<GeocodedAddress, 'state' | 'country'>): boolean => a.country === 'US' && a.state === 'MA';
 
 export async function searchAddresses(query: string, opts: SearchOptions = {}): Promise<GeocodeResult> {
   const token = opts.token ?? MAPBOX_TOKEN;
