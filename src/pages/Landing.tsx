@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Skyline from '../components/Skyline';
 import { Search } from '../components/Icons';
 import DestinationSearch from '../components/DestinationSearch';
 import { CONTROL } from '../components/form';
@@ -14,6 +15,7 @@ import type { Destination } from '../types/destination';
 import { LINE_STYLES } from '../data/transit';
 import { evaluateListing } from '../features/search/evaluateListing';
 import { todayIndex } from '../lib/availability';
+import { SIGNUP_PATH, hostEntryPath } from '../lib/hostEntry';
 import { useApp } from '../state/AppState';
 
 const STEPS = [
@@ -99,7 +101,7 @@ function HeroLedger() {
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { user, update } = useApp();
+  const { user, hostListing, update } = useApp();
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<Destination | null>(null);
   const [error, setError] = useState('');
@@ -107,7 +109,7 @@ export default function Landing() {
   function goTo(destination: Destination) {
     setError('');
     update({ destination });
-    navigate(user ? '/search' : destination.kind === 'station' ? `/signup/driver?to=${destination.id}` : '/signup/driver');
+    navigate(user ? '/search' : destination.kind === 'station' ? `${SIGNUP_PATH}?to=${destination.id}` : SIGNUP_PATH);
   }
 
   function onSubmit(e: FormEvent) {
@@ -126,8 +128,9 @@ export default function Landing() {
     <div className="min-h-dvh bg-paper">
       <Header />
       <main>
-        <section className="border-b border-line">
-          <div className="mx-auto grid max-w-[1280px] items-center gap-x-16 gap-y-12 px-6 py-12 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:py-14">
+        <section className="relative overflow-hidden border-b border-line">
+          <Skyline className="absolute inset-x-0 bottom-0 h-[150px] w-full sm:h-[200px] lg:h-[260px]" />
+          <div className="relative mx-auto grid max-w-[1280px] items-center gap-x-16 gap-y-12 px-6 py-12 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:py-14">
             <div className="flex min-w-0 flex-col gap-6">
               <h1 className="text-display-s leading-[1.04] text-ink">Park at a neighbor’s charger. Ride the rest of the way.</h1>
               <p className="lead text-pretty text-hero-sub">
@@ -192,7 +195,7 @@ export default function Landing() {
               <p className="text-[16px] text-body">
                 Have a charger?{' '}
                 <Link
-                  to="/signup/host"
+                  to={hostEntryPath(user !== null, hostListing !== null)}
                   className="font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:text-brand hover:decoration-brand active:text-green-deep"
                 >
                   List it and earn from idle hours
@@ -248,7 +251,7 @@ export default function Landing() {
             </div>
             <div className="lg:justify-self-end">
               <LinkButton
-                to="/signup/host"
+                to={hostEntryPath(user !== null, hostListing !== null)}
                 size="xl"
                 className="bg-accent-2! text-ink! hover:bg-paper! active:bg-paper-3!"
               >

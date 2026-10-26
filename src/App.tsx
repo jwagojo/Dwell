@@ -1,26 +1,32 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import DriverSignup from './pages/DriverSignup';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import SignUp from './pages/SignUp';
 import HostHome from './pages/HostHome';
 import HostSignup from './pages/HostSignup';
 import Landing from './pages/Landing';
 import ListingPage from './pages/ListingPage';
 import Search from './pages/Search';
 import Session from './pages/Session';
-import SignUpChoice from './pages/SignUpChoice';
+import SignIn from './pages/SignIn';
+import SignOut from './pages/SignOut';
 
 // Routes follow the UI design spec §5. Auth is a prototype until Cognito lands (tasks.md 13.1).
 export default function App() {
+  const { pathname } = useLocation();
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/signup" element={<SignUpChoice />} />
-      <Route path="/signup/driver" element={<DriverSignup />} />
-      <Route path="/signup/host" element={<HostSignup />} />
-      <Route path="/host" element={<HostHome />} />
-      <Route path="/search" element={<Search />} />
-      <Route path="/listing/:id" element={<ListingPage />} />
-      <Route path="/session" element={<Session />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    // Keyed on the path (not the query string) so each page change replays the .page-enter animation in index.css.
+    <div key={pathname} className="page-enter">
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/host" element={<HostHome />} />
+        <Route path="/host/new" element={<HostSignup />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/listing/:id" element={<ListingPage />} />
+        <Route path="/session" element={<Session />} />
+        <Route path="/signout" element={<SignOut />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   );
 }

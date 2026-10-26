@@ -21,7 +21,7 @@ VoltLot/
 └── src/
     ├── main.tsx, App.tsx          Entry, router (8 routes), providers
     ├── index.css                  Tailwind import, font, design tokens (@theme), .auto-grid
-    ├── pages/                     One file per route: Landing, SignUpChoice, DriverSignup, HostSignup,
+    ├── pages/                     One file per route: Landing, SignUp, SignIn, HostSignup (listing steps at /host/new), SignOut,
     │                              HostHome, Search, ListingPage, Session
     ├── components/                Header, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
     │                              Combobox, AddressAutocomplete, DestinationSearch, PinPicker, MapView
@@ -33,9 +33,9 @@ VoltLot/
     │   └── session/settleBooking.ts     Final bill and impact numbers from frozen booking values
     ├── engines/                   Pure functions: constants, types, money, pricing, billing, climate, rate, plug
     │                              plus *.test.ts for pricing, billing, climate (26 tests)
-    ├── lib/                       format, geo (haversineDistanceMeters, walk estimate, offsetMeters), availability, image,
+    ├── lib/                       hostEntry (host entry paths), format, geo (haversineDistanceMeters, walk estimate, offsetMeters), availability, image,
     │                              mapbox (geocoding token handling, never uses sk. tokens), map (map style URL), massachusetts (ZIP check, street name)
-    ├── state/                     AppState.tsx (localStorage provider), persisted.ts (versioned state + migrations)
+    ├── state/                     AppState.tsx (localStorage provider), persisted.ts (versioned state + migrations), accounts.ts (prototype sign-in: salted password hashes, kept account data)
     ├── types/                     listing.ts, booking.ts, destination.ts
     └── data/                      Sample data: stations, listings.ts + mockListings.json (+ test), EV fallback table, zip areas,
                                    sample sunlight, transit line colors

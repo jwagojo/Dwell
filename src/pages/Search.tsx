@@ -57,7 +57,7 @@ export default function Search() {
     };
   }, [listings, area, destination, level, activeCar, startHour, hours, dayIndex, sort]);
 
-  if (!user) return <Navigate to="/signup/driver" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
 
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
   const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;

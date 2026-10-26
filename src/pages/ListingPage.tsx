@@ -42,7 +42,7 @@ export default function ListingPage() {
   const { user, car: ownCar, activeCar, destination, startHour, hours, listings, update } = useApp();
 
   const listing = listings.find((l) => l.id === id);
-  if (!user) return <Navigate to="/signup/driver" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
   if (!listing) {
     return (
       <div className="min-h-dvh bg-paper">

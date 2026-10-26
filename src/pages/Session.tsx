@@ -50,7 +50,7 @@ export default function Session() {
   }, [clock]);
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  if (!user) return <Navigate to="/signup/driver" replace />;
+  if (!user) return <Navigate to="/signup" replace />;
 
   const listing = booking ? listings.find((l) => l.id === booking.listingId) : undefined;
   if (!booking || !listing) {

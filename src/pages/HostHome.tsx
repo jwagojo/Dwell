@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { AutoGrid, Button, LinkButton, Photo, RouteBadges, StatusDot, WalkChip } from '../components/ui';
 import { EV_MODELS } from '../data/evFallbackSeed';
@@ -8,6 +8,7 @@ import { computePrice } from '../engines/pricing';
 import { summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { estimateWalk, haversineDistanceMeters } from '../lib/geo';
+import { NEW_LISTING_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
 import { useApp } from '../state/AppState';
 
 const PRICE_CARS = ['toyota-prius-prime', 'nissan-leaf', 'tesla-my'].map((id) => EV_MODELS.find((c) => c.id === id)!);
@@ -16,7 +17,9 @@ export default function HostHome() {
   const navigate = useNavigate();
   const { user, hostListing: l, update } = useApp();
 
-  if (!l || !user) {
+  if (!user) return <Navigate to={SIGNUP_FOR_HOSTING_PATH} replace />;
+
+  if (!l) {
     return (
       <div className="min-h-dvh bg-surface">
         <Header />
@@ -24,7 +27,7 @@ export default function HostHome() {
           <div className="rounded-card border border-line bg-paper p-8 shadow-panel">
             <h1 className="text-[34px] font-semibold text-ink">No listing yet</h1>
             <p className="mt-2 text-[16px] text-body">List your charger to start earning from idle hours.</p>
-            <LinkButton to="/signup/host" size="lg" className="mt-6">
+            <LinkButton to={NEW_LISTING_PATH} size="lg" className="mt-6">
               List your charger
             </LinkButton>
           </div>
