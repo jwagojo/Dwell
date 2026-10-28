@@ -107,6 +107,12 @@ describe('cdk-nag', () => {
     expect(() => app.synth()).not.toThrow();
   });
 
+  it('accepts an origin pasted with a trailing slash and stores it without one', () => {
+    const { config } = newApp({ webOrigins: ['http://localhost:5173', 'https://main.example.amplifyapp.com/'] });
+    expect(config.webOrigins).toEqual(['http://localhost:5173', 'https://main.example.amplifyapp.com']);
+    expect(() => newApp({ webOrigins: ['https://example.com/app'] })).toThrow(/origin/);
+  });
+
   it('rejects a bad stage name', () => {
     expect(() => newApp({ stage: 'Prod!' })).toThrow(/stage/);
   });
