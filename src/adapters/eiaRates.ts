@@ -1,5 +1,6 @@
 import { RATE_LOOKUP_TIMEOUT_MS } from '../engines/constants';
 import { isPlausibleCents, isValidDataMonth, type EiaRate } from '../engines/rate';
+import { buildEiaUrl, parseEiaResponse } from '../lib/eia';
 
 /**
  * Typed adapter for the U.S. Energy Information Administration (EIA) Open Data API v2.
@@ -12,13 +13,12 @@ import { isPlausibleCents, isValidDataMonth, type EiaRate } from '../engines/rat
  * Nothing in this module throws, and no message it produces contains the request URL or the API key.
  *
  * KEY EXPOSURE: with no backend yet, the key is a VITE_ variable, so it is compiled into the browser bundle and
- * visible to anyone who opens the site. EIA keys are free and revocable. Move the call behind a server (Amplify
- * function) before production, then the key stays server-side.
+ * visible to anyone who opens the site. EIA keys are free and revocable. The planned backend moves the call into the
+ * get-electricity-rate Lambda (GET /rate, key in SSM Parameter Store) before production, so the key stays server-side.
  */
 
-export const EIA_ENDPOINT = 'https://api.eia.gov/v2/electricity/retail-sales/data/';
-/** Rows requested, newest first. A few spare rows let us skip a latest month that has no usable price yet. */
-export const EIA_ROW_LIMIT = 12;
+// The request URL and the response parser are pure and shared with the get-electricity-rate Lambda (lib/eia.ts).
+export { EIA_ENDPOINT, EIA_ROW_LIMIT, buildEiaUrl, parseEiaResponse } from '../lib/eia';
 
 const rawKey = (import.meta.env.VITE_EIA_API_KEY as string | undefined)?.trim() ?? '';
 /** The .env.example placeholder counts as "not configured". */
@@ -34,55 +34,6 @@ export type RateLookupFailure = 'NO_KEY' | 'TIMEOUT' | 'NETWORK' | 'HTTP' | 'BAD
 export type RateLookupResult =
   | { ok: true; rate: EiaRate }
   | { ok: false; reason: RateLookupFailure; status?: number; message: string };
-
-export function buildEiaUrl(apiKey: string, length: number = EIA_ROW_LIMIT): string {
-  const params = new URLSearchParams();
-  params.set('api_key', apiKey);
-  params.set('frequency', 'monthly');
-  params.set('data[0]', 'price');
-  params.set('facets[stateid][]', 'MA');
-  params.set('facets[sectorid][]', 'RES');
-  params.set('sort[0][column]', 'period');
-  params.set('sort[0][direction]', 'desc');
-  params.set('length', String(length));
-  return `${EIA_ENDPOINT}?${params.toString()}`;
-}
-
-type Json = Record<string, unknown>;
-const isObj = (v: unknown): v is Json => typeof v === 'object' && v !== null && !Array.isArray(v);
-/** EIA v2 returns numbers as strings ("30.48"); accept real numbers too. */
-const toNumber = (v: unknown): number | null => {
-  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-  if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
-/** EIA labels the unit "cents per kilowatt-hour". The conversion by 100 is only valid for cents, so check it. */
-const isCentsPerKwh = (units: unknown): boolean => typeof units === 'string' && /\bcents?\s+per\s+kilowatt-?\s?hour\b/i.test(units);
-
-/**
- * Validate an EIA response and return the latest valid record.
- * Valid means: a Massachusetts residential row, a YYYY-MM period, a numeric price in cents per kWh, and a price that
- * converts to a plausible rate. Rows are not trusted to arrive sorted: the newest valid period wins.
- */
-export function parseEiaResponse(json: unknown): { ok: true; rate: EiaRate } | { ok: false; reason: 'BAD_RESPONSE' | 'NO_VALID_RECORD' } {
-  const rows = isObj(json) && isObj(json.response) && Array.isArray(json.response.data) ? json.response.data : null;
-  if (!rows) return { ok: false, reason: 'BAD_RESPONSE' };
-
-  let best: EiaRate | null = null;
-  for (const row of rows) {
-    if (!isObj(row)) continue;
-    if (row.stateid !== 'MA' || row.sectorid !== 'RES') continue;
-    if (!isValidDataMonth(row.period)) continue;
-    if (!isCentsPerKwh(row['price-units'])) continue;
-    const cents = toNumber(row.price);
-    if (cents === null || !isPlausibleCents(cents)) continue;
-    if (!best || row.period > best.period) best = { centsPerKwh: cents, period: row.period };
-  }
-  return best ? { ok: true, rate: best } : { ok: false, reason: 'NO_VALID_RECORD' };
-}
 
 export interface LookupOptions {
   apiKey?: string;

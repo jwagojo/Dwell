@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import Header from '../components/Header';
 import PhotoCapture from '../components/PhotoCapture';
-import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusDot } from '../components/ui';
+import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusDot, WarnNote } from '../components/ui';
 import { lateRatePerMinute } from '../engines/billing';
 import { MILES_PER_KWH, PICKUP_RADIUS_M, SERVICE_FEE } from '../engines/constants';
 import { isReservationExpired } from '../features/session/bookingGuard';
@@ -10,6 +10,7 @@ import { checkPickupDistance } from '../features/session/pickup';
 import { bookedEndTs, bookedStartTs, settleBooking } from '../features/session/settleBooking';
 import { fmtClock, fmtDuration, fmtRange, money } from '../lib/format';
 import { haversineDistanceMeters, offsetNorth, type LatLng } from '../lib/geo';
+import { uploadPhoto } from '../lib/upload';
 import { useApp } from '../state/AppState';
 
 type Step = 'arrived' | 'charging' | 'pickup' | 'done';
@@ -18,7 +19,7 @@ type PhoneMode = 'car' | 'far' | 'gps';
 type Loc =
   | { kind: 'idle' }
   | { kind: 'checking' }
-  | { kind: 'ok'; meters: number }
+  | { kind: 'ok'; meters: number; pos: LatLng }
   | { kind: 'far'; meters: number }
   | { kind: 'denied' }
   | { kind: 'unavailable' };
@@ -33,8 +34,11 @@ const STEPS: { id: Step; label: string }[] = [
 const card = 'flex flex-col gap-5 rounded-card border border-line bg-paper p-6';
 
 export default function Session() {
-  const { user, booking, listings, update } = useApp();
-  const [clock, setClock] = useState<ClockMode>('early');
+  const { user, booking, listings, update, backend, applyBooking } = useApp();
+  // Backend: the server's clock settles the bill, so the page shows the real time too.
+  const [clock, setClock] = useState<ClockMode>(backend ? 'real' : 'early');
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
   const [phone, setPhone] = useState<PhoneMode>('car');
   // The location check is never kept: after a reload the driver checks again, which is what the geofence needs.
   const [loc, setLoc] = useState<Loc>({ kind: 'idle' });
@@ -102,8 +106,29 @@ export default function Session() {
   const arrivalPhoto = b.arrivalPhoto ?? null;
   const pickupPhoto = b.pickupPhoto ?? null;
   const setPickupStage = (started: boolean) => update({ booking: { ...b, pickupStarted: started } });
-  const setArrivalPhoto = (photo: string | null) => update({ booking: { ...b, arrivalPhoto: photo } });
-  const setPickupPhoto = (photo: string | null) => update({ booking: { ...b, pickupPhoto: photo } });
+  /** Backend: a photo counts only once it is in S3 (Req 5.2); a failed upload keeps the step and offers a retry. */
+  async function savePhoto(kind: 'arrival' | 'pickup', photo: string | null) {
+    const field = kind === 'arrival' ? 'arrivalPhoto' : 'pickupPhoto';
+    setActionError('');
+    if (!backend || photo === null) return update({ booking: { ...b, [field]: photo } });
+    setBusy(true);
+    const r = await uploadPhoto(backend.api, { kind, bookingId: b.id }, photo);
+    setBusy(false);
+    if (!r.ok) return setActionError(r.message);
+    update({ booking: { ...b, [field]: photo } });
+  }
+  const setArrivalPhoto = (photo: string | null) => void savePhoto('arrival', photo);
+  const setPickupPhoto = (photo: string | null) => void savePhoto('pickup', photo);
+
+  async function startSession() {
+    if (!backend) return update({ booking: { ...b, status: 'ACTIVE' } });
+    setBusy(true);
+    setActionError('');
+    const r = await backend.api.checkIn(b.id);
+    setBusy(false);
+    if (!r.ok) return setActionError(r.message);
+    applyBooking(r.data.booking);
+  }
 
   const endTs = bookedEndTs(b);
   const startTs = bookedStartTs(b);
@@ -128,10 +153,26 @@ export default function Session() {
     }
   }
 
-  function finish(flagged: boolean) {
+  async function finish(flagged: boolean) {
+    if (backend) return finishOnServer(flagged);
     const result = settleBooking(b, listing!, nowTs, flagged);
     if (!result) return;
     update({ booking: { ...b, status: 'COMPLETED', result, pickupStarted: false } });
+    window.scrollTo({ top: 0 });
+  }
+
+  /** Backend: the server rechecks the 50 m geofence and settles with its own clock. */
+  async function finishOnServer(flagged: boolean) {
+    const position = !flagged && loc.kind === 'ok' ? loc.pos : null;
+    setBusy(true);
+    setActionError('');
+    const r = await backend!.api.pickup(b.id, position);
+    setBusy(false);
+    if (!r.ok) {
+      if (r.code === 'TOO_FAR' && typeof r.details.metersShown === 'number') return setLoc({ kind: 'far', meters: r.details.metersShown });
+      return setActionError(r.message);
+    }
+    applyBooking(r.data.booking);
     window.scrollTo({ top: 0 });
   }
 
@@ -141,7 +182,7 @@ export default function Session() {
     const evaluate = (pos: LatLng) => {
       // Exact distance for the check; the rounded number is only for display.
       const { ok, metersShown } = checkPickupDistance(haversineDistanceMeters(pos, listing!));
-      setLoc(ok ? { kind: 'ok', meters: metersShown } : { kind: 'far', meters: metersShown });
+      setLoc(ok ? { kind: 'ok', meters: metersShown, pos } : { kind: 'far', meters: metersShown });
     };
     if (phone === 'gps') {
       if (!navigator.geolocation) return setLoc({ kind: 'denied' });
@@ -184,8 +225,8 @@ export default function Session() {
         <li>Plug in and check the car shows it’s charging.</li>
       </ul>
       <div className="flex flex-wrap items-center gap-4">
-        <Button size="lg" disabled={!arrivalPhoto} onClick={() => update({ booking: { ...b, status: 'ACTIVE' } })}>
-          I’m plugged in. Start session
+        <Button size="lg" disabled={!arrivalPhoto || busy} onClick={() => void startSession()}>
+          {busy ? 'Saving…' : 'I’m plugged in. Start session'}
         </Button>
         {!arrivalPhoto && <p className="text-[14px] text-muted">Add your arrival photo to start.</p>}
       </div>
@@ -289,7 +330,7 @@ export default function Session() {
         onChange={setPickupPhoto}
       />
       <div className="flex flex-wrap items-center gap-4">
-        <Button size="lg" disabled={!locOk || !pickupPhoto} onClick={() => finish(loc.kind === 'denied')}>
+        <Button size="lg" disabled={!locOk || !pickupPhoto || busy} onClick={() => void finish(loc.kind === 'denied')}>
           Confirm Pickup at {fmtClock(nowTs)}
         </Button>
         {(!locOk || !pickupPhoto) && (
@@ -382,6 +423,12 @@ export default function Session() {
             <PaidPill amount={money(b.total)} />
           </div>
 
+          {actionError && <WarnNote>{actionError}</WarnNote>}
+          {busy && step !== 'done' && (
+            <p role="status" className="text-[14px] text-muted">
+              Saving…
+            </p>
+          )}
           {step === 'arrived' && arrived}
           {step === 'charging' && charging}
           {step === 'pickup' && pickup}
@@ -393,6 +440,12 @@ export default function Session() {
           className="flex min-w-0 flex-[1_1_260px] flex-col gap-4 rounded-card border-2 border-dashed border-disabled bg-paper p-4"
         >
           <p className="text-[12px] font-semibold text-muted">Demo controls</p>
+          {backend ? (
+            <p className="text-[13px] text-muted">
+              Connected to the Dwell backend: the server&apos;s clock and records decide the steps and the bill, so only the phone location can be simulated.
+            </p>
+          ) : (
+          <>
           <Segmented<Step>
             label="Jump to step"
             value={step}
@@ -410,6 +463,8 @@ export default function Session() {
               { value: 'real', label: 'Real clock' },
             ]}
           />
+          </>
+          )}
           <Segmented<PhoneMode>
             label="Phone location"
             value={phone}

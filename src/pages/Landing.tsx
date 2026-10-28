@@ -10,7 +10,7 @@ import { CONTROL } from '../components/form';
 import MapPreview from '../components/map/MapPreview';
 import { LinkButton, WalkChip } from '../components/ui';
 import { DEFAULT_CAR } from '../data/evFallbackSeed';
-import { SEEDED_LISTINGS } from '../data/listings';
+import { HERO_FEATURED_ID, HERO_PREVIEW_LISTINGS } from '../data/heroPreview';
 import { stationIdToDestination, stationToDestination } from '../data/destinations';
 import { POPULAR_STATION_IDS, findStation, stationById } from '../data/stations';
 import type { Destination } from '../types/destination';
@@ -35,9 +35,7 @@ const VALUE_PROPS = [
 
 const CHIP_LABEL: Record<string, string> = { central: 'Central', harvard: 'Harvard', kendall: 'Kendall/MIT', porter: 'Porter', alewife: 'Alewife' };
 
-// Four mock listings near Central Square; vl-12 is the featured one, highlighted on the map and in the ledger.
-const HERO_FEATURED_ID = 'vl-12';
-const HERO_PIN_IDS = ['vl-17', 'vl-13', HERO_FEATURED_ID, 'vl-16'];
+// Four illustrative listings near Central Square (data/heroPreview.ts); the featured one is highlighted on the map and in the ledger.
 const HERO_WINDOW = { startHour: 10, hours: 4 };
 
 /** The hero's visual: the map of four sample listings near Central and the same four as a priced ledger. */
@@ -45,7 +43,7 @@ function HeroLedger() {
   const central = stationById('central');
   const evs = useMemo(() => {
     const win = { ...HERO_WINDOW, dayIndex: todayIndex() };
-    return HERO_PIN_IDS.map((id) => SEEDED_LISTINGS.find((l) => l.id === id)!)
+    return HERO_PREVIEW_LISTINGS
       .map((l) => evaluateListing(l, DEFAULT_CAR, central, win))
       .filter((e): e is NonNullable<typeof e> => e !== null);
   }, [central]);

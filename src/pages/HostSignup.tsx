@@ -7,7 +7,7 @@ import { CheckboxCard, ChoiceGroup, SelectField, Stepper, TextAreaField, TextFie
 import Header from '../components/Header';
 import { Pin } from '../components/Icons';
 import PinPicker from '../components/PinPicker';
-import { AutoGrid, Button, Pill } from '../components/ui';
+import { AutoGrid, Button, Pill, WarnNote } from '../components/ui';
 import Wizard from '../components/Wizard';
 import { EV_MODELS } from '../data/evFallbackSeed';
 import {
@@ -15,16 +15,21 @@ import {
   CHARGER_KW_MAX,
   CHARGER_KW_MIN,
   EARNINGS_CAP_MULTIPLE,
+  L1_KW_MAX,
+  L2_KW_MIN,
   MAX_LOCAL_RATE,
   MIN_LOCAL_RATE,
+  SOLAR_KW_MAX,
   SUGGESTED_EARNINGS_HR,
 } from '../engines/constants';
 import type { Adapters, Plug } from '../engines/plug';
 import { computePrice } from '../engines/pricing';
 import { resolveRate, type RateResolution } from '../engines/rate';
+import { FIELD_STEP, type ListingField } from '../features/host/validateListing';
 import { DAY_LABELS, summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { fileToDataUrl } from '../lib/image';
+import { uploadPhoto } from '../lib/upload';
 import { HOST_HOME_PATH, NEW_LISTING_PATH, SIGNUP_FOR_HOSTING_PATH } from '../lib/hostEntry';
 import { MASSACHUSETTS_CENTER } from '../lib/mapbox';
 import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
@@ -191,7 +196,7 @@ function formFromListing(l: Listing): HostForm {
  */
 export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) {
   const navigate = useNavigate();
-  const { user, hostListing, update } = useApp();
+  const { user, hostListing, update, backend, syncAccount } = useApp();
   const editing = mode === 'edit' && hostListing !== null;
   const [step, setStep] = useState(editing ? STEPS.length - 1 : 0);
   const [form, setForm] = useState<HostForm>(() => (editing ? formFromListing(hostListing!) : INITIAL));
@@ -233,11 +238,21 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
     if (keepPublishedEia && form.addr.zip === hostListing!.privateAddress?.zip) return;
     let cancelled = false;
     setRateInfo((r) => (r.status === 'eia' ? r : { status: 'loading' }));
-    void getMassachusettsResidentialRate().then((result) => {
-      if (cancelled) return;
-      const resolution = resolveRate(result.ok ? result.rate : null); // falls back to $0.30 when unusable
-      setRateInfo(result.ok ? { status: 'eia', resolution } : { status: 'fallback', resolution, reason: result.message });
-      if (!rateEditedRef.current) set('rate', formatRateInput(resolution.local_rate));
+    // Backend: the API asks EIA with the key kept server-side (GET /rate). Prototype: the browser asks EIA directly.
+    const lookup: Promise<RateInfo> = backend
+      ? backend.api.getRate().then((r) =>
+          r.ok && r.data.rate.source === 'EIA'
+            ? { status: 'eia', resolution: r.data.rate }
+            : { status: 'fallback', resolution: resolveRate(null), reason: r.ok ? 'EIA wasn’t available, so this is the fallback estimate.' : r.message },
+        )
+      : getMassachusettsResidentialRate().then((result) => {
+          const resolution = resolveRate(result.ok ? result.rate : null); // falls back to $0.30 when unusable
+          return result.ok ? { status: 'eia', resolution } : { status: 'fallback', resolution, reason: result.message };
+        });
+    void lookup.then((info) => {
+      if (cancelled || info.status !== 'eia' && info.status !== 'fallback') return;
+      setRateInfo(info);
+      if (!rateEditedRef.current) set('rate', formatRateInput(info.resolution.local_rate));
     });
     return () => {
       cancelled = true;
@@ -302,12 +317,12 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
       if (!form.rightToList) e.rightToList = 'Confirm you have the right to list this spot.';
     }
     if (s === 1) {
-      const [lo, hi] = form.level === 'L2' ? [3.0, CHARGER_KW_MAX] : [CHARGER_KW_MIN, 1.92];
+      const [lo, hi] = form.level === 'L2' ? [L2_KW_MIN, CHARGER_KW_MAX] : [CHARGER_KW_MIN, L1_KW_MAX];
       if (!Number.isFinite(kw) || kw < lo || kw > hi) e.kw = `Enter a power between ${lo} and ${hi} kW for ${form.level}.`;
       if (form.level === 'L1' && !form.outdoorOutlet) e.outdoorOutlet = 'L1 needs a dedicated outdoor-rated outlet.';
       if (form.solar === 'yes') {
         const s2 = Number(form.solarKw);
-        if (form.solarKw.trim() === '' || !Number.isFinite(s2) || s2 < 0 || s2 > 50) e.solarKw = 'Enter your system size between 0 and 50 kW.';
+        if (form.solarKw.trim() === '' || !Number.isFinite(s2) || s2 < 0 || s2 > SOLAR_KW_MAX) e.solarKw = `Enter your system size between 0 and ${SOLAR_KW_MAX} kW.`;
       }
     }
     if (s === 2) {
@@ -353,6 +368,7 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
       return;
     }
     setBusy(true);
+    if (backend) return void publishOnServer(pin);
     const a = form.addr;
     const listing: Listing = {
       // Editing keeps the same listing, so links and the host's own-listing check still match it.
@@ -383,6 +399,67 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
     };
     // The account already exists (made at sign-up), so publishing only adds (or replaces) its listing.
     update({ hostListing: listing });
+    navigate(HOST_HOME_PATH);
+  }
+
+  /**
+   * Backend: upload new photos (existing ones keep their keys), then PUT /me/listing. The server reruns the full
+   * validation (features/host/validateListing.ts); its field errors land on the matching step.
+   */
+  async function publishOnServer(pin: PinState) {
+    const stop = (errs: Errors, toStep?: number) => {
+      setBusy(false);
+      setErrors(errs);
+      if (toStep !== undefined) setStep(toStep);
+      window.scrollTo({ top: 0 });
+    };
+    const keys: string[] = [];
+    for (const photo of form.photos) {
+      const i = hostListing?.photos.indexOf(photo) ?? -1;
+      const kept = i >= 0 ? hostListing?.photoKeys?.[i] : undefined;
+      if (kept) {
+        keys.push(kept);
+        continue;
+      }
+      const up = await uploadPhoto(backend!.api, { kind: 'listing' }, photo);
+      if (!up.ok) return stop({ photos: up.message, publish: up.message }, 3);
+      keys.push(up.key);
+    }
+    const a = form.addr;
+    const r = await backend!.api.saveListing({
+      title: form.title.trim(),
+      street: a.streetName,
+      neighborhood: a.neighborhood,
+      address: { line: a.line, unit: form.unit.trim() || null, city: a.city, zip: a.zip },
+      lat: pin.lat,
+      lng: pin.lng,
+      spotType: form.spotType,
+      spots: form.spots,
+      rightToList: form.rightToList,
+      level: form.level,
+      chargerKw: kw,
+      plug: form.plug,
+      adapters,
+      outdoorOutlet: form.outdoorOutlet,
+      solarKw: form.solar === 'yes' ? Number(form.solarKw) : 0,
+      rate: Number(form.rate),
+      rateSource: rateEdited ? 'HOST' : rateInfo.status === 'eia' ? 'EIA' : 'FALLBACK',
+      rateDataMonth: !rateEdited && rateInfo.status === 'eia' ? rateInfo.resolution.dataMonth : null,
+      earningsHr: Number(form.earnings),
+      windows: form.windows,
+      instructions: form.instructions.trim(),
+      photoKeys: keys,
+      termsAccepted: form.terms,
+    });
+    if (!r.ok) {
+      const fields = (r.details.fields ?? {}) as Partial<Record<ListingField, string>>;
+      const names = Object.keys(fields) as ListingField[];
+      if (names.length === 0) return stop({ publish: r.message });
+      return stop({ ...fields, publish: `Some details need fixing: ${Object.values(fields).join(' ')}` }, Math.min(...names.map((f) => FIELD_STEP[f] ?? 5)));
+    }
+    update({ hostListing: r.data.listing });
+    await syncAccount();
+    setBusy(false);
     navigate(HOST_HOME_PATH);
   }
 
@@ -966,6 +1043,7 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
     <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto max-w-[1120px] px-6 pb-16 pt-8">
+        {errors.publish && <WarnNote className="mb-6">{errors.publish}</WarnNote>}
         <Wizard
           title={editing ? 'Edit your listing' : 'List your charger'}
           steps={STEPS}

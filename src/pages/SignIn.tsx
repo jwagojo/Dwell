@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import ConfirmEmail from '../components/ConfirmEmail';
 import { TextField } from '../components/form';
 import Header from '../components/Header';
 import { Button } from '../components/ui';
@@ -14,15 +15,17 @@ type Errors = Partial<Record<'email' | 'password', string>>;
 const LANDING_AFTER_SIGN_IN = '/search';
 
 /**
- * Prototype sign-in: checks the email and password against the accounts saved in this browser (state/accounts.ts).
- * Amazon Cognito replaces it (tasks.md 13.1).
+ * Sign-in. Backend mode: Amazon Cognito, then the account loads from the API. Prototype mode: checks the email and
+ * password against the accounts saved in this browser (state/accounts.ts).
  */
 export default function SignIn() {
   const navigate = useNavigate();
-  const { user, signIn } = useApp();
+  const { user, signIn, backend, syncAccount } = useApp();
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
+  // Backend: the account exists but its email was never confirmed.
+  const [confirming, setConfirming] = useState(false);
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   async function onSubmit(ev: FormEvent) {
@@ -32,6 +35,8 @@ export default function SignIn() {
     if (form.password === '') e.password = 'Enter your password.';
     setErrors(e);
     if (Object.keys(e).length > 0) return;
+
+    if (backend) return signInWithCognito();
 
     setBusy(true);
     const result = await authenticate(localStorage, form.email, form.password);
@@ -49,6 +54,24 @@ export default function SignIn() {
     navigate(LANDING_AFTER_SIGN_IN);
   }
 
+  async function signInWithCognito() {
+    setBusy(true);
+    const r = await backend!.signIn(form.email, form.password);
+    if (!r.ok) {
+      setBusy(false);
+      if (r.code === 'NOT_CONFIRMED') return setConfirming(true);
+      setConfirming(false);
+      return setErrors({ password: r.message });
+    }
+    const sync = await syncAccount();
+    setBusy(false);
+    if (!sync.ok) {
+      setConfirming(false);
+      return setErrors({ password: sync.message });
+    }
+    navigate(LANDING_AFTER_SIGN_IN);
+  }
+
   // Already signed in: nothing to do here.
   if (user) return <Navigate to={LANDING_AFTER_SIGN_IN} replace />;
 
@@ -56,6 +79,11 @@ export default function SignIn() {
     <div className="min-h-dvh bg-surface">
       <Header />
       <main className="mx-auto max-w-[560px] px-6 pb-16 pt-10">
+        {confirming && backend ? (
+          <div className="rounded-card border border-line bg-paper p-5 shadow-panel sm:p-7">
+            <ConfirmEmail backend={backend} email={form.email.trim()} onConfirmed={signInWithCognito} />
+          </div>
+        ) : (
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6 rounded-card border border-line bg-paper p-5 shadow-panel sm:p-7">
           <div>
             <h1 className="text-[30px] font-semibold text-ink">Sign in to Dwell</h1>
@@ -84,7 +112,8 @@ export default function SignIn() {
             </Button>
           </div>
         </form>
-        {SHOW_DEMO_HINT && (
+        )}
+        {SHOW_DEMO_HINT && !backend && (
           <p className="mt-4 text-[13px] text-muted">
             Dev server only: try {DEMO_EMAIL} with password {DEMO_PASSWORD}.
           </p>

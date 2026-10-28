@@ -62,8 +62,9 @@ its month is kept. A record that fails any check is skipped.
 
 There is no backend yet, so the call is made from the browser. Any `VITE_` variable is compiled into the JavaScript
 and can be read by anyone who opens the site or its network tab. EIA keys are free and can be replaced, but treat this
-one as public. Before production, make the call from a server (for example an Amplify function) so the key stays
-server-side; only `src/adapters/eiaRates.ts` needs to change.
+one as public. The backend's `get-electricity-rate` Lambda (`GET /rate`) already makes the same call with the key from SSM Parameter
+Store (`/dwell/<stage>/eia-api-key`, a SecureString you create by hand), so the key stays server-side. Once the app is
+connected to the API, only `src/adapters/eiaRates.ts` needs to change and `VITE_EIA_API_KEY` can be removed.
 
 ## Not included
 

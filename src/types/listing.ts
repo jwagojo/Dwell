@@ -50,8 +50,10 @@ export interface Listing {
   earningsHr: number;
   windows: AvailabilityWindow[];
   instructions: string;
-  /** Data URLs of host photos. Empty for seeded listings, which show labeled placeholders. */
+  /** Photo sources: data URLs in the prototype, short-lived S3 URLs from the API. Empty for seeded listings, which show labeled placeholders. */
   photos: string[];
+  /** Backend only, host's own listing: the S3 key behind each entry of `photos`, so an edit can keep them. */
+  photoKeys?: string[];
   isNew?: boolean;
 }
 
