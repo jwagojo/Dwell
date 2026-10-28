@@ -27,3 +27,18 @@ export const MAX_LOCAL_RATE = 1.0;
 
 export const CHARGER_KW_MIN = 1.44;
 export const CHARGER_KW_MAX = 19.2;
+/** Level 2 starts at 3.0 kW; Level 1 tops out at 1.92 kW (16 A at 120 V). */
+export const L2_KW_MIN = 3.0;
+export const L1_KW_MAX = 1.92;
+/** Largest home solar system the host form accepts, kW. Property 2's domain stops at 25 kW (open decision, tech.md). */
+export const SOLAR_KW_MAX = 50;
+/** Car max AC charge rate accepted for a manually entered car, kW (same range as the seeded EVSpec table). */
+export const CAR_KW_MIN = 3.0;
+export const CAR_KW_MAX = 22.0;
+export const MAX_SPOTS = 4;
+export const MAX_LISTING_PHOTOS = 8;
+export const MIN_INSTRUCTIONS_CHARS = 20;
+/** Bookings are whole hours, today only. */
+export const MAX_BOOKING_HOURS = 12;
+/** Largest photo upload accepted by the API, bytes. The app resizes photos to small JPEGs first. */
+export const PHOTO_MAX_BYTES = 5 * 1024 * 1024;

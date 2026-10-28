@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { SelectField, Stepper } from '../components/form';
 import Header from '../components/Header';
@@ -41,7 +42,9 @@ function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: '
 export default function ListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, car: ownCar, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update } = useApp();
+  const { user, car: ownCar, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update, backend, syncAccount } = useApp();
+  const [busy, setBusy] = useState(false);
+  const [bookError, setBookError] = useState('');
 
   const listing = listings.find((l) => l.id === id);
   if (!user) return <Navigate to="/signup" replace />;
@@ -77,8 +80,9 @@ export default function ListingPage() {
   const blockedTitle = block?.kind === 'ACTIVE_BOOKING' ? (listings.find((l) => l.id === block.booking.listingId)?.title ?? 'another charger') : '';
   const canBook = ev.plugOk && ev.open && block === null && !startPassed;
 
-  function book() {
+  async function book() {
     if (!ev || !canBook) return;
+    if (backend) return bookOnServer();
     const booking: Booking = {
       id: `bk-${Date.now()}`,
       listingId: listing!.id,
@@ -94,6 +98,24 @@ export default function ListingPage() {
       status: 'RESERVED',
     };
     update({ booking });
+    navigate('/session');
+  }
+
+  /**
+   * Backend: the server reruns every check and prices the booking for the car saved on the profile, so save the car
+   * shown here first. The page's numbers are display only; the session shows what the server froze.
+   */
+  async function bookOnServer() {
+    setBusy(true);
+    setBookError('');
+    const saved = await backend!.api.saveCar(activeCar);
+    const created = saved.ok ? await backend!.api.createBooking({ listingId: listing!.id, startHour, hours, destination }) : saved;
+    if (!created.ok) {
+      setBusy(false);
+      return setBookError(created.message);
+    }
+    await syncAccount(); // loads the booking with the exact address and instructions
+    setBusy(false);
     navigate('/session');
   }
 
@@ -429,10 +451,11 @@ export default function ListingPage() {
             ) : !ev.open ? (
               <WarnNote>This charger isn’t open for your whole window. Try another time or charger.</WarnNote>
             ) : (
-              <Button size="xl" className="w-full" onClick={book}>
-                Book for {money(ev.total)}
+              <Button size="xl" className="w-full" onClick={book} disabled={busy}>
+                {busy ? 'Booking…' : `Book for ${money(ev.total)}`}
               </Button>
             )}
+            {bookError && <WarnNote>{bookError}</WarnNote>}
             <p className="text-center text-[13px] text-muted">
               Payment is simulated in this demo. No key handoff, the car never moves, and the host never touches it.
             </p>

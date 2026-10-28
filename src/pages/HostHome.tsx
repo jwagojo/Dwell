@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import { AutoGrid, Button, LinkButton, Photo, RouteBadges, StatusDot, WalkChip } from '../components/ui';
+import { AutoGrid, Button, LinkButton, Photo, RouteBadges, StatusDot, WalkChip, WarnNote } from '../components/ui';
 import { EV_MODELS } from '../data/evFallbackSeed';
 import { stationToDestination } from '../data/destinations';
 import { STATIONS } from '../data/stations';
@@ -16,8 +16,29 @@ const PRICE_CARS = ['toyota-prius-prime', 'nissan-leaf', 'tesla-my'].map((id) =>
 
 export default function HostHome() {
   const navigate = useNavigate();
-  const { user, hostListing: l, update } = useApp();
+  const { user, hostListing: l, update, backend, syncAccount } = useApp();
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState('');
+
+  /** Backend: take it out of search on the server (bookings already made can still finish). */
+  async function remove() {
+    if (!backend) {
+      setConfirmRemove(false);
+      return update({ hostListing: null });
+    }
+    setRemoving(true);
+    setRemoveError('');
+    const r = await backend.api.removeListing();
+    if (!r.ok) {
+      setRemoving(false);
+      return setRemoveError(r.message);
+    }
+    update({ hostListing: null });
+    await syncAccount();
+    setRemoving(false);
+    setConfirmRemove(false);
+  }
 
   if (!user) return <Navigate to={SIGNUP_FOR_HOSTING_PATH} replace />;
 
@@ -138,21 +159,19 @@ export default function HostHome() {
         {confirmRemove && (
           <div role="alertdialog" aria-label="Remove your listing" className="flex flex-col gap-3 rounded-card border border-amber-ink bg-amber-bg p-4">
             <p className="text-[15px] font-medium text-amber-deep">
-              Remove “{l.title}” from search? Its details and photos are deleted from this browser. You can list again later, but you’ll start from scratch.
+              {backend
+                ? `Remove “${l.title}” from search? Drivers can’t book it anymore. Bookings already made can still finish. You can list again later.`
+                : `Remove “${l.title}” from search? Its details and photos are deleted from this browser. You can list again later, but you’ll start from scratch.`}
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={() => {
-                  setConfirmRemove(false);
-                  update({ hostListing: null });
-                }}
-              >
-                Remove listing
+              <Button onClick={() => void remove()} disabled={removing}>
+                {removing ? 'Removing…' : 'Remove listing'}
               </Button>
               <Button variant="secondary" onClick={() => setConfirmRemove(false)}>
                 Keep it
               </Button>
             </div>
+            {removeError && <WarnNote>{removeError}</WarnNote>}
           </div>
         )}
 

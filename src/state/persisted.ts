@@ -89,13 +89,15 @@ export function migrateState(raw: unknown): Persisted {
 export const STORAGE_KEY = 'dwell.prototype.v1';
 /** The prototype saved under this key before it was renamed to Dwell. It is read once, then replaced. */
 export const LEGACY_STORAGE_KEY = 'voltlot.prototype.v1';
+/** Backend mode keeps only search choices, under its own key, so the prototype's saved state is left alone. */
+export const BACKEND_STORAGE_KEY = 'dwell.backend.prefs.v1';
 
 type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 /** Load saved state: the current key first, then the legacy one. Anything unreadable gives the defaults. */
-export function loadSavedState(storage: KeyValueStore): Persisted {
+export function loadSavedState(storage: KeyValueStore, key: string = STORAGE_KEY): Persisted {
   try {
-    const raw = storage.getItem(STORAGE_KEY) ?? storage.getItem(LEGACY_STORAGE_KEY);
+    const raw = storage.getItem(key) ?? (key === STORAGE_KEY ? storage.getItem(LEGACY_STORAGE_KEY) : null);
     return raw ? migrateState(JSON.parse(raw)) : DEFAULTS;
   } catch {
     return DEFAULTS;
@@ -103,7 +105,7 @@ export function loadSavedState(storage: KeyValueStore): Persisted {
 }
 
 /** Save under the current key and drop the legacy copy so the two never disagree. */
-export function saveState(storage: KeyValueStore, state: Persisted): void {
-  storage.setItem(STORAGE_KEY, JSON.stringify(state));
-  storage.removeItem(LEGACY_STORAGE_KEY);
+export function saveState(storage: KeyValueStore, state: Persisted, key: string = STORAGE_KEY): void {
+  storage.setItem(key, JSON.stringify(state));
+  if (key === STORAGE_KEY) storage.removeItem(LEGACY_STORAGE_KEY);
 }

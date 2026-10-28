@@ -6,7 +6,9 @@
 - **Host Provides Adapters:** Never ask the customer if they own an adapter. Hosts specify whether they have `J1772 -> NACS`, `NACS -> J1772`, `Both`, or `None`[cite: 1].
 - **Zero-Touch Parking:** Emphasize "No key handoff, car never moves, host never touches the car"[cite: 1].
 
-## 2. AWS Amplify Gen 2 Conventions
-- Use ONLY **Amplify Gen 2** TypeScript backend definitions (`amplify/auth/resource.ts`, `amplify/data/resource.ts`, `amplify/storage/resource.ts`).
-- NEVER generate legacy Amplify Gen 1 CLI commands (`amplify add api`, `aws-exports.js`). Always import `amplify_outputs.json`.
-- DynamoDB does not support native geospatial radius queries; always fetch seeded/active listings and apply our `haversineDistanceMeters()` filter on the client before rendering MapLibre GL JS markers[cite: 1].
+## 2. AWS Backend Conventions (plain AWS, no Amplify)
+- Infrastructure is **AWS CDK v2 in TypeScript** under `infra/`; Lambda handlers live in `functions/`. Do NOT use Amplify in any form: no `amplify/`, `ampx`, `aws-amplify`, `@aws-amplify/*`, `amplify_outputs.json`, or `aws-exports.js`.
+- The browser talks only to Cognito (sign-up, sign-in) and to our HTTP API with the Cognito JWT. It never holds AWS credentials (no identity pool) and never calls DynamoDB or S3 directly; photos go through short-lived presigned URLs issued by the API.
+- The server is authoritative for money and status: Lambdas recompute price, settlement and booking guards with `src/engines/` and `src/features/`. The user id always comes from the JWT `sub`, never from the request body.
+- Secrets (EIA key, anything else) live in SSM Parameter Store or Secrets Manager and are read by Lambdas, never put in `VITE_` variables or CloudFormation templates.
+- DynamoDB does not support native geospatial radius queries; always fetch seeded/active listings and filter them on the client before rendering MapLibre GL JS markers (today: the visible map bounds). Every distance (radius, walk, transit miles, pickup) uses our `haversineDistanceMeters()`[cite: 1].

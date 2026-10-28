@@ -1,4 +1,4 @@
-import type { AvailabilityWindow, Listing } from '../types/listing';
+import type { AvailabilityWindow, Listing } from '../../src/types/listing';
 import mockListings from './mockListings.json';
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -11,13 +11,14 @@ const GARAGE_NOTE =
 
 /**
  * Cambridge, Somerville, Allston, Brookline and Dorchester mock listings, loaded from `mockListings.json` (see its `_meta` block).
- * Addresses and photos are real; every charger detail is invented. The JSON shape is checked by mockListings.test.ts.
+ * Addresses and photos are real; every charger detail is invented. The JSON shape is checked by listings.test.ts.
+ * SEED DATA ONLY: the app never imports this. scripts/seed.ts writes it to DynamoDB, and the app reads it from the API.
  */
 export const MOCK_LISTINGS = mockListings.listings as unknown as Listing[];
 
 /**
  * Boston-neighborhood samples (West Roxbury, Roslindale, Jamaica Plain, Dorchester) from the README seed plan.
- * Hosts, addresses and rates are made up. Real listings come from DynamoDB once the backend exists (tasks.md 17.1).
+ * Hosts, addresses and rates are made up.
  */
 const BOSTON_SAMPLES: Listing[] = [
   { id: 'walk-hill-st', title: 'Driveway on Walk Hill St', street: 'Walk Hill St', neighborhood: 'Jamaica Plain', lat: 42.3055, lng: -71.1105, spotType: 'Driveway', chargerKw: 9.6, level: 'L2', plug: 'J1772', adapters: 'BOTH', solarKw: 6, spots: 1, hostName: 'Rosa', rate: 0.31, earningsHr: 1.75, windows: daily(6, 22), instructions: DRIVEWAY_NOTE, photos: [] },

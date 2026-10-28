@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CAR, EV_MODELS } from './evFallbackSeed';
+import { DEFAULT_CAR, EV_MODELS } from '../../src/data/evFallbackSeed';
 import { MOCK_LISTINGS, SEEDED_LISTINGS } from './listings';
-import { stationToDestination } from './destinations';
-import { stationById } from './stations';
-import { SEARCH_RADIUS_M, evaluateListing } from '../features/search/evaluateListing';
-import { haversineDistanceMeters } from '../lib/geo';
-import { isMassachusettsZip, stripHouseNumber } from '../lib/massachusetts';
+import { stationToDestination } from '../../src/data/destinations';
+import { stationById } from '../../src/data/stations';
+import { SEARCH_RADIUS_M, evaluateListing } from '../../src/features/search/evaluateListing';
+import { haversineDistanceMeters } from '../../src/lib/geo';
+import { isMassachusettsZip, stripHouseNumber } from '../../src/lib/massachusetts';
 
 describe('mockListings.json', () => {
   it('has the 30 supplied addresses with unique opaque ids', () => {
@@ -98,5 +98,19 @@ describe('mockListings.json', () => {
     );
     expect(evals.some((e) => e && !e.plugOk)).toBe(true);
     expect(evals.some((e) => e && e.plugOk && !e.open)).toBe(true);
+  });
+});
+
+describe('landing preview (src/data/heroPreview.ts)', () => {
+  it('matches the seeded listings it illustrates, minus address and photos', async () => {
+    const { HERO_PREVIEW_LISTINGS } = await import('../../src/data/heroPreview');
+    for (const p of HERO_PREVIEW_LISTINGS) {
+      const seeded = SEEDED_LISTINGS.find((l) => l.id === p.id)!;
+      expect(p.privateAddress).toBeUndefined();
+      expect(p.photos).toEqual([]);
+      expect([p.lat, p.lng, p.chargerKw, p.plug, p.adapters, p.solarKw, p.rate, p.earningsHr, p.windows]).toEqual([
+        seeded.lat, seeded.lng, seeded.chargerKw, seeded.plug, seeded.adapters, seeded.solarKw, seeded.rate, seeded.earningsHr, seeded.windows,
+      ]);
+    }
   });
 });

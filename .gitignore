@@ -10,13 +10,19 @@ coverage/
 .env.*
 !.env.example
 *.local
-
+.vitest
 # OS and editor noise
 .DS_Store
 
-# Amplify Gen 2 local sandbox state
-.amplify/
+# AWS CDK synth output and deploy outputs (infra/)
+cdk.out/
+cdk-outputs.json
 
-# NOTE: amplify_outputs.json is intentionally not listed yet.
-# Whether it is committed or generated per developer is a team decision
-# for the Amplify backend tasks (tasks.md 1.2 / 11.4).
+# Backend config for local dev, generated from the deploy outputs. The deployed copy is written by the web stack.
+public/config.json
+
+# Vitest output
+.vitest/
+
+# Leftover from the abandoned Amplify sandbox; safe to delete.
+.amplify/
