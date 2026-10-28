@@ -25,7 +25,9 @@ export function readConfig(app: App): DwellConfig {
   const stage = String(app.node.tryGetContext('stage') ?? 'dev');
   if (!STAGE_PATTERN.test(stage)) throw new Error(`stage "${stage}" must be lowercase letters, digits and dashes (2 to 31 characters).`);
   const rawOrigins = app.node.tryGetContext('webOrigins') ?? ['http://localhost:5173'];
-  const webOrigins: string[] = typeof rawOrigins === 'string' ? rawOrigins.split(',').map((s) => s.trim()) : rawOrigins;
+  const listed: string[] = typeof rawOrigins === 'string' ? rawOrigins.split(',') : rawOrigins;
+  // Browsers send the origin without a trailing slash, and CORS needs an exact match, so drop one if it was pasted.
+  const webOrigins = listed.map((s) => s.trim().replace(/\/$/, ''));
   for (const o of webOrigins) {
     if (!/^https?:\/\/[^/\s*]+$/.test(o)) throw new Error(`webOrigins entry "${o}" must be an origin like https://example.com (no path, no wildcard).`);
   }

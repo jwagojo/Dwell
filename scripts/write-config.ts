@@ -36,5 +36,7 @@ const config = parseBackendConfig(raw);
 // Fail the build instead of shipping a site that silently falls back to the prototype.
 if (!config) throw new Error(`The backend settings from ${source} are not valid (check the API URL, region and Cognito ids).`);
 const file = path.join(REPO_ROOT, 'public', 'config.json');
+// A fresh clone may have no public/ folder (everything else in it moved out), so create it.
+fs.mkdirSync(path.dirname(file), { recursive: true });
 fs.writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
 console.log(`Wrote ${path.relative(REPO_ROOT, file)} from ${source}.`);
