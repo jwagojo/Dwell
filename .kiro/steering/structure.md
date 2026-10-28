@@ -14,6 +14,7 @@ VoltLot/
 ├── kiro_writeup                   Project write-up (how Kiro was used)
 ├── Dwell-wordmark.png             Logo
 ├── package.json, package-lock.json   Pinned dependencies and scripts
+├── amplify.yml                    Amplify Hosting build (frontend only): writes config.json from env, then npm run build
 ├── .npmrc                         save-exact=true
 ├── .gitignore, .env.example       Placeholders only; real values go in untracked .env or .env.local
 ├── index.html, vite.config.ts, tsconfig.json
