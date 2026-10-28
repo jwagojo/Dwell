@@ -47,7 +47,7 @@ Specs: `README.md` §8, `.kiro/specs/voltlot-mvp/requirements.md` (Technology Co
 | Data | DynamoDB tables `Profiles`, `Listings`, `Bookings`, `EVSpecs`; access checked in the Lambdas | Tables defined; `localStorage` stands in |
 | Photos | Private S3 bucket, presigned POST from `POST /uploads` (JPEG, 5 MB, 5 min), presigned GET for viewing | Bucket and upload route implemented; the app keeps data URLs in `localStorage` |
 | Secrets | SSM Parameter Store SecureString `/dwell/<stage>/eia-api-key`, read by `get-electricity-rate` | Implemented; the parameter is created by hand and does not exist yet |
-| Hosting | S3 + CloudFront (origin access control, security headers), `config.json` for the browser | Planned |
+| Hosting | Amplify Hosting (static frontend only, connected to GitHub `main`, us-east-2), built by `amplify.yml`; `config.json` from the app's `DWELL_*` environment variables | Being set up (the earlier app is being replaced) |
 | Map | MapLibre GL JS with OpenFreeMap tiles (no key; `VITE_MAP_STYLE_URL` can override) | Implemented (labeled fallback if the map cannot load) |
 | Address search | Mapbox Geocoding API v6 with `permanent=true` when `VITE_MAPBOX_TOKEN` is set; otherwise Photon (OpenStreetMap, free, no key, fair-use public server) | Implemented. Callers use `adapters/addressSearch.ts`, which picks the provider |
 | Walking time | Mapbox Directions | Planned; walk times are estimates today |

@@ -264,7 +264,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Done when: handler unit tests with mocked AWS SDK clients cover allow and deny for each route (wrong user gets 403 or 404), and `cdk synth` passes.
     - _Requirements: 1.6, 1.7, 3.1 to 3.5, 5.1 to 5.7, 6.1 to 6.4_
     - Completion note: 13 routes in `infra/lib/api-stack.ts`, handlers in `functions/<route>/handler.ts`, each with a test (`aws-sdk-client-mock` 4.1.0) covering the allowed path and the denials (no token 401, someone else's item 404, rule violations 409). IAM uses explicit actions instead of `grant*()` so the only wildcards are S3 photo prefixes. The server reuses `evaluateListing`, `bookingBlock`, `isReservationExpired`, `checkPickupDistance`, `settleBooking` and the new `features/host/validateListing.ts` (16.1). Server time is America/New_York. Solar share at settlement still uses the sample irradiance profile (18.5). Not built: the host bookings route (19.2) and seed scripts (12.2, 17.1).
-  - [ ] 11.4 Web stack and browser config
+  - [ ] 11.4 Web stack and browser config (superseded: Amplify Hosting, decided Oct 28, 2026)
+    - Status: hosting is Amplify Hosting instead of a `DwellWeb` CDK stack. `amplify.yml` builds the site and writes `config.json` with `npm run backend:config -- --from-env`. `lib/backendConfig.ts` and the local-dev script are done. Remaining: the site's origin in `webOrigins` and a security-headers setup (Amplify custom headers).
     - Private site bucket, CloudFront with origin access control, SPA fallback to `index.html`, a response-headers policy (CSP, HSTS, `frame-ancestors`, `nosniff`), and `config.json` (`apiUrl`, `region`, `userPoolId`, `userPoolClientId`) written from the other stacks' values.
     - `src/lib/backendConfig.ts` loads `/config.json` once at startup with a typed failure; a script writes `public/config.json` for local dev from `cdk deploy --outputs-file`.
     - Depends on: 11.3
