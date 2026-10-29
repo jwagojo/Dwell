@@ -1,4 +1,5 @@
 import type { AvailabilityWindow, Listing } from '../../src/types/listing';
+import middlesexListings from './middlesexListings.json';
 import mockListings from './mockListings.json';
 
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -27,4 +28,10 @@ const BOSTON_SAMPLES: Listing[] = [
   { id: 'dot-ave', title: 'Driveway off Dot Ave', street: 'Dorchester Ave', neighborhood: 'Dorchester', lat: 42.3175, lng: -71.0585, spotType: 'Driveway', chargerKw: 7.2, level: 'L2', plug: 'J1772', adapters: 'NONE', solarKw: 3, spots: 1, hostName: 'Marcus', rate: 0.31, earningsHr: 1.75, windows: daily(6, 22), instructions: DRIVEWAY_NOTE, photos: [] },
 ];
 
-export const SEEDED_LISTINGS: Listing[] = [...MOCK_LISTINGS, ...BOSTON_SAMPLES];
+/**
+ * Across Middlesex County (51 towns), from `middlesexListings.json`, made by scripts/generate-middlesex.ts. Real streets,
+ * fictional homes (no house number), invented chargers. Street data © OpenStreetMap contributors (ODbL).
+ */
+export const MIDDLESEX_LISTINGS = middlesexListings.listings as unknown as Listing[];
+
+export const SEEDED_LISTINGS: Listing[] = [...MOCK_LISTINGS, ...BOSTON_SAMPLES, ...MIDDLESEX_LISTINGS];

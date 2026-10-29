@@ -35,8 +35,8 @@ VoltLot/
 │   │                              get-electricity-rate, list-cars, create-booking, get-booking-details, create-upload,
 │   │                              check-in, complete-pickup, list-host-bookings, get-transit; post-confirmation (Cognito trigger)
 ├── scripts/                       For a deployed stage, reading infra/cdk-outputs.json (outputs.ts): write-config (public/config.json),
-│                                  seed (cars + 34 sample listings, --dry-run) + test, smoke-test (real sign-up and API checks)
-│   └── seed-data/                 The 34 sample listings (mockListings.json + listings.ts) + test, and photos/vl-01/ (owned
+│                                  seed (cars + 104 sample listings, --dry-run), generate-middlesex (one-time) + test, smoke-test (real sign-up and API checks)
+│   └── seed-data/                 The 104 sample listings (mockListings.json, middlesexListings.json, listings.ts) + test, and photos/vl-01/ (owned
 │                                  photos). Seed source only: the app never imports it
 │   └── shared/                    env, clients (SDK clients), http (api wrapper, errors, JWT sub), items (DynamoDB shapes),
 │                                  mappers (items <-> src/types), store (reads), cars, photos (keys, presigning),
