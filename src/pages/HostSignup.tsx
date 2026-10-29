@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { getMassachusettsResidentialRate } from '../adapters/eiaRates';
+import { locateExact } from '../adapters/geolocation';
 import { ADDRESS_TYPES, DESTINATION_TYPES, isMassachusetts, searchAddresses, type GeocodedAddress } from '../adapters/addressSearch';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 import { CheckboxCard, ChoiceGroup, SelectField, Stepper, TextAreaField, TextField } from '../components/form';
@@ -12,20 +13,14 @@ import Wizard from '../components/Wizard';
 import { EV_MODELS } from '../data/evFallbackSeed';
 import {
   DEFAULT_LOCAL_RATE,
-  CHARGER_KW_MAX,
-  CHARGER_KW_MIN,
   EARNINGS_CAP_MULTIPLE,
-  L1_KW_MAX,
-  L2_KW_MIN,
-  MAX_LOCAL_RATE,
-  MIN_LOCAL_RATE,
-  SOLAR_KW_MAX,
   SUGGESTED_EARNINGS_HR,
 } from '../engines/constants';
 import type { Adapters, Plug } from '../engines/plug';
 import { computePrice } from '../engines/pricing';
 import { resolveRate, type RateResolution } from '../engines/rate';
-import { FIELD_STEP, type ListingField } from '../features/host/validateListing';
+import { FIELD_STEP, validateListingInput, type ListingField } from '../features/host/validateListing';
+import type { ListingDraft } from '../adapters/dwellApi';
 import { DAY_LABELS, summarizeDays } from '../lib/availability';
 import { fmtHour, formatDataMonth, formatRateInput, money } from '../lib/format';
 import { fileToDataUrl } from '../lib/image';
@@ -297,52 +292,57 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
     }
   }, [step]);
 
+  /**
+   * The listing as the API receives it. The wizard, the server (save-my-listing) and the seed all validate this shape
+   * with features/host/validateListing.ts, so a value the wizard accepts is never refused on publish.
+   * `photoKeys` defaults to stand-ins: the wizard only needs to count photos; publishing passes the uploaded keys.
+   */
+  function draftFromForm(photoKeys: string[] = form.photos.map((_, i) => `photo-${i}`)): ListingDraft {
+    const a = form.addr;
+    return {
+      title: form.title.trim(),
+      street: a.streetName,
+      neighborhood: a.neighborhood,
+      address: { line: a.line, unit: form.unit.trim() || null, city: a.city, zip: a.zip },
+      lat: form.pin?.lat ?? Number.NaN,
+      lng: form.pin?.lng ?? Number.NaN,
+      spotType: form.spotType,
+      spots: form.spots,
+      rightToList: form.rightToList,
+      level: form.level,
+      chargerKw: kw,
+      plug: form.plug,
+      adapters,
+      outdoorOutlet: form.outdoorOutlet,
+      // An empty box with "Yes, I have solar" is a missing value, not 0 kW.
+      solarKw: form.solar === 'yes' ? (form.solarKw.trim() === '' ? Number.NaN : Number(form.solarKw)) : 0,
+      rate: form.rate.trim() === '' ? Number.NaN : Number(form.rate),
+      rateSource: rateEdited ? 'HOST' : rateInfo.status === 'eia' ? 'EIA' : 'FALLBACK',
+      rateDataMonth: !rateEdited && rateInfo.status === 'eia' ? rateInfo.resolution.dataMonth : null,
+      earningsHr: form.earnings.trim() === '' ? Number.NaN : Number(form.earnings),
+      windows: form.windows,
+      instructions: form.instructions.trim(),
+      photoKeys,
+      termsAccepted: form.terms,
+    };
+  }
+
+  /** Errors for one step: the shared module's rules for that step's fields, plus the checks only the UI can make. */
   function validate(s: number): Errors {
+    const v = validateListingInput(draftFromForm());
     const e: Errors = {};
+    if (!v.ok) for (const [field, message] of Object.entries(v.errors)) if (FIELD_STEP[field as ListingField] === s && message) e[field] = message;
     if (s === 0) {
-      const a = form.addr;
-      if (form.manual) {
-        if (a.line.trim().length < 4) e.line = 'Enter your street address.';
-        if (a.city.trim().length < 2) e.city = 'Enter your city or town.';
-        if (!isMassachusettsZip(a.zip)) e.zip = 'Enter a 5-digit Massachusetts ZIP code.';
-      } else if (a.source !== 'geocode') {
+      // Address and pin rules that depend on how the host entered them, which the API never sees.
+      if (!form.manual && form.addr.source !== 'geocode') {
+        delete e.line;
+        delete e.city;
+        delete e.zip;
         e.address = 'Choose your address from the suggestions.';
-      } else {
-        // A picked result can still lack a town or ZIP. Never publish without them.
-        if (a.city.trim().length < 2) e.city = 'Enter your city or town.';
-        if (!isMassachusettsZip(a.zip)) e.zip = 'Enter your 5-digit Massachusetts ZIP code.';
       }
       if (!form.pin) e.pin = 'Place the pin on your driveway or charger entrance.';
       else if (!form.pin.confirmed) e.pin = 'Confirm the pin location before continuing.';
-      if (!form.rightToList) e.rightToList = 'Confirm you have the right to list this spot.';
     }
-    if (s === 1) {
-      const [lo, hi] = form.level === 'L2' ? [L2_KW_MIN, CHARGER_KW_MAX] : [CHARGER_KW_MIN, L1_KW_MAX];
-      if (!Number.isFinite(kw) || kw < lo || kw > hi) e.kw = `Enter a power between ${lo} and ${hi} kW for ${form.level}.`;
-      if (form.level === 'L1' && !form.outdoorOutlet) e.outdoorOutlet = 'L1 needs a dedicated outdoor-rated outlet.';
-      if (form.solar === 'yes') {
-        const s2 = Number(form.solarKw);
-        if (form.solarKw.trim() === '' || !Number.isFinite(s2) || s2 < 0 || s2 > SOLAR_KW_MAX) e.solarKw = `Enter your system size between 0 and ${SOLAR_KW_MAX} kW.`;
-      }
-    }
-    if (s === 2) {
-      const r = Number(form.rate);
-      if (!Number.isFinite(r) || r < MIN_LOCAL_RATE || r > MAX_LOCAL_RATE) e.rate = `Enter a rate between ${money(MIN_LOCAL_RATE)} and ${money(MAX_LOCAL_RATE)} per kWh.`;
-      const en = Number(form.earnings);
-      if (!Number.isFinite(en) || en <= 0) e.earnings = 'Enter what you’d like to earn per hour.';
-      else if (en > earningsCap) e.earnings = `The most you can set here is ${money(earningsCap)} per hour (2× the suggested ${money(SUGGESTED_EARNINGS_HR)}).`;
-    }
-    if (s === 3) {
-      if (form.title.trim().length < 4) e.title = 'Give your listing a title.';
-      if (form.photos.length < 1) e.photos = 'Add at least one photo.';
-      if (form.instructions.trim().length < 20) e.instructions = 'Write at least 20 characters so drivers can find the spot.';
-    }
-    if (s === 4) {
-      if (form.windows.length < 1) e.windows = 'Add at least one availability window.';
-      else if (form.windows.some((w) => w.days.length === 0)) e.windows = 'Pick at least one day for each window.';
-      else if (form.windows.some((w) => w.start === w.end)) e.windows = 'Each window needs different start and end times.';
-    }
-    if (s === 5 && !form.terms) e.terms = 'Accept the terms to publish.';
     return e;
   }
 
@@ -352,6 +352,14 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
     if (Object.keys(e).length > 0) return;
     if (step < STEPS.length - 1) {
       setStep(step + 1);
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    // Edit mode opens on Review, so the earlier steps may never have been checked: check them all before publishing.
+    const firstBad = STEPS.findIndex((_, i) => Object.keys(validate(i)).length > 0);
+    if (firstBad >= 0) {
+      setErrors(validate(firstBad));
+      setStep(firstBad);
       window.scrollTo({ top: 0 });
       return;
     }
@@ -425,32 +433,7 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
       if (!up.ok) return stop({ photos: up.message, publish: up.message }, 3);
       keys.push(up.key);
     }
-    const a = form.addr;
-    const r = await backend!.api.saveListing({
-      title: form.title.trim(),
-      street: a.streetName,
-      neighborhood: a.neighborhood,
-      address: { line: a.line, unit: form.unit.trim() || null, city: a.city, zip: a.zip },
-      lat: pin.lat,
-      lng: pin.lng,
-      spotType: form.spotType,
-      spots: form.spots,
-      rightToList: form.rightToList,
-      level: form.level,
-      chargerKw: kw,
-      plug: form.plug,
-      adapters,
-      outdoorOutlet: form.outdoorOutlet,
-      solarKw: form.solar === 'yes' ? Number(form.solarKw) : 0,
-      rate: Number(form.rate),
-      rateSource: rateEdited ? 'HOST' : rateInfo.status === 'eia' ? 'EIA' : 'FALLBACK',
-      rateDataMonth: !rateEdited && rateInfo.status === 'eia' ? rateInfo.resolution.dataMonth : null,
-      earningsHr: Number(form.earnings),
-      windows: form.windows,
-      instructions: form.instructions.trim(),
-      photoKeys: keys,
-      termsAccepted: form.terms,
-    });
+    const r = await backend!.api.saveListing(draftFromForm(keys));
     if (!r.ok) {
       const fields = (r.details.fields ?? {}) as Partial<Record<ListingField, string>>;
       const names = Object.keys(fields) as ListingField[];
@@ -564,24 +547,22 @@ export default function HostSignup({ mode = 'new' }: { mode?: 'new' | 'edit' }) 
   };
   const unconfirmPin = () => setForm((f) => (f.pin ? { ...f, pin: { ...f.pin, confirmed: false } } : f));
 
-  function useMyLocation() {
-    if (!navigator.geolocation) return setLocMsg('Location is not available on this device. Drag the pin or click the map instead.');
+  async function useMyLocation() {
     setLocMsg('Finding you…');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        // Positions the same pin as the map does. It still needs the host's explicit confirmation.
-        clearErrors('pin');
-        setForm((f) => ({ ...f, pin: { lat: pos.coords.latitude, lng: pos.coords.longitude, confirmed: false }, recenter: f.recenter + 1 }));
-        setLocMsg('Pin moved to your location. Check it, then confirm.');
-      },
-      (err) =>
-        setLocMsg(
-          err.code === 1
+    const r = await locateExact();
+    if (!r.ok) {
+      return setLocMsg(
+        r.reason === 'UNSUPPORTED'
+          ? 'Location is not available on this device. Drag the pin or click the map instead.'
+          : r.reason === 'DENIED'
             ? 'Location permission was denied. Drag the pin or click the map to place it instead.'
             : 'We couldn’t get your location. Drag the pin or click the map to place it instead.',
-        ),
-      { timeout: 30_000 },
-    );
+      );
+    }
+    // Positions the same pin as the map does. It still needs the host's explicit confirmation.
+    clearErrors('pin');
+    setForm((f) => ({ ...f, pin: { lat: r.lat, lng: r.lng, confirmed: false }, recenter: f.recenter + 1 }));
+    setLocMsg('Pin moved to your location. Check it, then confirm.');
   }
 
   async function addPhotos(files: FileList | null) {

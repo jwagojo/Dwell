@@ -39,5 +39,7 @@ export function readConfig(app: App): DwellConfig {
 export const stackName = (stage: string, part: 'Data' | 'Api') => `Dwell-${stage}-${part}`;
 /** SecureString parameter holding the EIA API key. Created by hand, never in a template (voltlot-rules.md §2). */
 export const eiaKeyParameterName = (stage: string) => `/dwell/${stage}/eia-api-key`;
+/** Optional SecureString with a free MBTA V3 key (raises the rate limit). Created by hand. */
+export const mbtaKeyParameterName = (stage: string) => `/dwell/${stage}/mbta-api-key`;
 /** CloudFormation export with the photo bucket ARN (DwellData -> DwellApi). */
 export const photoBucketArnExport = (stage: string) => `Dwell-${stage}-PhotoBucketArn`;

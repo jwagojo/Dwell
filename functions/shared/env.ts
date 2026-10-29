@@ -1,5 +1,5 @@
 /** Environment variables set by the CDK stacks (infra/lib). Read lazily so a missing one fails the request, not the import. */
-export type EnvName = 'PROFILES_TABLE' | 'LISTINGS_TABLE' | 'BOOKINGS_TABLE' | 'EVSPECS_TABLE' | 'PHOTO_BUCKET' | 'EIA_KEY_PARAM';
+export type EnvName = 'PROFILES_TABLE' | 'LISTINGS_TABLE' | 'BOOKINGS_TABLE' | 'EVSPECS_TABLE' | 'PHOTO_BUCKET' | 'EIA_KEY_PARAM' | 'MBTA_KEY_PARAM';
 
 export function env(name: EnvName): string {
   const value = process.env[name];

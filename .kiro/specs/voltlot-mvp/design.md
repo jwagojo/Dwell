@@ -398,7 +398,7 @@ The prework analysis classified most acceptance criteria as either formula prope
 
 ### Property 1: Host Cost Upper-Bound Invariant
 
-*For all* `charger_kW` in [1.44, 19.2], `car_max_AC_kW` in [3.0, 22.0] ∪ {null}, `local_rate` in [0.10, 0.65], `host_earnings_hr` >= 0, `booked_hours` in [0.5, 24], and `late_minutes` in [0, 720], the Host Payout `(price_per_hr * booked_hours) + late_fee` SHALL be greater than or equal to the maximum possible physical electricity cost `charger_kW * (booked_hours + late_minutes / 60) * local_rate`, where `price_per_hr` and `late_fee` are produced by the `Pricing_Engine` and `Billing_Engine`, and where `car_max_AC_kW = null` is resolved to `charger_kW` (worst case `P_eff = charger_kW`).
+*For all* `charger_kW` in [1.44, 19.2], `car_max_AC_kW` in [3.0, 22.0] ∪ {null}, `local_rate` in [0.10, 0.65], `host_earnings_hr` >= 0, `booked_hours` in [0.5, 24], and `late_minutes` in [0, 720], the Host Payout `(price_per_hr * booked_hours) + late_fee` SHALL be greater than or equal to the maximum possible physical electricity cost `P_eff * (booked_hours + late_minutes / 60) * local_rate` with `P_eff = min(charger_kW, car_max_AC_kW)`, where `price_per_hr` and `late_fee` are produced by the `Pricing_Engine` and `Billing_Engine`, and where `car_max_AC_kW = null` is resolved to `charger_kW` (worst case `P_eff = charger_kW`). (Amended Oct 28, 2026: this version had dropped requirements.md's condition `car_max_AC_kW >= charger_kW`, and as written it failed for any car slower than the charger. Using `P_eff` covers that worst case and every other car. It holds with the rounding in Req 3.3 as amended; `src/engines/hostCost.property.test.ts`.)
 
 **Validates: Requirements 3.1, 3.3, 3.4, 3.5, 1.10**
 

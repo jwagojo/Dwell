@@ -1,5 +1,5 @@
 import { LATE_MULTIPLIER, SERVICE_FEE } from './constants';
-import { roundHalfUp } from './money';
+import { roundHalfUp, roundUp } from './money';
 import { fail, isNum, ok, type EngineResult } from './types';
 
 export interface BillingInput {
@@ -34,7 +34,8 @@ export function settle(input: BillingInput): EngineResult<BillingOutput> {
   if (!isNum(pickup_timestamp)) return fail('pickup_timestamp');
 
   const late_minutes = Math.max(0, Math.ceil((pickup_timestamp - booked_end_timestamp) / 60000));
-  const late_fee = roundHalfUp((late_minutes / 60) * (price_per_hr * LATE_MULTIPLIER), 2);
+  // Rounded UP to the cent: rounding a small late fee down to $0 would leave the overstay electricity unpaid (Property 1).
+  const late_fee = roundUp((late_minutes / 60) * (price_per_hr * LATE_MULTIPLIER), 2);
   const subtotal = roundHalfUp(price_per_hr * booked_hours, 2);
   const customer_total = roundHalfUp((price_per_hr * booked_hours + late_fee) * (1 + SERVICE_FEE), 2);
   const service_fee = roundHalfUp(customer_total - subtotal - late_fee, 2);

@@ -16,19 +16,26 @@ import {
   type Evaluation,
   type SortMode,
 } from '../features/search/evaluateListing';
+import { filterByRadius, METERS_PER_MILE } from '../features/search/filterListings';
 import { todayIndex } from '../lib/availability';
 import { fmtHour, fmtRange } from '../lib/format';
 import { boundsAround, boundsContain, type GeoBounds } from '../lib/geo';
 import { useApp, type LevelFilter } from '../state/AppState';
+import { todaysIrradiance, useLiveDestination, useSunlight, useWalks } from '../state/useLiveData';
 
 const START_HOURS = Array.from({ length: 24 }, (_, h) => h);
 const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
+/** Radius choices, miles. The supported range is 0.1 to 25 (Req 2.1). */
+const RADII = [0.25, 0.5, 1, 2, 5, 10, 25];
+const fmtMiles = (mi: number) => `${mi} mi`;
 
 /** Where an empty search box starts the map. Moving the map overrides it. */
 const BROWSE_CENTER = { lat: DEFAULT_DESTINATION.lat, lng: DEFAULT_DESTINATION.lng };
 
 export default function Search() {
-  const { user, cars, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
+  const { user, cars, activeCar, destination: chosen, startHour, hours, radiusMi, level, sort, listings, update, backend } = useApp();
+  // The destination with live MBTA routes when the backend can look them up.
+  const destination = useLiveDestination(chosen, backend);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // What the map shows right now. Chargers inside it are the results, whether or not there is a destination.
@@ -40,12 +47,21 @@ export default function Search() {
   useEffect(() => setToText(destination?.label ?? ''), [destination?.id, destination?.label]);
   const dayIndex = todayIndex();
 
+  // With a destination: everything within the radius of it. Without one: whatever the map shows.
+  const nearby = useMemo(
+    () => (destination ? filterByRadius(listings, destination, radiusMi) : listings.filter((l) => boundsContain(area, l))).filter((l) => level === 'any' || l.level === level),
+    [listings, destination, radiusMi, area, level],
+  );
+  // Live data (tasks.md 18.5). One sunlight lookup for the area; routed walks for the listings in it.
+  const sunPoint = destination ?? { lat: (area.north + area.south) / 2, lng: (area.east + area.west) / 2 };
+  const { series } = useSunlight(sunPoint);
+  const irradiance = todaysIrradiance(series, startHour, hours);
+  const walks = useWalks(destination, nearby);
+
   const { shown, hiddenByPlug, notOpen } = useMemo(() => {
     const win = { startHour, hours, dayIndex };
-    const evaluated = listings
-      .filter((l) => boundsContain(area, l))
-      .filter((l) => level === 'any' || l.level === level)
-      .map((l) => evaluateListing(l, activeCar, destination, win))
+    const evaluated = nearby
+      .map((l) => evaluateListing(l, activeCar, destination, win, { irradiance, walk: walks.get(l.id) ?? null }))
       .filter((e): e is Evaluation => e !== null);
     return {
       hiddenByPlug: evaluated.filter((e) => !e.plugOk).length,
@@ -55,7 +71,8 @@ export default function Search() {
         sort,
       ),
     };
-  }, [listings, area, destination, level, activeCar, startHour, hours, dayIndex, sort]);
+  }, [nearby, destination, activeCar, startHour, hours, dayIndex, sort, irradiance?.join(','), walks]);
+  const radiusArea = useMemo(() => (destination ? boundsAround(destination, radiusMi * METERS_PER_MILE) : null), [destination, radiusMi]);
 
   if (!user) return <Navigate to="/signup" replace />;
 
@@ -98,6 +115,24 @@ export default function Search() {
             messageClassName="absolute left-0 top-full z-30 mt-1 w-[280px] rounded-card border border-line bg-paper px-3 py-2 shadow-panel"
           />
         </div>
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-[14px] font-medium text-ink">Within</span>
+          <select
+            aria-label="Search radius"
+            value={radiusMi}
+            disabled={!destination}
+            title={destination ? undefined : 'Add a destination to search by distance. Without one, the results are what the map shows.'}
+            onChange={(e) => update({ radiusMi: Number(e.target.value) })}
+            className="h-12 rounded-card border border-line-strong bg-paper px-3 text-[16px] font-medium text-ink disabled:text-muted"
+          >
+            {(RADII.includes(radiusMi) ? RADII : [...RADII, radiusMi].sort((a, b) => a - b)).map((mi) => (
+              <option key={mi} value={mi}>
+                {fmtMiles(mi)}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
           <legend className="mb-1.5 p-0 text-[14px] font-medium text-ink">When</legend>
@@ -154,6 +189,7 @@ export default function Search() {
             destination={destination}
             browseCenter={BROWSE_CENTER}
             onAreaChange={setArea}
+            radiusArea={radiusArea}
             pins={shown.map((e) => ({
               id: e.listing.id,
               lat: e.listing.lat,
@@ -177,7 +213,7 @@ export default function Search() {
               </p>
               <p className="text-[13px] text-muted">
                 {destination
-                  ? 'Miles shown are estimated miles added. Walk times are estimates.'
+                  ? `Within ${fmtMiles(radiusMi)} of ${placeName(destination)}. Miles shown are estimated miles added.${walks.size === 0 ? ' Walk times are estimates.' : ''}`
                   : 'Miles shown are estimated miles added. Drag the map to search another area, or add a destination to see walks, routes and Green Scores.'}
               </p>
             </div>
@@ -209,7 +245,7 @@ export default function Search() {
           {shown.length === 0 ? (
             <div className="rounded-card border border-line p-6 text-[16px] text-body">
               {destination
-                ? `No chargers near ${placeName(destination)} for this filter yet.`
+                ? `No chargers within ${fmtMiles(radiusMi)} of ${placeName(destination)} for this filter. Try a wider radius.`
                 : 'No chargers in this part of the map for this filter. Drag the map or zoom out to look elsewhere.'}
             </div>
           ) : (

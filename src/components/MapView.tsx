@@ -49,14 +49,20 @@ function AreaReporter({ map, onAreaChange }: { map: MapLibreMap; onAreaChange: (
  * Move the camera when the driver picks a different destination. Panning and zooming by hand never come through here,
  * and neither do changes to the set of listings, so the map stays where the driver put it.
  */
-function GoToDestination({ map, destination }: { map: MapLibreMap; destination: Destination | null }) {
-  const previousId = useRef(destination?.id ?? null);
+function GoToDestination({ map, destination, area }: { map: MapLibreMap; destination: Destination | null; area: GeoBounds | null }) {
+  // With a search radius, the camera frames the whole circle; it moves again only when the destination or radius changes.
+  const key = destination ? `${destination.id}|${area ? [area.south, area.west, area.north, area.east].map((n) => n.toFixed(5)).join(',') : ''}` : null;
+  const previousKey = useRef<string | null>(null);
+  const first = useRef(true);
   useEffect(() => {
-    const id = destination?.id ?? null;
-    if (id === previousId.current) return;
-    previousId.current = id;
-    if (destination) map.flyTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), duration: 700 });
-  }, [map, destination]);
+    if (key === previousKey.current) return;
+    previousKey.current = key;
+    const initial = first.current;
+    first.current = false;
+    if (!destination) return;
+    if (area) map.fitBounds([[area.west, area.south], [area.east, area.north]], { padding: 24, duration: initial ? 0 : 700 });
+    else if (!initial) map.flyTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), duration: 700 });
+  }, [map, destination, area, key]);
   return null;
 }
 
@@ -74,7 +80,10 @@ export default function MapView({
   selectedId,
   onSelect,
   onAreaChange,
+  radiusArea = null,
 }: {
+  /** The square around the destination that the search radius covers. The map fits it when it changes. */
+  radiusArea?: GeoBounds | null;
   /** null while the search box is empty */
   destination: Destination | null;
   /** Where to start when there is no destination and the map has not been moved yet */
@@ -106,7 +115,7 @@ export default function MapView({
       {({ map, api }: { map: MapLibreMap; api: MapLibreModule }) => (
         <>
           <AreaReporter map={map} onAreaChange={onAreaChange} />
-          <GoToDestination map={map} destination={destination} />
+          <GoToDestination map={map} destination={destination} area={radiusArea} />
           {destination && (
             <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
               <DestinationPin destination={destination} />

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { locateExact } from '../adapters/geolocation';
 import Header from '../components/Header';
 import PhotoCapture from '../components/PhotoCapture';
 import { AutoGrid, Button, LinkButton, PaidPill, Photo, Segmented, StatTile, StatusDot, WarnNote } from '../components/ui';
@@ -7,11 +8,13 @@ import { lateRatePerMinute } from '../engines/billing';
 import { MILES_PER_KWH, PICKUP_RADIUS_M, SERVICE_FEE } from '../engines/constants';
 import { isReservationExpired } from '../features/session/bookingGuard';
 import { checkPickupDistance } from '../features/session/pickup';
-import { bookedEndTs, bookedStartTs, settleBooking } from '../features/session/settleBooking';
+import { accruedLateFee, bookedEndTs, bookedStartTs, settleBooking } from '../features/session/settleBooking';
 import { fmtClock, fmtDuration, fmtRange, money } from '../lib/format';
 import { haversineDistanceMeters, offsetNorth, type LatLng } from '../lib/geo';
 import { uploadPhoto } from '../lib/upload';
+import { localDate, windowIrradiance } from '../lib/openMeteo';
 import { useApp } from '../state/AppState';
+import { useSunlight } from '../state/useLiveData';
 
 type Step = 'arrived' | 'charging' | 'pickup' | 'done';
 type ClockMode = 'early' | 'ontime' | 'late' | 'real';
@@ -53,6 +56,9 @@ export default function Session() {
     return () => window.clearInterval(id);
   }, [clock]);
   useEffect(() => () => window.clearTimeout(timer.current), []);
+  // Prototype receipts are settled here, with real sunlight for the booked hours (the backend settles its own).
+  const sessionListing = booking ? listings.find((l) => l.id === booking.listingId) : undefined;
+  const { series } = useSunlight(backend ? null : (sessionListing ?? null));
 
   if (!user) return <Navigate to="/signup" replace />;
 
@@ -140,6 +146,7 @@ export default function Session() {
   const estMiles = Math.round(b.pEff * b.hours * MILES_PER_KWH);
   const milesSoFar = Math.round(estMiles * progress);
   const locOk = loc.kind === 'ok' || loc.kind === 'denied';
+  const late = accruedLateFee(b, nowTs);
 
   // One update per action: separate updates built from the same `b` would overwrite each other.
   function jump(to: Step) {
@@ -155,7 +162,8 @@ export default function Session() {
 
   async function finish(flagged: boolean) {
     if (backend) return finishOnServer(flagged);
-    const result = settleBooking(b, listing!, nowTs, flagged);
+    const irradiance = series ? windowIrradiance(series, localDate(b.dayStart), b.startHour, b.hours) : null;
+    const result = settleBooking(b, listing!, nowTs, flagged, irradiance);
     if (!result) return;
     update({ booking: { ...b, status: 'COMPLETED', result, pickupStarted: false } });
     window.scrollTo({ top: 0 });
@@ -185,12 +193,11 @@ export default function Session() {
       setLoc(ok ? { kind: 'ok', meters: metersShown, pos } : { kind: 'far', meters: metersShown });
     };
     if (phone === 'gps') {
-      if (!navigator.geolocation) return setLoc({ kind: 'denied' });
-      navigator.geolocation.getCurrentPosition(
-        (p) => evaluate({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        (err) => setLoc(err.code === err.PERMISSION_DENIED ? { kind: 'denied' } : { kind: 'unavailable' }),
-        { timeout: 30_000, enableHighAccuracy: true },
-      );
+      // Exact, fresh fix (never the rounded Near me position): the 50 m check needs the real distance.
+      void locateExact().then((r) => {
+        if (r.ok) evaluate({ lat: r.lat, lng: r.lng });
+        else setLoc(r.reason === 'DENIED' || r.reason === 'UNSUPPORTED' ? { kind: 'denied' } : { kind: 'unavailable' });
+      });
       return;
     }
     timer.current = window.setTimeout(() => evaluate(offsetNorth(listing!, phone === 'car' ? 18 : 420)), 600);
@@ -244,6 +251,11 @@ export default function Session() {
           <p className={`mt-2 text-[15px] ${minutesLeft < 0 ? 'font-medium text-amber-ink' : 'text-body'}`}>
             Booking ends {fmtClock(endTs)}. After that, {money(lateRatePerMinute(b.pricePerHr))}/min.
           </p>
+          {late.lateMinutes > 0 && (
+            <p className="mt-1 text-[15px] font-semibold text-amber-deep" role="status">
+              Late fee so far: {money(late.lateFee)} for {late.lateMinutes} min, before the {Math.round(SERVICE_FEE * 100)}% service fee.
+            </p>
+          )}
         </div>
         <div className="text-right">
           <p className="text-[13px] font-medium text-muted">Estimated miles added so far</p>

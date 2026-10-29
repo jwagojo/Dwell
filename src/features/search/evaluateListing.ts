@@ -25,6 +25,8 @@ export interface Evaluation {
   distanceM: number | null;
   walkMinutes: number | null;
   walkMeters: number | null;
+  /** True when the walk is the straight-line estimate, false when it is a routed walk (Mapbox) */
+  walkEstimated: boolean;
   /** Straight-line miles from the listing to the destination. An estimate: no trip planner or Directions yet. null without a destination. */
   transitMiles: number | null;
   pEff: number;
@@ -45,7 +47,17 @@ export interface Evaluation {
  * `destination` is null when the driver is just browsing the map: the price and the solar share still work, but the
  * walk, the transit miles and therefore the Green Score do not, and they stay null instead of being guessed.
  */
-export function evaluateListing(listing: Listing, car: Car, destination: LatLng | null, win: SearchWindow): Evaluation | null {
+export interface LiveData {
+  /**
+   * Hourly irradiance for the booking window (Open-Meteo). Omitted: the sample clear-day profile (prototype and the
+   * landing illustration). null: unavailable, so solar share and the Green Score are reported unavailable (Req 4.2).
+   */
+  irradiance?: number[] | null;
+  /** A routed walk to the destination. Omitted or null: the straight-line estimate. */
+  walk?: { minutes: number; meters: number } | null;
+}
+
+export function evaluateListing(listing: Listing, car: Car, destination: LatLng | null, win: SearchWindow, live: LiveData = {}): Evaluation | null {
   const price = computePrice({
     charger_kW: listing.chargerKw,
     car_max_AC_kW: car.maxAcKw,
@@ -60,7 +72,8 @@ export function evaluateListing(listing: Listing, car: Car, destination: LatLng 
   if (!billing.ok) return null;
 
   const distanceM = destination ? haversineDistanceMeters(listing, destination) : null;
-  const walk = distanceM !== null ? estimateWalk(distanceM) : null;
+  const routedWalk = distanceM !== null ? (live.walk ?? null) : null;
+  const walk = routedWalk ?? (distanceM !== null ? estimateWalk(distanceM) : null);
   const transitMiles = distanceM !== null ? metersToMiles(distanceM) : null;
 
   let solarShare: number | null = null;
@@ -70,7 +83,7 @@ export function evaluateListing(listing: Listing, car: Car, destination: LatLng 
     system_kW: listing.solarKw,
     P_eff,
     booked_hours: win.hours,
-    irradiance_W_m2: sampleIrradianceFor(win.startHour, win.hours),
+    irradiance_W_m2: live.irradiance === undefined ? sampleIrradianceFor(win.startHour, win.hours) : (live.irradiance ?? []),
   });
   if (share.ok) {
     solarShare = share.value;
@@ -97,6 +110,7 @@ export function evaluateListing(listing: Listing, car: Car, destination: LatLng 
     distanceM,
     walkMinutes: walk?.minutes ?? null,
     walkMeters: walk?.meters ?? null,
+    walkEstimated: routedWalk === null,
     transitMiles,
     pEff: P_eff,
     electricityPerHr: electricity_cost_per_hr,
