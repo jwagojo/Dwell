@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { DEFAULT_CAR } from '../data/evFallbackSeed';
+import { DEFAULT_CAR, EV_MODELS } from '../data/evFallbackSeed';
 import type { Booking } from '../types/booking';
 import type { Car, Listing } from '../types/listing';
 import { stashAccount, type AccountData, type StashResult } from './accounts';
@@ -26,6 +26,8 @@ interface AppContextValue extends Persisted {
   listings: Listing[];
   /** The driver's car, or a default for hosts previewing search */
   activeCar: Car;
+  /** Cars to choose from. Backend: Open EV Data from GET /cars. Prototype: the 8 seeded cars. */
+  cars: Car[];
   /** The Cognito session and API client, or null in prototype mode (no /config.json). */
   backend: DwellBackend | null;
   /** Backend: reload the account (profile, car, listing, booking) and the listings from the API. */
@@ -72,6 +74,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppStateProvider({ children, backend = null }: { children: ReactNode; backend?: DwellBackend | null }) {
   const [state, setState] = useState<Persisted>(() => (backend ? prefsOnly(load(BACKEND_STORAGE_KEY)) : load()));
   const [remote, setRemote] = useState<{ listings: Listing[]; bookingListing: Listing | null }>({ listings: [], bookingListing: null });
+  const [cars, setCars] = useState<Car[]>(EV_MODELS);
   // With a saved session, wait for the account before rendering, so guarded pages don't bounce to sign-up.
   const [ready, setReady] = useState(() => !backend?.signedIn);
 
@@ -107,10 +110,13 @@ export function AppStateProvider({ children, backend = null }: { children: React
       }
       return { ok: false, message: me.message };
     }
-    const [details, list] = await Promise.all([
+    const [details, list, carList] = await Promise.all([
       me.data.booking ? backend.api.getBooking(me.data.booking.id) : Promise.resolve(null),
       backend.api.listListings(),
+      backend.api.listCars(),
     ]);
+    // Keep the seeded cars if the list can't load, so pricing still works.
+    if (carList.ok && carList.data.cars.length > 0) setCars(carList.data.cars);
     const serverBooking = details?.ok ? details.data.booking : me.data.booking;
     setState((s) => ({
       ...s,
@@ -180,12 +186,14 @@ export function AppStateProvider({ children, backend = null }: { children: React
         : state.hostListing
           ? [state.hostListing]
           : [],
-      activeCar: state.car ?? DEFAULT_CAR,
+      // No car chosen yet: price for the default model, using the car list's newest version of it when there is one.
+      activeCar: state.car ?? cars.find((c) => c.make && `${c.make} ${c.model}`.toLowerCase() === DEFAULT_CAR.name.toLowerCase()) ?? DEFAULT_CAR,
+      cars,
       backend,
       syncAccount,
       applyBooking,
     }),
-    [state, remote, update, signOut, signIn, backend, syncAccount, applyBooking],
+    [state, remote, cars, update, signOut, signIn, backend, syncAccount, applyBooking],
   );
 
   if (!ready) {

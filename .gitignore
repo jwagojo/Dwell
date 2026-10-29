@@ -26,3 +26,6 @@ public/config.json
 
 # Leftover from the abandoned Amplify sandbox; safe to delete.
 .amplify/
+
+# Open EV Data download cache (scripts/ev-data.ts)
+scripts/seed-data/.cache/

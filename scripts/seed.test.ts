@@ -1,15 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { EV_MODELS } from '../src/data/evFallbackSeed';
 import { SEEDED_LISTINGS } from './seed-data/listings';
-import { evSpecToCar } from '../functions/shared/cars';
 import { toEngineListing } from '../functions/shared/mappers';
-import { evSpecItems, listingItems, SEED_HOST_ID } from './seed';
+import { listingItems, SEED_HOST_ID } from './seed';
 
 describe('seed data', () => {
-  it('turns every seeded car into an EVSpecs row that maps back to the same car', () => {
-    expect(evSpecItems().map(evSpecToCar)).toEqual(EV_MODELS);
-  });
-
   it('validates all sample listings and keeps the hotlinked photos out of the bucket', () => {
     const { items, problems } = listingItems();
     expect(problems).toEqual([]);

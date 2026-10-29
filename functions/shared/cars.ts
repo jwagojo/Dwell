@@ -6,27 +6,60 @@ import { tables } from './env';
 import type { EVSpecItem, ProfileItem } from './items';
 
 /**
- * Car reference data: the EVSpecs table (Open EV Data, task 12.2) with the seeded fallback table
- * (src/data/evFallbackSeed.ts) behind it, so the API works before anything is loaded. A table row wins over a
- * fallback row with the same id.
+ * Car reference data: the EVSpecs table (Open EV Data, seeded by scripts/seed.ts) plus the seeded fallback table
+ * (src/data/evFallbackSeed.ts). A fallback car is listed only when the table has no car of the same make and model
+ * (for example the Prius Prime, which Open EV Data does not cover), so the list never shows two versions of one car.
+ * With an empty table the list is the 8 fallback cars, so the API works before seeding.
  */
 
-export const evSpecToCar = (i: EVSpecItem): Car => ({
-  id: i.evId,
-  name: [i.make, i.model].filter(Boolean).join(' '),
-  maxAcKw: i.max_ac_kw,
-  plug: i.plug_type,
-});
+export const evSpecToCar = (i: EVSpecItem): Car => {
+  const version = [i.trim, i.variant].filter(Boolean).join(' ') || undefined;
+  return {
+    id: i.evId,
+    name: [i.year, i.make, i.model, version].filter(Boolean).join(' '),
+    maxAcKw: i.max_ac_kw,
+    plug: i.plug_type,
+    make: i.make,
+    model: i.model,
+    year: i.year,
+    version,
+  };
+};
 
-export async function listCars(): Promise<Car[]> {
-  const byId = new Map<string, Car>(EV_MODELS.map((c) => [c.id, c]));
+/** "Chevy Bolt EV" and "Chevrolet Bolt EV" are the same car. */
+const makeModelKey = (name: string) => name.toLowerCase().replace(/^chevy\b/, 'chevrolet').replace(/\s+/g, ' ').trim();
+
+/** Merge table cars with the fallback cars they don't cover, sorted by make, model, then newest year first. */
+export function mergeCars(tableCars: Car[], fallback: Car[] = EV_MODELS): Car[] {
+  const covered = new Set(tableCars.map((c) => makeModelKey(`${c.make} ${c.model}`)));
+  const extra = fallback.filter((c) => !covered.has(makeModelKey(c.name)));
+  const label = (c: Car) => (c.make ? `${c.make} ${c.model}` : c.name).toLowerCase();
+  return [...tableCars, ...extra].sort(
+    (a, b) => label(a).localeCompare(label(b)) || (b.year ?? 0) - (a.year ?? 0) || a.name.localeCompare(b.name),
+  );
+}
+
+/** The list changes only when someone reseeds, so one container keeps it for an hour. */
+export const CARS_CACHE_TTL_MS = 60 * 60 * 1000;
+let cache: { cars: Car[]; at: number } | null = null;
+
+/** Test hook */
+export function resetCarsCache(): void {
+  cache = null;
+}
+
+export async function listCars(now = Date.now()): Promise<Car[]> {
+  if (cache && now - cache.at < CARS_CACHE_TTL_MS) return cache.cars;
+  const rows: EVSpecItem[] = [];
   let ExclusiveStartKey: Record<string, unknown> | undefined;
   do {
     const page = await ddb.send(new ScanCommand({ TableName: tables.evSpecs, ExclusiveStartKey }));
-    for (const item of (page.Items ?? []) as EVSpecItem[]) byId.set(item.evId, evSpecToCar(item));
+    rows.push(...((page.Items ?? []) as EVSpecItem[]));
     ExclusiveStartKey = page.LastEvaluatedKey;
   } while (ExclusiveStartKey);
-  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const cars = mergeCars(rows.map(evSpecToCar));
+  cache = { cars, at: now };
+  return cars;
 }
 
 export async function findCar(id: string): Promise<Car | null> {

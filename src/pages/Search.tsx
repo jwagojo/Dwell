@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import DestinationSearch from '../components/DestinationSearch';
-import { SelectField } from '../components/form';
+import CarPicker from '../components/CarPicker';
 import Header from '../components/Header';
 import ListingCard from '../components/ListingCard';
 import MapView from '../components/MapView';
@@ -9,7 +9,6 @@ import NearMeButton from '../components/NearMeButton';
 import { InfoNote, Segmented } from '../components/ui';
 import { startHasPassed } from '../features/session/bookingGuard';
 import { DEFAULT_DESTINATION, placeName } from '../data/destinations';
-import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import {
   SEARCH_RADIUS_M,
   evaluateListing,
@@ -21,7 +20,6 @@ import { todayIndex } from '../lib/availability';
 import { fmtHour, fmtRange } from '../lib/format';
 import { boundsAround, boundsContain, type GeoBounds } from '../lib/geo';
 import { useApp, type LevelFilter } from '../state/AppState';
-import type { Car } from '../types/listing';
 
 const START_HOURS = Array.from({ length: 24 }, (_, h) => h);
 const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -30,7 +28,7 @@ const DURATIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 const BROWSE_CENTER = { lat: DEFAULT_DESTINATION.lat, lng: DEFAULT_DESTINATION.lng };
 
 export default function Search() {
-  const { user, car: ownCar, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
+  const { user, cars, activeCar, destination, startHour, hours, level, sort, listings, update } = useApp();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // What the map shows right now. Chargers inside it are the results, whether or not there is a destination.
@@ -64,8 +62,6 @@ export default function Search() {
   const nowHour = new Date().getHours();
   const startPassed = startHasPassed(startHour, Date.now());
   const effectiveSelected = shown.some((e) => e.listing.id === selectedId) ? selectedId : (shown[0]?.listing.id ?? null);
-  const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
-  const carLabel = (c: Car) => `${c.name}${c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}`;
 
   return (
     <div className="flex min-h-dvh flex-col lg:h-screen lg:min-h-[640px]">
@@ -135,21 +131,8 @@ export default function Search() {
           </div>
         </fieldset>
 
-        <div className="min-w-[220px]">
-          <SelectField
-            label="Your car"
-            value={activeCar.id}
-            onChange={(e) => {
-              const next = carOptions.find((c) => c.id === e.target.value);
-              if (next) update({ car: next });
-            }}
-          >
-            {carOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {carLabel(c)}
-              </option>
-            ))}
-          </SelectField>
+        <div className="min-w-0 flex-[1_1_480px]">
+          <CarPicker cars={cars} value={activeCar} onChange={(next) => update({ car: next })} />
         </div>
 
         <Segmented<LevelFilter>

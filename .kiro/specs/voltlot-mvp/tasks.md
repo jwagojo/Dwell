@@ -286,6 +286,7 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - _Requirements: 1.8_
     - Status: the 8 rows exist and drive the car select; the fields and the test do not.
   - [ ] 12.2 Seed script into DynamoDB, with Open EV Data when available
+    - Status (Oct 28, 2026): Open EV Data v1.24.0 is imported by `scripts/ev-data.ts` (downloaded once to the git-ignored `scripts/seed-data/.cache/`, SHA-256 checked): 665 US cars, keyed by `unique_code`, with year, trim and variant. US plugs: NACS stays NACS; CCS1, Type 1, CHAdeMO and the CCS2/Type 2 tags on US rows map to J1772. The 8 fallback rows are deleted on seed and served from code only where the dataset has no match.
     - Status: `scripts/seed.ts` written (`npm run seed -- --stage <stage>`, `--dry-run` validates without AWS); writes the 8 cars by fixed id. Open EV Data is not merged yet. Not run against AWS.
     - `scripts/seed-evspec.ts` writes the fallback table, then merges Open EV Data entries (`ac_charger.max_power_kw`) for US models.
     - Check that Open EV Data covers Leaf, Bolt, Model Y, and Prius Prime (README open question).
@@ -311,6 +312,7 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Done when: unit tests pass for each source, plus precedence (EVSpec over manual) and invalid manual values.
     - _Requirements: 1.9, 1.10_
   - [ ] 14.2 (prototype done) Car selector on Search and the listing page
+    - Status (Oct 28, 2026): `components/CarPicker.tsx` (Make, Model, Year and trim) replaces the select on Search and the listing page, over `GET /cars` in backend mode. Manual kW entry ("My car isn't listed") is still open.
     - Status: in backend mode the chosen car is saved with `PUT /me` (and again right before booking). Make/Model/Year and manual entry are still open.
     - Done in the prototype: a select over the 8 seeded cars on Search and the listing page sets `car` in app state, and every price, P_eff and fit note follows it.
     - Remaining: Make → Model → Year from `EVSpec`; a "My car isn't listed" option with manual kW and plug entry; save the choice to `UserProfile`. Never ask whether the driver owns an adapter.

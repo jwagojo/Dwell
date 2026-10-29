@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { SelectField, Stepper } from '../components/form';
+import { Stepper } from '../components/form';
+import CarPicker from '../components/CarPicker';
 import Header from '../components/Header';
 import { Camera, ChevronLeft, Walk } from '../components/Icons';
 import { Button, FitNote, InfoNote, Photo, RouteBadges, WarnNote } from '../components/ui';
 import { placeName } from '../data/destinations';
-import { EV_MODELS, carById } from '../data/evFallbackSeed';
 import { LINE_STYLES } from '../data/transit';
 import { GREEN_REF_CO2_KG, GREEN_REF_TRANSIT_MILES, GREEN_WEIGHTS, LATE_MULTIPLIER, SERVICE_FEE } from '../engines/constants';
 import { lateRatePerMinute, settle } from '../engines/billing';
@@ -16,7 +16,6 @@ import { fmtHour, money, todayMidnight } from '../lib/format';
 import { metersToMiles } from '../lib/geo';
 import { useApp } from '../state/AppState';
 import type { Booking } from '../types/booking';
-import type { Car } from '../types/listing';
 
 const GALLERY_LABELS = ['Driveway from the street', 'Charger', 'Adapter', 'Your spot'];
 const MAX_KW_SCALE = 12;
@@ -42,7 +41,7 @@ function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: '
 export default function ListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, car: ownCar, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update, backend, syncAccount } = useApp();
+  const { user, cars, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update, backend, syncAccount } = useApp();
   const [busy, setBusy] = useState(false);
   const [bookError, setBookError] = useState('');
 
@@ -69,7 +68,6 @@ export default function ListingPage() {
   const subtotal = bill.ok ? bill.value.subtotal : 0;
   const serviceFee = bill.ok ? bill.value.service_fee : 0;
   const lateRate = lateRatePerMinute(ev.pricePerHr);
-  const carOptions: Car[] = ownCar && !carById(ownCar.id) ? [ownCar, ...EV_MODELS] : EV_MODELS;
   const usesAdapter = listing.plug !== activeCar.plug && ev.plugOk;
   const carLimits = activeCar.maxAcKw !== null && activeCar.maxAcKw < listing.chargerKw;
   // One booking per account in this prototype, so a reserved or running session must finish before another starts.
@@ -235,22 +233,8 @@ export default function ListingPage() {
             <section className="flex flex-col gap-4" aria-labelledby="fit">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <h2 id="fit" className="text-[22px] font-semibold text-ink">Charger fit for your car</h2>
-                <div className="min-w-[220px]">
-                  <SelectField
-                    label="Your car"
-                    value={activeCar.id}
-                    onChange={(e) => {
-                      const next = carOptions.find((c) => c.id === e.target.value);
-                      if (next) update({ car: next });
-                    }}
-                  >
-                    {carOptions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                        {c.maxAcKw !== null ? `, ${c.maxAcKw} kW` : ''}
-                      </option>
-                    ))}
-                  </SelectField>
+                <div className="w-full max-w-[640px]">
+                  <CarPicker cars={cars} value={activeCar} onChange={(next) => update({ car: next })} />
                 </div>
               </div>
               <div className="flex flex-col gap-3 rounded-card border border-line p-4">

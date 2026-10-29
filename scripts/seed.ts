@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { BatchWriteCommand, DeleteCommand, DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { EV_MODELS } from '../src/data/evFallbackSeed';
 import { SEEDED_LISTINGS } from './seed-data/listings';
 import { validateListingInput } from '../src/features/host/validateListing';
 import type { Listing } from '../src/types/listing';
 import type { EVSpecItem, ListingItem } from '../functions/shared/items';
 import { listingItemFromInput } from '../functions/shared/mappers';
+import { EV_DATA_VERSION, loadEvData, toEvSpecItems } from './ev-data';
 import { hasFlag, readOutputs, REPO_ROOT, stageFromArgs } from './outputs';
 
 /**
@@ -16,7 +17,8 @@ import { hasFlag, readOutputs, REPO_ROOT, stageFromArgs } from './outputs';
  *   npm run seed -- --stage dev-wesley            write
  *   npm run seed -- --stage dev-wesley --dry-run  validate only, no AWS calls
  *
- * - EVSpecs: the 8 seeded cars (src/data/evFallbackSeed.ts). Year is unknown, so it is left out.
+ * - EVSpecs: the US cars from Open EV Data (scripts/ev-data.ts, pinned release, downloaded once). The 8 seeded
+ *   fallback cars are not written: the API serves them from code (src/data/evFallbackSeed.ts).
  * - Listings: the 34 sample listings (scripts/seed-data/listings.ts) under one placeholder host that has no account, so
  *   nobody can edit them. Every row goes through the same validation the API uses (photos aside).
  * - Photos: only the owned photos in scripts/seed-data/photos/ are uploaded. The hotlinked Zillow and Redfin images are not
@@ -29,11 +31,17 @@ export const SEED_HOST_ID = 'seed-host';
 const SAMPLE_ZIPS: Record<string, string> = { 'Jamaica Plain': '02130', Roslindale: '02131', 'West Roxbury': '02132', Dorchester: '02125' };
 const SEED_TIME = '2026-10-26T00:00:00.000Z';
 
-export function evSpecItems(): EVSpecItem[] {
-  return EV_MODELS.map((c) => {
-    const [make, ...rest] = c.name.split(' ');
-    return { evId: c.id, make, model: rest.join(' '), max_ac_kw: c.maxAcKw!, plug_type: c.plug };
-  });
+/** Write rows 25 at a time (the BatchWrite limit), retrying anything DynamoDB hands back unprocessed. */
+async function batchPut(ddb: DynamoDBDocumentClient, table: string, rows: EVSpecItem[]): Promise<void> {
+  for (let i = 0; i < rows.length; i += 25) {
+    let pending = rows.slice(i, i + 25).map((Item) => ({ PutRequest: { Item } }));
+    for (let attempt = 0; pending.length > 0; attempt++) {
+      if (attempt > 5) throw new Error(`DynamoDB kept ${pending.length} car rows unprocessed. Run the seed again.`);
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 200 * 2 ** attempt));
+      const res = await ddb.send(new BatchWriteCommand({ RequestItems: { [table]: pending } }));
+      pending = (res.UnprocessedItems?.[table] ?? []) as typeof pending;
+    }
+  }
 }
 
 /** Owned photos (served from public/) that the seed uploads; everything else is a third-party URL and is skipped. */
@@ -84,7 +92,8 @@ export function listingItems(): { items: ListingItem[]; problems: string[] } {
 async function main() {
   const stage = stageFromArgs();
   const dryRun = hasFlag('--dry-run');
-  const cars = evSpecItems();
+  const { items: cars, skipped } = toEvSpecItems(await loadEvData());
+  if (skipped.length > 0) console.log(`Open EV Data ${EV_DATA_VERSION}: skipped ${skipped.length} US vehicles (${[...new Set(skipped.map((s) => s.reason))].join('; ')}).`);
   const { items, problems } = listingItems();
   if (problems.length > 0) {
     console.error(`These listings fail validation and were not seeded:\n  ${problems.join('\n  ')}`);
@@ -104,7 +113,9 @@ async function main() {
     const type = p.file.endsWith('.png') ? 'image/png' : 'image/jpeg';
     await s3.send(new PutObjectCommand({ Bucket: out.photoBucket, Key: p.key, Body: fs.readFileSync(p.file), ContentType: type }));
   }
-  for (const car of cars) await ddb.send(new PutCommand({ TableName: out.tables.evSpecs, Item: car }));
+  // The first seed wrote the 8 fallback cars as rows; remove them so the API serves them only where the dataset has no match.
+  for (const c of EV_MODELS) await ddb.send(new DeleteCommand({ TableName: out.tables.evSpecs, Key: { evId: c.id } }));
+  await batchPut(ddb, out.tables.evSpecs, cars);
   for (const item of items) await ddb.send(new PutCommand({ TableName: out.tables.listings, Item: item }));
   console.log(`Seeded stage ${stage}: ${cars.length} cars, ${items.length} listings, ${photos.length} photos.`);
 }

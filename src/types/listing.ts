@@ -63,4 +63,10 @@ export interface Car {
   /** Max AC charging speed in kW. null means unknown: priced at the charger's full power. */
   maxAcKw: number | null;
   plug: Plug;
+  /** Set for cars from the car list (Open EV Data), used by the picker. Absent for the seeded and hand-entered cars. */
+  make?: string;
+  model?: string;
+  year?: number;
+  /** Trim and variant, for example "Long Range" or "Base Sportback" */
+  version?: string;
 }

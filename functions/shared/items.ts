@@ -81,12 +81,17 @@ export interface ListingItem {
 }
 
 export interface EVSpecItem {
+  /** Open EV Data unique_code, for example "tesla:model_y:2024:long_range" */
   evId: string;
   make: string;
   model: string;
   year?: number;
+  trim?: string;
+  /** Body style or similar, for example "Sportback" */
+  variant?: string;
   max_ac_kw: number;
   plug_type: Plug;
+  source?: 'OPEN_EV_DATA';
 }
 
 export type BookingStatus = 'RESERVED' | 'ACTIVE' | 'COMPLETED';
