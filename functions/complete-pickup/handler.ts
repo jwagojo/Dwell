@@ -10,6 +10,7 @@ import { toApiBooking, toEngineBooking, toEngineListing } from '../shared/mapper
 import { parsePosition } from '../shared/parse';
 import { bookingPhotoKey, photoExists } from '../shared/photos';
 import { getListing, requireDriverBooking } from '../shared/store';
+import { bookedIrradiance } from '../shared/sunlight';
 
 /**
  * POST /bookings/{id}/pickup: end the session at the Pickup tap (Req 3.4, 3.5, 5.3 to 5.7).
@@ -20,6 +21,7 @@ import { getListing, requireDriverBooking } from '../shared/store';
  * - Without one, the pickup completes flagged for host review (Req 5.7).
  * - The bill uses the server clock and the values frozen at booking time (features/session/settleBooking).
  *
+ * - Solar share, CO2 and the Green Score use Open-Meteo for the booked hours, and are left off when it is unavailable.
  * The position comes from the phone and can be spoofed; the photo and the host-review flag are the backstop.
  */
 export const handler = api(async (event) => {
@@ -41,7 +43,9 @@ export const handler = api(async (event) => {
   }
   const flagged = position === null;
   const now = Date.now();
-  const result = settleBooking(toEngineBooking(booking), toEngineListing(listing), now, flagged);
+  // Real sunlight for the booked hours; null (unavailable) leaves the solar figures off the receipt.
+  const irradiance = await bookedIrradiance(listing, booking);
+  const result = settleBooking(toEngineBooking(booking), toEngineListing(listing), now, flagged, irradiance);
   if (!result) throw new Error(`Booking ${booking.bookingId} could not be settled`);
 
   const values: Record<string, unknown> = {

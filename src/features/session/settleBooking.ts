@@ -10,8 +10,21 @@ import type { Listing } from '../../types/listing';
 export const bookedEndTs = (b: Booking) => b.dayStart + (b.startHour + b.hours) * 3_600_000;
 export const bookedStartTs = (b: Booking) => b.dayStart + b.startHour * 3_600_000;
 
+/**
+ * The late fee building up while a session runs past its booked end (tasks.md 21.4): whole late minutes, rounded up,
+ * at the late rate. Before the service fee, which is added at pickup. Zero before the booked end.
+ */
+export function accruedLateFee(b: Booking, nowMs: number): { lateMinutes: number; lateFee: number } {
+  const bill = settle({ price_per_hr: b.pricePerHr, booked_hours: b.hours, booked_end_timestamp: bookedEndTs(b), pickup_timestamp: nowMs });
+  return bill.ok ? { lateMinutes: bill.value.late_minutes, lateFee: bill.value.late_fee } : { lateMinutes: 0, lateFee: 0 };
+}
+
 /** Final bill plus the impact numbers shown on the receipt, from the values frozen at booking time. */
-export function settleBooking(b: Booking, listing: Listing, pickupAt: number, flagged: boolean): BookingResult | null {
+/**
+ * `irradiance`: the booked hours from Open-Meteo. Omitted: the sample profile (prototype). null: unavailable, so the
+ * receipt has no solar share, CO2 or Green Score rather than a guess (Req 4.2).
+ */
+export function settleBooking(b: Booking, listing: Listing, pickupAt: number, flagged: boolean, irradiance?: number[] | null): BookingResult | null {
   const bill = settle({
     price_per_hr: b.pricePerHr,
     booked_hours: b.hours,
@@ -29,7 +42,7 @@ export function settleBooking(b: Booking, listing: Listing, pickupAt: number, fl
     system_kW: listing.solarKw,
     P_eff: b.pEff,
     booked_hours: b.hours,
-    irradiance_W_m2: sampleIrradianceFor(b.startHour, b.hours),
+    irradiance_W_m2: irradiance === undefined ? sampleIrradianceFor(b.startHour, b.hours) : (irradiance ?? []),
   });
   if (share.ok) {
     solarShare = share.value;

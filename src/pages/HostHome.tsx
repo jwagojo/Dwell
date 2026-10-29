@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import HostBookings from '../components/HostBookings';
 import { AutoGrid, Button, LinkButton, Photo, RouteBadges, StatusDot, WalkChip, WarnNote } from '../components/ui';
 import { EV_MODELS } from '../data/evFallbackSeed';
 import { stationToDestination } from '../data/destinations';
@@ -175,9 +176,13 @@ export default function HostHome() {
           </div>
         )}
 
-        <p className="text-[14px] text-muted">
-          Bookings from drivers show up here. Booking notifications aren’t part of this demo, so none have come in yet.
-        </p>
+        {backend ? (
+          <HostBookings backend={backend} />
+        ) : (
+          <p className="text-[14px] text-muted">
+            Bookings from drivers show up here when the app is connected to the Dwell backend. Booking notifications aren’t part of this demo.
+          </p>
+        )}
       </main>
     </div>
   );

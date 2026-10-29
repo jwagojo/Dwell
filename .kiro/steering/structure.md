@@ -33,45 +33,50 @@ VoltLot/
 ├── functions/                     Lambda handlers, one folder per route, each handler.ts + handler.test.ts:
 │   │                              get-me, save-me, list-listings, get-listing, save-my-listing, remove-my-listing,
 │   │                              get-electricity-rate, list-cars, create-booking, get-booking-details, create-upload,
-│   │                              check-in, complete-pickup; post-confirmation (Cognito trigger). tsconfig.json
+│   │                              check-in, complete-pickup, list-host-bookings, get-transit; post-confirmation (Cognito trigger)
 ├── scripts/                       For a deployed stage, reading infra/cdk-outputs.json (outputs.ts): write-config (public/config.json),
 │                                  seed (cars + 34 sample listings, --dry-run) + test, smoke-test (real sign-up and API checks)
 │   └── seed-data/                 The 34 sample listings (mockListings.json + listings.ts) + test, and photos/vl-01/ (owned
 │                                  photos). Seed source only: the app never imports it
 │   └── shared/                    env, clients (SDK clients), http (api wrapper, errors, JWT sub), items (DynamoDB shapes),
 │                                  mappers (items <-> src/types), store (reads), cars, photos (keys, presigning),
-│                                  parse (body validators), time (America/New_York) + test, testing (test fixtures)
+│                                  parse (body validators), time (America/New_York) + test, sunlight (Open-Meteo at settlement), testing (test fixtures)
 └── src/
+    ├── copy.test.ts               Copy guard over every page and component
     ├── main.tsx, App.tsx          Entry (seeds the dev demo account), router (10 routes + catch-all), providers
     ├── tokens.css, index.css, base.css   Theme values, Tailwind @theme mapping, base element rules
     ├── pages/                     One file per route: Landing, SignUp, SignIn, SignOut, HostHome (/host),
     │                              HostSignup (wizard at /host/new and /host/edit), Search, ListingPage, Session
     ├── components/                Header, BookingBanner, Skyline, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
-    │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView, ConfirmEmail
+    │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView, ConfirmEmail,
+    │                              CarPicker (+ My car isn’t listed) + test, HostBookings
     │   └── map/                   LiveMap + useMapLibreMap (MapLibre lifecycle), MapMarker, PricePin, DestinationPin,
     │                              PinPickerMap, MapPreview, ZoomControls, SchematicMap + MapFallbacks (labeled fallback)
     ├── adapters/                  addressSearch (picks the provider), mapboxGeocoding (v6), photonGeocoding (OpenStreetMap),
     │                              geocodingTypes, geolocation (browser position), eiaRates (EIA rate + central cache), cognito (user-pool
-    │                              sign-up/in, refresh, revoke), dwellApi (typed API client) + backendClient test;
+    │                              sign-up/in, refresh, revoke), dwellApi (typed API client) + backendClient test, openMeteo (sunlight),
+    │                              mapboxWalking (Matrix walking times) + liveData test, geolocation test;
     │                              typed, never throw; tests for mapboxGeocoding and eiaRates
     ├── features/
     │   ├── host/validateListing.ts      Pure host listing validation (wizard rules + storage caps), FIELD_STEP; + test
-    │   ├── search/evaluateListing.ts    Combines engines for one listing, car and window; sorting; SEARCH_RADIUS_M
+    │   ├── search/evaluateListing.ts    Combines engines for one listing, car, window and live data; sorting; SEARCH_RADIUS_M
+    │   ├── search/filterListings.ts     Radius filter (haversine, 0.1 to 25 mi) + test
     │   └── session/
     │       ├── bookingGuard.ts          One live booking per account, own-listing block, reservation expiry, past start
     │       ├── pickup.ts                Exact-distance 50 m pickup check
     │       ├── settleBooking.ts         Final bill and impact numbers from frozen booking values
     │       └── session.test.ts
     ├── engines/                   Pure functions: constants, types, money, pricing, billing, climate, rate, plug
-    │                              plus pricing, billing, climate, rate *.test.ts (40 tests)
+    │                              plus unit tests and the two *.property.test.ts (Property 1, Property 2)
     ├── lib/                       hostEntry (host entry paths), format, geo (haversineDistanceMeters, estimateWalk,
     │                              offsetMeters, bounds), availability, image, mapbox (token handling, never uses sk.),
     │                              map (style URL), massachusetts (ZIP and area checks, street name), accountRules (password and US phone rules shared with Cognito), backendConfig (/config.json),
     │                              upload (presigned photo upload) + test, eia (pure EIA URL
-    │                              and response parser, shared with the Lambda); lib.test.ts
+    │                              and response parser, shared with the Lambda), openMeteo and mbta (pure request and response helpers,
+    │                              shared with the Lambdas) + externalData test; lib.test.ts
     ├── state/                     AppState.tsx (localStorage provider), persisted.ts (versioned state + migrations),
     │                              accounts.ts (prototype sign-in), demoAccount.ts (dev-only demo login),
-    │                              backend.ts (backend mode: Cognito session + API client); tests
+    │                              backend.ts (backend mode: Cognito session + API client), useLiveData (sunlight, walks, transit hooks); tests
     ├── types/                     listing.ts, booking.ts, destination.ts
     └── data/                      Sample data: stations, destinations, transit line colors, heroPreview (4 illustrative
                                    listings for the landing ledger), evFallbackSeed (8 cars), sampleIrradiance
@@ -82,7 +87,7 @@ VoltLot/
 ## Still proposed (not created)
 
 ```
-src/adapters/    More adapters, one file per external API with timeout and fallback (mbta, openMeteo, mapbox directions; bedrock is flex)
+src/adapters/    Bedrock (flex)
 infra/lib/web-stack.ts   DwellWeb: S3 + CloudFront hosting and config.json (tasks.md 11.4)
 ```
 
@@ -106,4 +111,3 @@ Create these only when a task needs them. Do not add empty placeholders.
 
 - `src/state/` and `src/features/` hold prototype pieces (localStorage state, composition helpers, booking guards) that `tasks.md` lists only in its "Prototype" section. Cognito and the Dwell API (DynamoDB, S3 behind Lambdas) will replace `AppState`'s storage.
 - `tasks.md` 10.1 places the copy-guard test at `src/copy.test.ts`, outside the "next to the code" rule. It is not written yet.
-- Some geolocation calls (`HostSignup.tsx`, `Session.tsx`) bypass `adapters/geolocation.ts`.

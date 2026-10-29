@@ -128,7 +128,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Completion note: 8 tests. `settle` also returns `subtotal` and `service_fee` (derived so receipt lines add up), and `lateRatePerMinute` is exported for display.
 
 - [ ] 5. Property 1: Host Cost Upper-Bound
-  - [ ] 5.1 Write the property test in `src/engines/hostCost.property.test.ts`
+  - [x] 5.1 Write the property test in `src/engines/hostCost.property.test.ts`
+    - Completion note (Oct 28, 2026): `src/engines/hostCost.property.test.ts`, 500 runs per test, bound `P_eff × (hours + late/60) × rate` (see 5.2), plus regression tests for both counterexamples found.
     - Tag: `// Feature: voltlot-mvp, Property 1: Host Cost Upper-Bound Invariant`.
     - Generators (fast-check): `charger_kW` [1.44,19.2], `car_max_AC_kW` [3.0,22.0] or null, `local_rate` [0.10,0.65], `host_earnings_hr` [0,1000], `booked_hours` [0.5,24], `late_minutes` integer [0,720].
     - Run `computePrice` then `settle` with `pickup = booked_end + late_minutes*60000`.
@@ -137,7 +138,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Depends on: 3.1, 4.1
     - Done when: the test runs. Result is either green, or a recorded counterexample that goes to 5.2.
     - _Requirements: 3.1, 3.3, 3.4, 3.5, 1.10_
-  - [ ] 5.2 Decision gate: rounding vs Property 1
+  - [x] 5.2 Decision gate: rounding vs Property 1
+    - Completion note (Oct 28, 2026): decided option (a). fast-check found two counterexamples with half-up rounding: 1.44 kW × $0.10/kWh = $0.144/hr priced as $0.14, and a one-minute overstay at $0.15/hr whose $0.00375 late fee rounded to $0. `electricity_cost_per_hr` and `late_fee` now round UP to the cent (`engines/money.ts roundUp`); Req 3.3 and design Property 1 are amended. A 300,000-case search found no further counterexample.
     - If 5.1 fails because of 2 dp rounding (expected near `host_earnings_hr = 0`), stop and present the counterexample to the user with these options:
       - (a) round `electricity_cost_per_hr` up to the next cent (amends Req 3.3);
       - (b) assert the property with a documented tolerance of `0.005 × booked_hours`;
@@ -179,7 +181,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Completion note: 12 tests. `greenScoreTerms` is also exported for the listing page's breakdown.
 
 - [ ] 7. Property 2: Green Score Bounds
-  - [ ] 7.1 Write the property test in `src/engines/greenScore.property.test.ts`
+  - [x] 7.1 Write the property test in `src/engines/greenScore.property.test.ts`
+    - Completion note (Oct 28, 2026): `src/engines/greenScore.property.test.ts`, 500 runs, including all-zero (overnight) series, which give |solar_share| < 0.001.
     - Tag: `// Feature: voltlot-mvp, Property 2: Green Score Bounds Invariant`.
     - Generators: `system_kW` [0,25]; irradiance arrays of length 1 to 24 with values [0,1300], including all-zero arrays; `transit_miles` [0,100]; `P_eff` [0.0001,22]; `booked_hours` (0.0001, series length]; `estimated_miles_added = P_eff*booked_hours*3.5`.
     - Assert both `solar_share` and `G` are finite and within [0,1].
@@ -205,7 +208,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
   - Status: the three commands pass today (173 tests), but this checkpoint waits for 5 and 7.
 
 - [ ] 10. Landing page (`src/pages/Landing.tsx`): engines and copy
-  - [ ] 10.1 Add a copy-guard test (`src/copy.test.ts`)
+  - [x] 10.1 Add a copy-guard test (`src/copy.test.ts`)
+    - Completion note (Oct 28, 2026): `src/copy.test.ts` scans every `src/**/*.tsx`; verified it fails when "full charge" is added to a component.
     - Scan `src/**/*.tsx` for forbidden phrases (case-insensitive): "full charge", "wasted", "do you (own|have) an adapter", "bring your (own )?adapter".
     - Assert `Landing.tsx` contains "Estimated miles added", "No key handoff", "car never moves", "host never touches", and "Become a host" (case-insensitive), and that `ListingPage.tsx` contains "local solar self-consumption".
     - Depends on: 1.1
@@ -312,7 +316,7 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Done when: unit tests pass for each source, plus precedence (EVSpec over manual) and invalid manual values.
     - _Requirements: 1.9, 1.10_
   - [ ] 14.2 (prototype done) Car selector on Search and the listing page
-    - Status (Oct 28, 2026): `components/CarPicker.tsx` (Make, Model, Year and trim) replaces the select on Search and the listing page, over `GET /cars` in backend mode. Manual kW entry ("My car isn't listed") is still open.
+    - Status (Oct 28, 2026): `components/CarPicker.tsx` (Make, Model, Year and trim) replaces the select on Search and the listing page, over `GET /cars` in backend mode. "My car isn't listed" (name, plug, kW 3 to 22 or unknown) is done, with tests for its validation.
     - Status: in backend mode the chosen car is saved with `PUT /me` (and again right before booking). Make/Model/Year and manual entry are still open.
     - Done in the prototype: a select over the 8 seeded cars on Search and the listing page sets `car` in app state, and every price, P_eff and fit note follows it.
     - Remaining: Make → Model → Year from `EVSpec`; a "My car isn't listed" option with manual kW and plug entry; save the choice to `UserProfile`. Never ask whether the driver owns an adapter.
@@ -334,7 +338,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - _Requirements: 1.4, 5.2_
 
 - [ ] 16. Host onboarding
-  - [ ] 16.1 (module done) `validateHostListingInput` (pure)
+  - [x] 16.1 (module done) `validateHostListingInput` (pure)
+    - Completion note (Oct 28, 2026): the wizard's `validate(step)` now runs `validateListingInput` on `draftFromForm()` (the same object it publishes) and keeps the errors for that step; only "address picked from suggestions" and "pin confirmed" stay UI-only. Publishing checks every step first, since edit mode opens on Review.
     - Move the rules now inline in `HostSignup.tsx` `validate(step)` into a pure module (for example `src/features/host/validateListing.ts`) that the wizard and the seed script (17.1) both use.
     - Rules (as built): address picked from suggestions or typed (street ≥ 4 chars, city ≥ 2, MA 5-digit ZIP); a confirmed pin; `right_to_list` true; spots 1 to 4; `charger_kW` L2 3.0 to 19.2, L1 1.44 to 1.92; L1 needs the outdoor-outlet check; `solar_kW` 0 to 50 when solar is on; `local_rate` 0.05 to 1.00; `host_earnings_hr` > 0 and ≤ `2 × SUGGESTED_EARNINGS_HR`; title ≥ 4 chars; 1 to 8 photos; instructions ≥ 20 chars; ≥ 1 availability window, each with ≥ 1 day and start ≠ end; host terms accepted.
     - Move the 3.0 and 1.92 kW literals into `engines/constants.ts`. Decide whether the 50 kW solar bound should match Property 2's 25 kW domain.
@@ -382,7 +387,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Depends on: 1.2
     - Done when: tests with mocked adapters resolve a station, a venue, and an address. A manual run resolves "Forest Hills".
     - _Requirements: 2.1_
-  - [ ] 18.2 (prototype done) Search-area and availability filter (pure)
+  - [x] 18.2 (prototype done) Search-area and availability filter (pure)
+    - Completion note (Oct 28, 2026): `features/search/filterListings.ts filterByRadius` (haversine, 0.1 to 25 mi, default 2) with tests; Search has a "Within" control, the map frames the radius, and the radius is saved (`STATE_VERSION` 4). Without a destination the map-bounds browse mode stays.
     - Done in the prototype: `isOpenFor` (`lib/availability.ts`, booking must fit one window, overnight wrap) and a map-bounds filter (`lib/geo.ts boundsContain`, starting 2.5 km around the destination).
     - Remaining: `filterListings(listings, center, radiusMiles, window)` using `haversineDistanceMeters`, active only, radius 0.1 to 25 mi (default 2), with a radius control on Search; keep the map-bounds browse mode for no destination. Tests for `isOpenFor`.
     - Depends on: 2.3
@@ -400,7 +406,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Depends on: 3.1
     - Done when: unit tests cover both modes, including the slow-charger ordering, ties, and the unknown-car case.
     - _Requirements: 2.7_
-  - [ ] 18.5 External adapters with timeouts
+  - [x] 18.5 External adapters with timeouts
+    - Completion note (Oct 28, 2026): Open-Meteo (`lib/openMeteo.ts`, `adapters/openMeteo.ts`), MBTA through `GET /transit` (`functions/get-transit`, optional key `/dwell/<stage>/mbta-api-key`, 24 h cache), and Mapbox Matrix walking (`adapters/mapboxWalking.ts`, needs `VITE_MAPBOX_TOKEN`). 10 s each, typed results, each degrades on its own. `complete-pickup` settles solar share and the Green Score from the booked hours' real irradiance. Search uses one sunlight lookup for the area. Not verified against the live services from the app (the APIs themselves were checked with real calls).
     - Mapbox walking time (Directions API, walking profile) and MBTA nearby routes: 10 s each.
     - Open-Meteo hourly irradiance: 10 s, no key, returns an array aligned to the booking window.
     - Each returns a typed result, not a throw, and replaces its sample source (`estimateWalk`, `data/stations.ts` routes, `data/sampleIrradiance.ts`).
@@ -434,7 +441,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Depends on: 18.7, 11.5
     - Done when: booking a seeded listing creates a `RESERVED` booking whose snapshots match the card's price. A mismatched listing cannot be booked.
     - _Requirements: 2.6, 3.1, 3.3, 3.4, 6.1 to 6.4_
-  - [ ] 19.2 Host bookings view
+  - [x] 19.2 Host bookings view
+    - Completion note (Oct 28, 2026): `GET /me/listing/bookings` (`functions/list-host-bookings`, `byListing` index, driver first name only) and `components/HostBookings.tsx` on `/host`: status, window, totals, photos, "Needs review" for flagged pickups, minutes late with the late fee so far. Marking a pickup reviewed is not built (no requirement yet).
     - On `/host`: list bookings for the host's listing, with status, arrival and pickup photos, and a "needs review" marker for `FLAGGED_FOR_HOST_REVIEW`.
     - Show an in-app "driver is N minutes late" banner when past booked end and not completed.
     - Depends on: 19.1
@@ -452,7 +460,8 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - _Requirements: 5.1, 5.2_
 
 - [ ] 21. Pickup and settlement
-  - [ ] 21.1 (prototype done) Geolocation wrapper
+  - [x] 21.1 (prototype done) Geolocation wrapper
+    - Completion note (Oct 28, 2026): `locateExact()` (fresh, high accuracy, unrounded) in `adapters/geolocation.ts` with tests; the session's Real GPS and the wizard's "I'm at the spot" use it. No page calls `navigator.geolocation` directly.
     - Done: `adapters/geolocation.ts` `locateUser()` with a 30 s timeout and typed failures `UNSUPPORTED`, `DENIED`, `UNAVAILABLE`, `TIMEOUT` (used by Near me).
     - Remaining: unit tests with a mocked `navigator.geolocation`, and route `Session.tsx` and the host wizard's "I'm at the spot" through it instead of calling `navigator.geolocation` directly.
     - Depends on: 2.1
@@ -471,7 +480,9 @@ The UI and the whole driver and host workflow run as a browser prototype (10 rou
     - Depends on: 21.2, 15.2, 4.1, 6.2, 18.5, 20.1
     - Done when: a manual run at the listing completes and shows the final total. A run far away is blocked with the distance. Denied permission completes with the flag set. A failed upload does not end the session.
     - _Requirements: 3.4, 3.5, 4.2, 5.3 to 5.7_
-  - [ ] 21.4 Running late-fee display
+  - [x] 21.4 Running late-fee display
+    - Completion note (Oct 28, 2026): `accruedLateFee` in `features/session/settleBooking.ts`; shown on the Charging step and in the host bookings view. The README example (30 min at  21.4 Running late-fee display
+.00/hr =   - .50) is a test.
     - While `ACTIVE` and past booked end, show the running late fee (using `settle` with `now()`) to the driver and in the host view (19.2).
     - Depends on: 21.3, 19.2
     - Done when: with a booking whose end time is 30 minutes ago at price $2.00/hr, the display shows a $1.50 late fee (before the 10% service fee).

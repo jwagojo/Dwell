@@ -21,8 +21,15 @@ const MESSAGES: Record<LocateFailure, string> = {
 
 const fail = (reason: LocateFailure): LocateResult => ({ ok: false, reason, message: MESSAGES[reason] });
 
-/** Ask the browser for the current position once. A rough fix is enough for finding nearby chargers. */
-export function locateUser(timeoutMs: number = GEOLOCATION_TIMEOUT_MS): Promise<LocateResult> {
+export interface LocateOptions {
+  timeoutMs?: number;
+  /** Ask for GPS-level accuracy and a fresh fix. Needed for the 50 m pickup check and placing a host's pin. */
+  exact?: boolean;
+}
+
+/** Ask the browser for the current position once. By default a rough, recent fix, enough for finding nearby chargers. */
+export function locateUser(opts: LocateOptions | number = {}): Promise<LocateResult> {
+  const { timeoutMs = GEOLOCATION_TIMEOUT_MS, exact = false } = typeof opts === 'number' ? { timeoutMs: opts } : opts;
   return new Promise((resolve) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve(fail('UNSUPPORTED'));
 
@@ -40,10 +47,14 @@ export function locateUser(timeoutMs: number = GEOLOCATION_TIMEOUT_MS): Promise<
       navigator.geolocation.getCurrentPosition(
         (pos) => finish({ ok: true, lat: pos.coords.latitude, lng: pos.coords.longitude, accuracyM: pos.coords.accuracy }),
         (err) => finish(fail(err.code === err.PERMISSION_DENIED ? 'DENIED' : err.code === err.TIMEOUT ? 'TIMEOUT' : 'UNAVAILABLE')),
-        { enableHighAccuracy: false, timeout: timeoutMs, maximumAge: 60_000 },
+        // A cached fix up to a minute old is fine for search; never for pickup, where the phone may have just moved.
+        exact ? { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 } : { enableHighAccuracy: false, timeout: timeoutMs, maximumAge: 60_000 },
       );
     } catch {
       finish(fail('UNAVAILABLE'));
     }
   });
 }
+
+/** A fresh, high-accuracy, unrounded fix: for the Pickup geofence and the host's pin. */
+export const locateExact = (timeoutMs: number = GEOLOCATION_TIMEOUT_MS) => locateUser({ timeoutMs, exact: true });

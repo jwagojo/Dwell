@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { roundHalfUp } from './money';
+import { roundHalfUp, roundUp } from './money';
 import { computePrice } from './pricing';
 
 const base = { charger_kW: 9.6, local_rate: 0.3, host_earnings_hr: 1.5, booked_hours: 4 };
@@ -11,6 +11,22 @@ describe('roundHalfUp', () => {
     expect(roundHalfUp(134.25, 1)).toBe(134.3);
     expect(roundHalfUp(19.272, 2)).toBe(19.27);
     expect(roundHalfUp(0, 2)).toBe(0);
+  });
+});
+
+describe('roundUp', () => {
+  it('rounds any fraction of a cent up, without floating-point surprises', () => {
+    expect(roundUp(0.144, 2)).toBe(0.15);
+    expect(roundUp(2.01168, 2)).toBe(2.02);
+    expect(roundUp(0.9, 2)).toBe(0.9); // 3 x 0.30 is 0.8999999999999999 in floating point
+    expect(roundUp(2.88, 2)).toBe(2.88);
+    expect(roundUp(0, 2)).toBe(0);
+  });
+
+  it('rounds the electricity cost up so the price covers the car draw', () => {
+    // 6.6 kW x $0.3048 = $2.01168/hr
+    const r = computePrice({ ...base, car_max_AC_kW: 6.6, local_rate: 0.3048 });
+    expect(r.ok && r.value.electricity_cost_per_hr).toBe(2.02);
   });
 });
 
