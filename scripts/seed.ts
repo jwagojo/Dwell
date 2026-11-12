@@ -19,7 +19,7 @@ import { hasFlag, readOutputs, REPO_ROOT, stageFromArgs } from './outputs';
  *
  * - EVSpecs: the US cars from Open EV Data (scripts/ev-data.ts, pinned release, downloaded once). The 8 seeded
  *   fallback cars are not written: the API serves them from code (src/data/evFallbackSeed.ts).
- * - Listings: the 34 sample listings (scripts/seed-data/listings.ts) under one placeholder host that has no account, so
+ * - Listings: the 104 sample listings (scripts/seed-data/listings.ts, including 70 across Middlesex County) under one placeholder host that has no account, so
  *   nobody can edit them. Every row goes through the same validation the API uses (photos aside).
  * - Photos: only the owned photos in scripts/seed-data/photos/ are uploaded. The hotlinked Zillow and Redfin images are not
  *   copied into the bucket; those listings show the labeled placeholder.

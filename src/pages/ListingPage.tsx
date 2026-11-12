@@ -15,6 +15,7 @@ import { todayIndex } from '../lib/availability';
 import { fmtHour, money, todayMidnight } from '../lib/format';
 import { metersToMiles } from '../lib/geo';
 import { useApp } from '../state/AppState';
+import { todaysIrradiance, useLiveDestination, useSunlight, useWalks } from '../state/useLiveData';
 import type { Booking } from '../types/booking';
 
 const GALLERY_LABELS = ['Driveway from the street', 'Charger', 'Adapter', 'Your spot'];
@@ -41,11 +42,15 @@ function FitBar({ label, kw, tone }: { label: string; kw: number | null; tone: '
 export default function ListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, cars, activeCar, destination, startHour, hours, listings, booking: currentBooking, hostListing, update, backend, syncAccount } = useApp();
+  const { user, cars, activeCar, destination: chosen, startHour, hours, listings, booking: currentBooking, hostListing, update, backend, syncAccount } = useApp();
   const [busy, setBusy] = useState(false);
   const [bookError, setBookError] = useState('');
 
   const listing = listings.find((l) => l.id === id);
+  // Live data (tasks.md 18.5): MBTA routes near the destination, sunlight at the listing, a routed walk.
+  const destination = useLiveDestination(chosen, backend);
+  const { series } = useSunlight(listing ?? null);
+  const walks = useWalks(destination, listing ? [listing] : []);
   if (!user) return <Navigate to="/signup" replace />;
   if (!listing) {
     return (
@@ -61,7 +66,10 @@ export default function ListingPage() {
     );
   }
 
-  const ev = evaluateListing(listing, activeCar, destination, { startHour, hours, dayIndex: todayIndex() });
+  const ev = evaluateListing(listing, activeCar, destination, { startHour, hours, dayIndex: todayIndex() }, {
+    irradiance: todaysIrradiance(series, startHour, hours),
+    walk: walks.get(listing.id) ?? null,
+  });
   if (!ev) return <Navigate to="/search" replace />;
 
   const bill = settle({ price_per_hr: ev.pricePerHr, booked_hours: hours, booked_end_timestamp: 0, pickup_timestamp: 0 });
@@ -201,7 +209,7 @@ export default function ListingPage() {
                       {ev.walkMinutes} min walk · {metersToMiles(ev.walkMeters).toFixed(1)} mi
                     </p>
                     <p className="text-[14px] text-muted">
-                      Estimated from straight-line distance, from {listing.street} to {placeName(destination)}
+                      {ev.walkEstimated ? 'Estimated from straight-line distance' : 'Walking route'}, from {listing.street} to {placeName(destination)}
                     </p>
                   </div>
                 </div>
@@ -223,7 +231,9 @@ export default function ListingPage() {
                   </div>
                 ) : (
                   <div className="p-4 text-[14px] text-muted">
-                    Transit routes aren’t shown for addresses yet. Pick a T station as your destination to see the routes that serve it.
+                    {backend
+                      ? `No MBTA routes found within a short walk of ${placeName(destination)}.`
+                      : 'Transit routes aren’t shown for addresses yet. Pick a T station as your destination to see the routes that serve it.'}
                   </div>
                 )}
               </div>

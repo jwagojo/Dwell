@@ -114,3 +114,24 @@ describe('landing preview (src/data/heroPreview.ts)', () => {
     }
   });
 });
+
+describe('middlesexListings.json', () => {
+  it('spreads fictional homes on real streets across Middlesex County', async () => {
+    const { MIDDLESEX_LISTINGS } = await import('./listings');
+    const { isMassachusettsZip } = await import('../../src/lib/massachusetts');
+    expect(MIDDLESEX_LISTINGS.length).toBeGreaterThanOrEqual(60);
+    expect(new Set(MIDDLESEX_LISTINGS.map((l) => l.neighborhood)).size).toBeGreaterThanOrEqual(45);
+    for (const l of MIDDLESEX_LISTINGS) {
+      expect(l.id).toMatch(/^mx-[a-z-]+-\d+$/);
+      // Inside the county's rough box, and never a house number.
+      expect(l.lat).toBeGreaterThan(42.15);
+      expect(l.lat).toBeLessThan(42.75);
+      expect(l.lng).toBeGreaterThan(-71.9);
+      expect(l.lng).toBeLessThan(-71.0);
+      expect(l.privateAddress!.line).not.toMatch(/^\d/);
+      expect(isMassachusettsZip(l.privateAddress!.zip)).toBe(true);
+      expect(l.photos).toEqual([]);
+    }
+    expect(new Set(SEEDED_LISTINGS.map((l) => l.id)).size).toBe(SEEDED_LISTINGS.length);
+  });
+});

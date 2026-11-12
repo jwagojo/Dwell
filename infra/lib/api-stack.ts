@@ -9,7 +9,7 @@ import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import type { Construct } from 'constructs';
-import { eiaKeyParameterName, photoBucketArnExport, type DwellConfig } from './config';
+import { eiaKeyParameterName, mbtaKeyParameterName, photoBucketArnExport, type DwellConfig } from './config';
 import { DwellFunction } from './dwell-function';
 
 export interface ApiStackProps extends StackProps {
@@ -48,6 +48,7 @@ export class ApiStack extends Stack {
     super(scope, id, props);
     const { profiles, listings, bookings, evSpecs, photoBucket, config } = props;
 
+    const mbtaKey = StringParameter.fromSecureStringParameterAttributes(this, 'MbtaKey', { parameterName: mbtaKeyParameterName(config.stage) });
     const eiaKey = StringParameter.fromSecureStringParameterAttributes(this, 'EiaKey', {
       parameterName: eiaKeyParameterName(config.stage),
     });
@@ -72,6 +73,7 @@ export class ApiStack extends Stack {
       readListings: (fn: DwellFunction) => fn.allow(READ, [listings.tableArn, activeIndexArn]),
       writeListings: (fn: DwellFunction) => fn.allow([...READ, ...WRITE], [listings.tableArn]),
       readBookings: (fn: DwellFunction) => fn.allow(['dynamodb:GetItem'], [bookings.tableArn]),
+      queryListingBookings: (fn: DwellFunction) => fn.allow(['dynamodb:Query'], [`${bookings.tableArn}/index/byListing`]),
       writeBookings: (fn: DwellFunction) => fn.allow(['dynamodb:GetItem', ...WRITE], [bookings.tableArn]),
       readCars: (fn: DwellFunction) => fn.allow(['dynamodb:GetItem', 'dynamodb:Scan'], [evSpecs.tableArn]),
       viewAllPhotos: (fn: DwellFunction) => viewPhotos(fn, 'media/'),
@@ -82,6 +84,7 @@ export class ApiStack extends Stack {
         photoPrefixGrants.push({ fn, arn: photoObjects('media/*') });
       },
       readEiaKey: (fn: DwellFunction) => fn.allow(['ssm:GetParameter'], [eiaKey.parameterArn]),
+      readMbtaKey: (fn: DwellFunction) => fn.allow(['ssm:GetParameter'], [mbtaKey.parameterArn]),
     } satisfies Record<string, Grant>;
 
     const routes: RouteSpec[] = [
@@ -92,11 +95,13 @@ export class ApiStack extends Stack {
       { method: HttpMethod.PUT, path: '/me/listing', handlerName: 'save-my-listing', description: 'Validates and publishes the account listing', grants: [g.writeProfiles, g.writeListings, g.viewListingPhotos] },
       { method: HttpMethod.DELETE, path: '/me/listing', handlerName: 'remove-my-listing', description: 'Takes the account listing out of search', grants: [g.readProfiles, g.writeListings] },
       { method: HttpMethod.GET, path: '/rate', handlerName: 'get-electricity-rate', description: 'EIA Massachusetts residential average or the fallback', grants: [g.readEiaKey], timeout: Duration.seconds(10) },
+      { method: HttpMethod.GET, path: '/transit', handlerName: 'get-transit', description: 'MBTA routes near a point', grants: [g.readMbtaKey], timeout: Duration.seconds(15) },
       { method: HttpMethod.GET, path: '/cars', handlerName: 'list-cars', description: 'Car list: EVSpecs plus the seeded fallback', grants: [g.readCars] },
       { method: HttpMethod.POST, path: '/bookings', handlerName: 'create-booking', description: 'Guards, prices and reserves a booking', grants: [g.writeProfiles, g.readListings, g.writeBookings] },
+      { method: HttpMethod.GET, path: '/me/listing/bookings', handlerName: 'list-host-bookings', description: 'Bookings on the account listing, for its host', grants: [g.readProfiles, g.readListings, g.queryListingBookings, g.viewBookingPhotos] },
       { method: HttpMethod.GET, path: '/bookings/{id}', handlerName: 'get-booking-details', description: 'Booking and listing for its driver or host', grants: [g.readBookings, g.readListings, g.viewAllPhotos] },
       { method: HttpMethod.POST, path: '/bookings/{id}/check-in', handlerName: 'check-in', description: 'Starts the session after the arrival photo', grants: [g.writeBookings, g.viewBookingPhotos] },
-      { method: HttpMethod.POST, path: '/bookings/{id}/pickup', handlerName: 'complete-pickup', description: 'Geofence check and settlement', grants: [g.writeBookings, g.readListings, g.viewBookingPhotos] },
+      { method: HttpMethod.POST, path: '/bookings/{id}/pickup', handlerName: 'complete-pickup', description: 'Geofence check and settlement', grants: [g.writeBookings, g.readListings, g.viewBookingPhotos], timeout: Duration.seconds(25) },
       { method: HttpMethod.POST, path: '/uploads', handlerName: 'create-upload', description: 'Presigned POST for one photo', grants: [g.writeProfiles, g.readBookings, g.presignUploads] },
     ];
 
@@ -149,6 +154,7 @@ export class ApiStack extends Stack {
       EVSPECS_TABLE: evSpecs.tableName,
       PHOTO_BUCKET: photoBucket.bucketName,
       EIA_KEY_PARAM: eiaKeyParameterName(config.stage),
+      MBTA_KEY_PARAM: mbtaKeyParameterName(config.stage),
     };
 
     for (const r of routes) {

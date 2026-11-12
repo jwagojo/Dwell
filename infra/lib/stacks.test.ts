@@ -75,7 +75,7 @@ describe('DwellApi', () => {
 
   it('puts every route behind the Cognito JWT authorizer', () => {
     const routes = Object.values(api.findResources('AWS::ApiGatewayV2::Route'));
-    expect(routes).toHaveLength(13);
+    expect(routes).toHaveLength(15);
     for (const r of routes) expect(r.Properties.AuthorizationType).toBe('JWT');
     api.hasResourceProperties('AWS::ApiGatewayV2::Authorizer', { AuthorizerType: 'JWT', IdentitySource: ['$request.header.Authorization'] });
   });

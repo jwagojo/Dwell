@@ -1,5 +1,7 @@
 import { DEFAULT_DESTINATION, isCurrentLocation, isDestination, migrateDestination } from '../data/destinations';
+import { SEARCH_RADIUS_MI_DEFAULT } from '../engines/constants';
 import type { SortMode } from '../features/search/evaluateListing';
+import { clampRadiusMiles } from '../features/search/filterListings';
 import type { Booking } from '../types/booking';
 import type { Destination } from '../types/destination';
 import type { Car, Listing } from '../types/listing';
@@ -22,13 +24,15 @@ export interface Persisted {
   destination: Destination | null;
   startHour: number;
   hours: number;
+  /** Search radius around the destination, miles (0.1 to 25) */
+  radiusMi: number;
   level: LevelFilter;
   sort: SortMode;
   hostListing: Listing | null;
   booking: Booking | null;
 }
 
-export const STATE_VERSION = 3;
+export const STATE_VERSION = 4;
 
 export const DEFAULTS: Persisted = {
   version: STATE_VERSION,
@@ -37,6 +41,7 @@ export const DEFAULTS: Persisted = {
   destination: DEFAULT_DESTINATION,
   startHour: 10,
   hours: 4,
+  radiusMi: SEARCH_RADIUS_MI_DEFAULT,
   level: 'any',
   sort: 'fit',
   hostListing: null,
@@ -50,6 +55,7 @@ const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !
  * Turn whatever was saved (any older version, or garbage) into valid current state.
  * v1 stored `destinationId` (a station id) on the state and on the booking; v2 stores a full Destination.
  * v3 drops `user.role`: accounts used to be a driver or a host, and now every account can do both.
+ * v4 adds `radiusMi` (search radius); a missing or unreadable one becomes the default.
  */
 export function migrateState(raw: unknown): Persisted {
   if (!isObj(raw)) return DEFAULTS;
@@ -77,6 +83,7 @@ export function migrateState(raw: unknown): Persisted {
     ...rest,
     version: STATE_VERSION,
     user,
+    radiusMi: clampRadiusMiles(saved.radiusMi) ?? SEARCH_RADIUS_MI_DEFAULT,
     // An explicit null means the driver cleared the search box; anything else unreadable falls back to the default.
     // "My location" is not kept between visits: it would point at where the driver was, not where they are now.
     destination:

@@ -18,6 +18,7 @@ export const TEST_ENV = {
   EVSPECS_TABLE: 'EVSpecs',
   PHOTO_BUCKET: 'dwell-test-photos',
   EIA_KEY_PARAM: '/dwell/test/eia-api-key',
+  MBTA_KEY_PARAM: '/dwell/test/mbta-api-key',
 };
 
 export function useTestEnv(): void {

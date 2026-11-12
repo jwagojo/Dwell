@@ -11,7 +11,12 @@ const s3 = mockClient(S3Client);
 const AT_CAR = { lat: 42.3636, lng: -71.1046 };
 const HALF_PAST_NOON = DAY_START + 12.5 * 3_600_000;
 
+// Booked 10 AM to noon on Oct 28 (Boston): sunny hours from Open-Meteo.
+const SUN = { hourly: { time: ['2026-10-28T10:00', '2026-10-28T11:00'], shortwave_radiation: [600, 700] } };
+
 beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(SUN))));
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
   ddb.reset();
   s3.reset();
   vi.useFakeTimers({ toFake: ['Date'] });
@@ -19,7 +24,10 @@ beforeEach(() => {
   s3.on(HeadObjectCommand).resolves({});
   seedTables(ddb, { profiles: [profile()], listings: [listing()], bookings: [booking({ status: 'ACTIVE', arrival_photo_key: 'media/bookings/booking-1/arrival.jpg' })] });
 });
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
 
 describe('POST /bookings/{id}/pickup', () => {
   it('settles at the car with the server clock and the frozen price', async () => {
@@ -31,6 +39,16 @@ describe('POST /bookings/{id}/pickup', () => {
     const update = ddb.commandCalls(UpdateCommand)[0].args[0].input;
     expect(update.ConditionExpression).toBe('#s = :active');
     expect(update.ExpressionAttributeValues).toMatchObject({ ':geo': 'OK', ':photo': 'media/bookings/booking-1/pickup.jpg' });
+  });
+
+  it('uses real sunlight for the booked hours, and leaves solar figures off when it is unavailable', async () => {
+    const sunny = await call(handler, apiEvent({ id: 'booking-1', body: { position: AT_CAR } }));
+    expect(sunny.body.booking.result.solarShare).toBeGreaterThan(0);
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toContain('api.open-meteo.com');
+    seedTables(ddb, { profiles: [profile()], listings: [listing()], bookings: [booking({ status: 'ACTIVE' })] });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status: 503 })));
+    const cloudy = await call(handler, apiEvent({ id: 'booking-1', body: { position: AT_CAR } }));
+    expect(cloudy.body.booking.result).toMatchObject({ solarShare: null, greenScore: null, co2Kg: null, total: 10.53 });
   });
 
   it('blocks a pickup outside the 50 m geofence and shows the rounded-up distance', async () => {

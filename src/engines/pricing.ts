@@ -1,5 +1,5 @@
 import { MILES_PER_KWH } from './constants';
-import { roundHalfUp } from './money';
+import { roundHalfUp, roundUp } from './money';
 import { fail, isNum, ok, type EngineResult } from './types';
 
 export interface PricingInput {
@@ -27,7 +27,8 @@ export function computePrice(input: PricingInput): EngineResult<PricingOutput> {
   if (!isNum(booked_hours) || booked_hours <= 0) return fail('booked_hours');
 
   const P_eff = Math.min(charger_kW, car_max_AC_kW ?? charger_kW);
-  const electricity_cost_per_hr = roundHalfUp(P_eff * local_rate, 2);
+  // Rounded UP to the cent so the price never falls below the electricity the car can draw (Property 1, tasks.md 5.2).
+  const electricity_cost_per_hr = roundUp(P_eff * local_rate, 2);
   const price_per_hr = roundHalfUp(electricity_cost_per_hr + host_earnings_hr, 2);
   const estimated_miles_added = roundHalfUp(P_eff * booked_hours * MILES_PER_KWH, 1);
   return ok({ P_eff, electricity_cost_per_hr, price_per_hr, estimated_miles_added });

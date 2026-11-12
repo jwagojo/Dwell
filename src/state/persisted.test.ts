@@ -113,3 +113,13 @@ describe('saved state after the rename to Dwell', () => {
     expect(loadSavedState(bad)).toEqual(DEFAULTS);
   });
 });
+
+describe('v4 search radius', () => {
+  it('defaults a missing or unreadable radius and keeps a valid one in range', async () => {
+    const { migrateState } = await import('./persisted');
+    expect(migrateState({ version: 3 }).radiusMi).toBe(2);
+    expect(migrateState({ version: 4, radiusMi: 'far' }).radiusMi).toBe(2);
+    expect(migrateState({ version: 4, radiusMi: 5 }).radiusMi).toBe(5);
+    expect(migrateState({ version: 4, radiusMi: 99 }).radiusMi).toBe(25);
+  });
+});

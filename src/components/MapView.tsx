@@ -72,25 +72,30 @@ function AreaReporter({ map, onAreaChange, inset }: { map: MapLibreMap; onAreaCh
  * Move the camera when the driver picks a different destination. Panning and zooming by hand never come through here,
  * and neither do changes to the set of listings, so the map stays where the driver put it.
  */
-function GoToDestination({ map, destination, inset }: { map: MapLibreMap; destination: Destination | null; inset: number }) {
-  const previousId = useRef(destination?.id ?? '');
-  // The destination goes in the middle of the part of the map the driver can see.
+function GoToDestination({ map, destination, area, inset }: { map: MapLibreMap; destination: Destination | null; area: GeoBounds | null; inset: number }) {
+  // With a search radius, the camera frames the whole circle; it moves again only when the destination or radius changes.
+  const key = destination ? `${destination.id}|${area ? [area.south, area.west, area.north, area.east].map((n) => n.toFixed(5)).join(',') : ''}` : null;
+  const previousKey = useRef<string | null>(null);
+  const first = useRef(true);
+  // The target goes in the middle of the part of the map the driver can see, which the chargers panel may cover on the right.
   const insetRef = useRef(inset);
   insetRef.current = inset;
-
-  // The map starts centered on the destination across its full width. Slide it over once, as soon as the map exists.
-  const startedAt = useRef(destination);
   useEffect(() => {
-    const start = startedAt.current;
-    if (start && insetRef.current > 0) map.easeTo({ center: [start.lng, start.lat], zoom: zoomFor(start), offset: centerOffset(insetRef.current), duration: 0 });
-  }, [map]);
-
-  useEffect(() => {
-    const id = destination?.id ?? '';
-    if (id === previousId.current) return;
-    previousId.current = id;
-    if (destination) map.flyTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), offset: centerOffset(insetRef.current), duration: 700 });
-  }, [map, destination]);
+    if (key === previousKey.current) return;
+    previousKey.current = key;
+    const initial = first.current;
+    first.current = false;
+    if (!destination) return;
+    const covered = insetRef.current;
+    if (area) {
+      map.fitBounds([[area.west, area.south], [area.east, area.north]], { padding: { top: 24, bottom: 24, left: 24, right: 24 + covered }, duration: initial ? 0 : 700 });
+    } else if (initial) {
+      // The map starts centered on the destination across its full width. Slide it over once.
+      if (covered > 0) map.easeTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), offset: centerOffset(covered), duration: 0 });
+    } else {
+      map.flyTo({ center: [destination.lng, destination.lat], zoom: zoomFor(destination), offset: centerOffset(covered), duration: 700 });
+    }
+  }, [map, destination, area, key]);
   return null;
 }
 
@@ -109,7 +114,10 @@ export default function MapView({
   onSelect,
   onAreaChange,
   inset = 0,
+  radiusArea = null,
 }: {
+  /** The square around the destination that the search radius covers. The map fits it when it changes. */
+  radiusArea?: GeoBounds | null;
   /** null while the search box is empty */
   destination: Destination | null;
   /** Where to start when there is no destination and the map has not been moved yet */
@@ -143,7 +151,7 @@ export default function MapView({
       {({ map, api }: { map: MapLibreMap; api: MapLibreModule }) => (
         <>
           <AreaReporter map={map} onAreaChange={onAreaChange} inset={inset} />
-          <GoToDestination map={map} destination={destination} inset={inset} />
+          <GoToDestination map={map} destination={destination} area={radiusArea} inset={inset} />
           {destination && (
             <MapMarker map={map} api={api} lat={destination.lat} lng={destination.lng} zIndex={5}>
               <DestinationPin destination={destination} />

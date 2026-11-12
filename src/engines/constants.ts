@@ -42,3 +42,9 @@ export const MIN_INSTRUCTIONS_CHARS = 20;
 export const MAX_BOOKING_HOURS = 12;
 /** Largest photo upload accepted by the API, bytes. The app resizes photos to small JPEGs first. */
 export const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+/** Search radius around a destination, miles (Req 2.1). */
+export const SEARCH_RADIUS_MI_MIN = 0.1;
+export const SEARCH_RADIUS_MI_MAX = 25;
+export const SEARCH_RADIUS_MI_DEFAULT = 2;
+/** Budget for Mapbox, MBTA and Open-Meteo lookups (tasks.md 18.5). */
+export const EXTERNAL_API_TIMEOUT_MS = 10_000;

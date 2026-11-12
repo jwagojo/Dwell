@@ -86,3 +86,12 @@ describe('upcomingStartHour', () => {
     expect(startHasPassed(upcomingStartHour(10, at(12, 44)), at(12, 44))).toBe(false);
   });
 });
+
+describe('accruedLateFee (tasks.md 21.4)', () => {
+  it('matches the README example: 30 minutes late at $2.00/hr is $1.50 before the service fee', async () => {
+    const { accruedLateFee, bookedEndTs } = await import('./settleBooking');
+    const b = { id: 'b', listingId: 'l', dayStart: 0, startHour: 10, hours: 2, destination: null, carName: 'Car', carKw: 7, pEff: 7, pricePerHr: 2, total: 4.4, status: 'ACTIVE' as const };
+    expect(accruedLateFee(b, bookedEndTs(b) + 30 * 60_000)).toEqual({ lateMinutes: 30, lateFee: 1.5 });
+    expect(accruedLateFee(b, bookedEndTs(b) - 60_000)).toEqual({ lateMinutes: 0, lateFee: 0 });
+  });
+});

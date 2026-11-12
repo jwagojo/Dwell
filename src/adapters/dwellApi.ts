@@ -86,7 +86,10 @@ export function createApiClient(apiUrl: string, tokens: TokenSource, deps: ApiDe
     removeListing: () => request<null>('DELETE', '/me/listing'),
     getRate: () => request<{ rate: RateResolution; fallbackReason: string | null }>('GET', '/rate'),
     listCars: () => request<{ cars: Car[] }>('GET', '/cars'),
+    getTransit: (p: { lat: number; lng: number }) =>
+      request<{ transit: { routes: string[]; nearestStop: string | null } | null; fallbackReason: string | null }>('GET', `/transit?lat=${p.lat.toFixed(5)}&lng=${p.lng.toFixed(5)}`),
     createBooking: (b: { listingId: string; startHour: number; hours: number; destination: Destination | null }) => request<{ booking: Booking }>('POST', '/bookings', b),
+    listHostBookings: () => request<{ bookings: HostBooking[] }>('GET', '/me/listing/bookings'),
     getBooking: (bookingId: string) => request<{ booking: Booking; listing: Listing; role: 'DRIVER' | 'HOST' }>('GET', `/bookings/${id(bookingId)}`),
     checkIn: (bookingId: string) => request<{ booking: Booking }>('POST', `/bookings/${id(bookingId)}/check-in`),
     pickup: (bookingId: string, position: { lat: number; lng: number } | null) => request<{ booking: Booking }>('POST', `/bookings/${id(bookingId)}/pickup`, { position }),
@@ -96,3 +99,9 @@ export function createApiClient(apiUrl: string, tokens: TokenSource, deps: ApiDe
 }
 
 export type DwellApi = ReturnType<typeof createApiClient>;
+
+/** A booking on the host's listing, as the host sees it: the driver's first name only. */
+export interface HostBooking {
+  booking: Booking;
+  driverName: string;
+}

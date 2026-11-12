@@ -47,7 +47,7 @@ Landing page with a car-based pricing preview; Cognito sign-up (one account for 
 
 - Payments (simulated; the booking goes straight to the session).
 - Notifications and host messaging (not in the demo).
-- 34 sample listings, seeded into DynamoDB by `npm run seed` from `scripts/seed-data/`: 30 in Cambridge, Somerville, Allston, Brookline and Dorchester (`mockListings.json`) plus 4 in Jamaica Plain, Roslindale, West Roxbury and Dorchester (`listings.ts`). The app reads them from the API; the landing page shows four of them as a fixed illustration (`src/data/heroPreview.ts`).
+- 104 sample listings, seeded into DynamoDB by `npm run seed` from `scripts/seed-data/`: 30 in Cambridge, Somerville, Allston, Brookline and Dorchester (`mockListings.json`) plus 4 in Jamaica Plain, Roslindale, West Roxbury and Dorchester (`listings.ts`), plus 70 across 51 Middlesex County towns (`middlesexListings.json`, made once by `scripts/generate-middlesex.ts`: real streets from OpenStreetMap, fictional homes with no house number, invented chargers). The app reads them from the API; the landing page shows four of them as a fixed illustration (`src/data/heroPreview.ts`).
 - Sunlight (one sample clear-day irradiance profile), T station routes, and walking times (straight-line estimate).
 
 ## Flex goals (separate from the MVP, not required for the demo)
