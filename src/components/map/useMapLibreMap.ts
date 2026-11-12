@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { LatLng } from '../../lib/geo';
-import { MAP_STYLE_URL } from '../../lib/map';
+import { MAP_STYLE_URL, normalizeMapStyle } from '../../lib/map';
 
 export type MapLibreModule = typeof import('maplibre-gl');
 
@@ -89,6 +89,7 @@ export function useMapLibreMap(containerRef: RefObject<HTMLDivElement | null>, o
           map = new api.Map({
             container,
             style: MAP_STYLE_URL,
+            transformStyle: (_previous, next) => normalizeMapStyle(next),
             center: [o.center.lng, o.center.lat], // MapLibre order: [longitude, latitude]
             zoom: o.zoom,
             attributionControl: false,

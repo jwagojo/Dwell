@@ -536,6 +536,9 @@ Built while the UI was rebuilt. Each item is real behavior the backend tasks mus
   - _Requirements: 6.5_
 - [x] P.8 Session demo controls
   - Pickup clock (early, on time, late, real) and phone position (at the car, 420 m away, real GPS) on `/session`. Remove or hide before a public launch.
+- [x] P.9 Natural-language charger search (requested addition, Oct 29, 2026), then removed Nov 10, 2026
+  - The OpenAI/Ollama implementation was taken out on request. The map shows "AI search coming soon" (`AiSearchComingSoon`). The budget and walk limits stay in the Filters tray (`searchLimits`). The removed code is saved in `ai-search-backup.tar.gz` at the repo root.
+  - Console follow-up: normalize three provider road-shield filters before worker evaluation so missing/null/non-numeric `ref_length` safely excludes the feature without a warning; tested with MapLibre's expression evaluator. Missing optional Mapbox tokens use Photon without a warning; supplied invalid/secret tokens still warn. Non-JSON local AI responses now identify a missing development route instead of reporting a generic network error.
 
 ---
 

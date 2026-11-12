@@ -33,6 +33,7 @@ export default function DestinationSearch({
   hint,
   inputId,
   placeholder = 'T station or address',
+  className,
   labelClassName,
   inputClassName,
 }: {
@@ -45,6 +46,8 @@ export default function DestinationSearch({
   hint?: string;
   inputId?: string;
   placeholder?: string;
+  /** Layout of the label and field. Default: the label above the field. */
+  className?: string;
   labelClassName?: string;
   inputClassName?: string;
 }) {
@@ -76,6 +79,7 @@ export default function DestinationSearch({
       placeholder={placeholder}
       hint={hint}
       error={error}
+      className={className}
       labelClassName={labelClassName}
       inputClassName={inputClassName}
       unavailableNote="T stations still work."

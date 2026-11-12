@@ -32,3 +32,9 @@ export function bookingBlock(listingId: string, current: Booking | null, hostLis
  * still counts as "now", so a driver arriving at 10:20 can book from 10 AM.
  */
 export const startHasPassed = (startHour: number, nowMs: number): boolean => startHour < new Date(nowMs).getHours();
+
+/**
+ * The earliest start the app will use: a saved start that has passed (the default is 10 AM, which is stale all
+ * afternoon) moves up to the current hour, and a later start is kept as chosen.
+ */
+export const upcomingStartHour = (startHour: number, nowMs: number): number => Math.max(startHour, new Date(nowMs).getHours());

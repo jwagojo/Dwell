@@ -48,7 +48,7 @@ VoltLot/
     ├── pages/                     One file per route: Landing, SignUp, SignIn, SignOut, HostHome (/host),
     │                              HostSignup (wizard at /host/new and /host/edit), Search, ListingPage, Session
     ├── components/                Header, BookingBanner, Skyline, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
-    │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView, ConfirmEmail,
+    │                              Combobox, AddressAutocomplete, DestinationSearch, AiSearchComingSoon, NearMeButton, PinPicker, MapView, ConfirmEmail,
     │                              CarPicker (+ My car isn’t listed) + test, HostBookings
     │   └── map/                   LiveMap + useMapLibreMap (MapLibre lifecycle), MapMarker, PricePin, DestinationPin,
     │                              PinPickerMap, MapPreview, ZoomControls, SchematicMap + MapFallbacks (labeled fallback)
@@ -61,6 +61,7 @@ VoltLot/
     │   ├── host/validateListing.ts      Pure host listing validation (wizard rules + storage caps), FIELD_STEP; + test
     │   ├── search/evaluateListing.ts    Combines engines for one listing, car, window and live data; sorting; SEARCH_RADIUS_M
     │   ├── search/filterListings.ts     Radius filter (haversine, 0.1 to 25 mi) + test
+    │   │   search/searchLimits.ts       Budget and walk limits from the Filters tray + test
     │   └── session/
     │       ├── bookingGuard.ts          One live booking per account, own-listing block, reservation expiry, past start
     │       ├── pickup.ts                Exact-distance 50 m pickup check
@@ -70,7 +71,7 @@ VoltLot/
     │                              plus unit tests and the two *.property.test.ts (Property 1, Property 2)
     ├── lib/                       hostEntry (host entry paths), format, geo (haversineDistanceMeters, estimateWalk,
     │                              offsetMeters, bounds), availability, image, mapbox (token handling, never uses sk.),
-    │                              map (style URL), massachusetts (ZIP and area checks, street name), accountRules (password and US phone rules shared with Cognito), backendConfig (/config.json),
+    │                              map (style URL, null-safe road-shield filters) + test, massachusetts (ZIP and area checks, street name), accountRules (password and US phone rules shared with Cognito), backendConfig (/config.json),
     │                              upload (presigned photo upload) + test, eia (pure EIA URL
     │                              and response parser, shared with the Lambda), openMeteo and mbta (pure request and response helpers,
     │                              shared with the Lambdas) + externalData test; lib.test.ts
