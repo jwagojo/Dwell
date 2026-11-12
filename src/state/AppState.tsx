@@ -4,6 +4,7 @@ import type { Booking } from '../types/booking';
 import type { Car, Listing } from '../types/listing';
 import { stashAccount, type AccountData, type StashResult } from './accounts';
 import type { DwellBackend } from './backend';
+import { upcomingStartHour } from '../features/session/bookingGuard';
 import { BACKEND_STORAGE_KEY, DEFAULTS, loadSavedState, saveState, type Persisted } from './persisted';
 export type { LevelFilter, Persisted, User } from './persisted';
 
@@ -178,6 +179,8 @@ export function AppStateProvider({ children, backend = null }: { children: React
   const value = useMemo<AppContextValue>(
     () => ({
       ...state,
+      // The saved start can be hours old (the default is 10 AM). Everything reads the earliest start that is still valid.
+      startHour: upcomingStartHour(state.startHour, Date.now()),
       update,
       signOut,
       signIn,

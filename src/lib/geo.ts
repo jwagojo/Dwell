@@ -48,6 +48,13 @@ export interface GeoBounds {
 
 export const boundsContain = (b: GeoBounds, p: LatLng) => p.lat >= b.south && p.lat <= b.north && p.lng >= b.west && p.lng <= b.east;
 
+/** The smallest rectangle that holds every point. Used for the corners of a map area that may be rotated. */
+export function boundsOfPoints(points: LatLng[]): GeoBounds {
+  const lats = points.map((p) => p.lat);
+  const lngs = points.map((p) => p.lng);
+  return { south: Math.min(...lats), west: Math.min(...lngs), north: Math.max(...lats), east: Math.max(...lngs) };
+}
+
 /** The square that reaches `radiusMeters` from `center` in each direction. Used until a live map reports what it shows. */
 export function boundsAround(center: LatLng, radiusMeters: number): GeoBounds {
   const sw = offsetMeters(center, -radiusMeters, -radiusMeters);

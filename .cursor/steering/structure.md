@@ -35,7 +35,7 @@ VoltLot/
 │   │                              get-electricity-rate, list-cars, create-booking, get-booking-details, create-upload,
 │   │                              check-in, complete-pickup; post-confirmation (Cognito trigger). tsconfig.json
 ├── scripts/                       For a deployed stage, reading infra/cdk-outputs.json (outputs.ts): write-config (public/config.json),
-│                                  seed (cars + 34 sample listings, --dry-run) + test, smoke-test (real sign-up and API checks)
+│                                  seed (cars + 34 sample listings, --dry-run) + test, smoke-test (real sign-up and API checks),
 │   └── seed-data/                 The 34 sample listings (mockListings.json + listings.ts) + test, and photos/vl-01/ (owned
 │                                  photos). Seed source only: the app never imports it
 │   └── shared/                    env, clients (SDK clients), http (api wrapper, errors, JWT sub), items (DynamoDB shapes),
@@ -47,7 +47,7 @@ VoltLot/
     ├── pages/                     One file per route: Landing, SignUp, SignIn, SignOut, HostHome (/host),
     │                              HostSignup (wizard at /host/new and /host/edit), Search, ListingPage, Session
     ├── components/                Header, BookingBanner, Skyline, Icons, ui, form, ListingCard, PhotoCapture, Wizard,
-    │                              Combobox, AddressAutocomplete, DestinationSearch, NearMeButton, PinPicker, MapView, ConfirmEmail
+    │                              Combobox, AddressAutocomplete, DestinationSearch, AiSearchComingSoon, NearMeButton, PinPicker, MapView, ConfirmEmail
     │   └── map/                   LiveMap + useMapLibreMap (MapLibre lifecycle), MapMarker, PricePin, DestinationPin,
     │                              PinPickerMap, MapPreview, ZoomControls, SchematicMap + MapFallbacks (labeled fallback)
     ├── adapters/                  addressSearch (picks the provider), mapboxGeocoding (v6), photonGeocoding (OpenStreetMap),
@@ -57,6 +57,8 @@ VoltLot/
     ├── features/
     │   ├── host/validateListing.ts      Pure host listing validation (wizard rules + storage caps), FIELD_STEP; + test
     │   ├── search/evaluateListing.ts    Combines engines for one listing, car and window; sorting; SEARCH_RADIUS_M
+    │   │   search/searchIntent.ts       AI filter types, response validation, total/walk limits + test
+    │   │   search/resolveDestination.ts Station/geocoder resolution; ambiguous choices stay explicit
     │   └── session/
     │       ├── bookingGuard.ts          One live booking per account, own-listing block, reservation expiry, past start
     │       ├── pickup.ts                Exact-distance 50 m pickup check
@@ -66,7 +68,7 @@ VoltLot/
     │                              plus pricing, billing, climate, rate *.test.ts (40 tests)
     ├── lib/                       hostEntry (host entry paths), format, geo (haversineDistanceMeters, estimateWalk,
     │                              offsetMeters, bounds), availability, image, mapbox (token handling, never uses sk.),
-    │                              map (style URL), massachusetts (ZIP and area checks, street name), accountRules (password and US phone rules shared with Cognito), backendConfig (/config.json),
+    │                              map (style URL, null-safe road-shield filters) + test, massachusetts (ZIP and area checks, street name), accountRules (password and US phone rules shared with Cognito), backendConfig (/config.json),
     │                              upload (presigned photo upload) + test, eia (pure EIA URL
     │                              and response parser, shared with the Lambda); lib.test.ts
     ├── state/                     AppState.tsx (localStorage provider), persisted.ts (versioned state + migrations),
@@ -82,7 +84,7 @@ VoltLot/
 ## Still proposed (not created)
 
 ```
-src/adapters/    More adapters, one file per external API with timeout and fallback (mbta, openMeteo, mapbox directions; bedrock is flex)
+src/adapters/    More adapters, one file per external API with timeout and fallback (mbta, openMeteo, mapbox directions; unknown-car Bedrock lookup is flex)
 infra/lib/web-stack.ts   DwellWeb: S3 + CloudFront hosting and config.json (tasks.md 11.4)
 ```
 

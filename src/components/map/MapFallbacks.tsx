@@ -88,7 +88,7 @@ export function SchematicSearchMap({
         )}
       </SchematicMap>
       <FallbackBanner reason={reason} />
-      <div className="absolute bottom-3 right-3 z-30 flex flex-col gap-2">
+      <div className="absolute bottom-3 z-30 flex flex-col gap-2" style={{ right: 'calc(0.75rem + var(--map-inset-right, 0px))' }}>
         <button type="button" aria-label="Zoom in" className={zoomBtn} onClick={() => setZoom((z) => Math.min(z * 1.35, 3))}>
           +
         </button>

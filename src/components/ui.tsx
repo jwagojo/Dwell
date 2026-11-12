@@ -271,7 +271,7 @@ export function Photo({
           src={src}
           alt=""
           loading={priority ? 'eager' : 'lazy'}
-          fetchPriority={priority ? 'high' : 'auto'}
+          {...{ fetchpriority: priority ? 'high' : 'auto' }}
           referrerPolicy="no-referrer"
           onError={() => setFailedSrc(src!)}
           className={`h-full w-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`}

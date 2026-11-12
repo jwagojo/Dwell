@@ -38,6 +38,7 @@ export function describeTokenProblem(status: MapboxTokenStatus): string {
 /** Rough center of Massachusetts, used to bias address search and as a last-resort camera. */
 export const MASSACHUSETTS_CENTER = { lat: 42.3601, lng: -71.0589 };
 
-if (import.meta.env.DEV && !hasMapboxToken) {
+// No token is a supported configuration: Photon works without one. Warn only about a supplied invalid/secret token.
+if (import.meta.env.DEV && (mapboxTokenStatus === 'secret' || mapboxTokenStatus === 'invalid')) {
   console.warn(`[Dwell] ${describeTokenProblem(mapboxTokenStatus)} Address search uses OpenStreetMap (Photon) instead. See docs/mapbox-setup.md.`);
 }

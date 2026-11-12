@@ -87,6 +87,12 @@
   }
 }
 
+/* The search page floats its results over the right side of the map and sets --map-inset-right to their width.
+   The attribution moves in by the same amount, so it never sits under them. Maps elsewhere leave the variable unset. */
+.maplibregl-map .maplibregl-ctrl-bottom-right {
+  right: var(--map-inset-right, 0px);
+}
+
 /* Auto-fit grid that collapses to one column on phones without media queries (spec §3.1). */
 .auto-grid {
   display: grid;

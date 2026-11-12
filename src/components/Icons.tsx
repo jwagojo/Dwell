@@ -88,9 +88,25 @@ export const ChevronLeft = (p: IconProps) => (
     <path d="m15 5-7 7 7 7" />
   </Svg>
 );
+export const ChevronDown = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 9 7 7 7-7" />
+  </Svg>
+);
 export const House = (p: IconProps) => (
   <Svg {...p}>
     <path d="m3 11 9-8 9 8" />
     <path d="M5.5 9.5V20h13V9.5" />
+  </Svg>
+);
+export const Sparkle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M11 3.5 13 9l5.5 2L13 13l-2 5.5L9 13l-5.5-2L9 9l2-5.5z" />
+    <path d="M19 3v4M17 5h4" />
+  </Svg>
+);
+export const Close = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m6 6 12 12M18 6 6 18" />
   </Svg>
 );

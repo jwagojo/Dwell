@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Booking } from '../../types/booking';
-import { bookingBlock, isBookingLive, isReservationExpired, startHasPassed } from './bookingGuard';
+import { bookingBlock, isBookingLive, isReservationExpired, startHasPassed, upcomingStartHour } from './bookingGuard';
 import { checkPickupDistance } from './pickup';
 
 const DAY = new Date(2026, 9, 26, 0, 0, 0, 0).getTime(); // local midnight
@@ -75,5 +75,14 @@ describe('startHasPassed', () => {
     expect(startHasPassed(9, at(10, 20))).toBe(true);
     expect(startHasPassed(10, at(10, 20))).toBe(false);
     expect(startHasPassed(18, at(10, 20))).toBe(false);
+  });
+});
+
+describe('upcomingStartHour', () => {
+  it('moves a start that has passed up to the current hour and keeps a later one', () => {
+    expect(upcomingStartHour(10, at(12, 44))).toBe(12);
+    expect(upcomingStartHour(12, at(12, 44))).toBe(12);
+    expect(upcomingStartHour(15, at(12, 44))).toBe(15);
+    expect(startHasPassed(upcomingStartHour(10, at(12, 44)), at(12, 44))).toBe(false);
   });
 });

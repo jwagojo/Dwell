@@ -38,6 +38,7 @@ interface ComboboxProps<T> {
   onBlur?: () => void;
   inputId?: string;
   /** Visual overrides, used where the field sits inside another card (the landing search) */
+  className?: string;
   labelClassName?: string;
   inputClassName?: string;
   /** Extra text under the list when the remote search is unavailable */
@@ -65,6 +66,7 @@ export default function Combobox<T>({
   emptyText = 'No matching addresses. Check the spelling, or try the street and town.',
   onBlur,
   inputId,
+  className,
   labelClassName,
   inputClassName,
   unavailableNote,
@@ -163,7 +165,7 @@ export default function Combobox<T>({
 
   return (
     <div
-      className="relative flex flex-col gap-1.5"
+      className={`relative ${className ?? 'flex flex-col gap-1.5'}`}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
           setOpen(false);

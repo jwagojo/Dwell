@@ -7,11 +7,11 @@
     "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
+    "dev": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite",
+    "build": "tsc --noEmit && VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite build",
+    "preview": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p functions && tsc --noEmit -p infra && tsc --noEmit -p scripts",
-    "test": "vitest --run",
+    "test": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest --run",
     "cdk:synth": "cd infra && cdk synth --strict",
     "cdk:diff": "cd infra && cdk diff",
     "cdk:deploy": "cd infra && cdk deploy --all --outputs-file cdk-outputs.json",

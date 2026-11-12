@@ -4,9 +4,9 @@ import { useApp } from '../state/AppState';
 import { Bolt } from './Icons';
 import { Button, LinkButton } from './ui';
 
-export function Logo() {
+export function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex h-11 items-center gap-1.5 rounded-card text-ink" aria-label="Dwell home">
+    <Link to="/" className={`flex ${compact ? 'h-10' : 'h-11'} items-center gap-1.5 rounded-card text-ink`} aria-label="Dwell home">
       <span className="text-brand">
         <Bolt size={20} />
       </span>
@@ -42,15 +42,16 @@ function HostButton({ className = '' }: { className?: string }) {
   );
 }
 
-export default function Header({ wide = false }: { wide?: boolean }) {
+/** `compact` is a slimmer bar for screens where the content below it needs the height, such as the search map. */
+export default function Header({ wide = false, compact = false }: { wide?: boolean; compact?: boolean }) {
   const { user } = useApp();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
   return (
     <header className="border-b border-line bg-paper">
-      <div className={`flex min-h-16 items-center justify-between gap-4 px-6 py-2.5 sm:px-8 ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
-        <Logo />
+      <div className={`flex items-center justify-between gap-4 px-6 sm:px-8 ${compact ? 'min-h-12 py-1.5' : 'min-h-16 py-2.5'} ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
+        <Logo compact={compact} />
         {user ? (
           <div className="flex items-center gap-3">
             <HostButton className="max-lg:hidden" />
@@ -78,7 +79,7 @@ export default function Header({ wide = false }: { wide?: boolean }) {
         )}
       </div>
       {/* Below lg the header row is full, so the host button gets its own row. */}
-      <div className={`flex justify-end px-6 pb-3 sm:px-8 lg:hidden ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
+      <div className={`flex justify-end px-6 sm:px-8 lg:hidden ${compact ? 'pb-2' : 'pb-3'} ${wide ? '' : 'mx-auto max-w-[1280px]'}`}>
         <HostButton className="w-full sm:w-auto" />
       </div>
     </header>
